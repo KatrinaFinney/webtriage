@@ -3,7 +3,7 @@
 export default function HeroSection() {
   return (
     <>
-      {/* Brand top-left */}
+      {/* Top-left animated brand */}
       <div
         style={{
           position: 'fixed',
@@ -37,19 +37,20 @@ export default function HeroSection() {
         />
       </div>
 
-      {/* Hero content with background pulse */}
+      {/* Full-screen hero container */}
       <div
         style={{
           width: '100vw',
           height: '100vh',
-          position: 'relative',
-          overflow: 'hidden',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           padding: '2rem',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
+        {/* Red glowing pulse */}
         <div
           style={{
             position: 'absolute',
@@ -75,14 +76,13 @@ export default function HeroSection() {
             maxWidth: '90vw',
             fontFamily: "'Space Grotesk', sans-serif",
             zIndex: 1,
-            position: 'relative',
           }}
         >
-          <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>
+          <h1 style={{ fontSize: '2.25rem', marginBottom: '1rem' }}>
             Urgent Care for Broken Websites.
           </h1>
-          <p style={{ fontSize: '1.25rem', marginBottom: '2rem' }}>
-            From critical bugs to silent failures — I diagnose fast, and fix even faster.
+          <p style={{ fontSize: '1.1rem', marginBottom: '2rem' }}>
+            From critical bugs to silent failures — We diagnose fast, and fix even faster.
           </p>
           <button
             style={{
@@ -102,7 +102,7 @@ export default function HeroSection() {
           </button>
         </div>
 
-        {/* Keyframes */}
+        {/* Animations */}
         <style>
           {`
             @keyframes pulseGlow {

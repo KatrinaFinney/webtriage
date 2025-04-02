@@ -13,7 +13,7 @@ export default function PricingSection() {
           <ul className={styles.list}>
             <li>One urgent issue diagnosed and resolved — fast</li>
             <li>Common use cases: broken buttons, down pages, broken forms, mobile layout disasters</li>
-            <li>Stabilize and restore functionality without the drama</li>
+            <li>Stabilize and restore functionality quickly</li>
           </ul>
           <a href="/start-fix" className={styles.cta}>Start My Fix</a>
         </div>
