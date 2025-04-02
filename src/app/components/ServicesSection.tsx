@@ -42,18 +42,26 @@ This is ideal for older or DIY-built websites that now need professional care to
       <h2 className={styles.title}>Care Options</h2>
       <div className={styles.grid}>
         {services.map((service, index) => (
-          <div key={index} className={styles.card}>
-            <h3 onClick={() => toggleCard(index)} className={styles.cardTitle}>
-              {service.title}
-            </h3>
+          <div
+            key={index}
+            className={styles.card}
+            onClick={() => toggleCard(index)}
+          >
+            <h3 className={styles.cardTitle}>{service.title}</h3>
             <p className={styles.cardSummary}>{service.summary}</p>
 
             {openIndex === index && (
               <div className={styles.cardBody}>
-                <p className={styles.cardDescription}>
-                  {service.description}
-                </p>
-                <button className={styles.button}>{service.button}</button>
+                <p className={styles.cardDescription}>{service.description}</p>
+                <button
+                  className={styles.button}
+                  onClick={(e) => {
+                    e.stopPropagation(); // prevent collapsing on button click
+                    // Add button logic if needed
+                  }}
+                >
+                  {service.button}
+                </button>
               </div>
             )}
           </div>
