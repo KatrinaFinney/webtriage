@@ -1,8 +1,13 @@
 'use client';
 
 import styles from '../styles/PricingSection.module.css';
+import { useState } from 'react';
+import Modal from './Modal';
+import IntakeForm from './IntakeForm';
 
 export default function PricingSection() {
+  const [showForm, setShowForm] = useState(false);
+
   return (
     <section className={styles.pricing}>
       <h2 className={styles.title}>Tailored Treatment Options</h2>
@@ -15,7 +20,7 @@ export default function PricingSection() {
             <li>Diagnosis + fix</li>
             <li>48hr turnaround</li>
           </ul>
-          <button className={styles.button}>Request a Fix</button>
+          <button className={styles.button} onClick={() => setShowForm(true)}>Request a Fix</button>
         </div>
 
         <div className={`${styles.card} ${styles.featured}`}>
@@ -27,7 +32,7 @@ export default function PricingSection() {
             <li>Monthly audits</li>
             <li>Speed, uptime & plugin monitoring</li>
           </ul>
-          <button className={styles.button}>Start Care</button>
+          <button className={styles.button} onClick={() => setShowForm(true)}>Start Care</button>
         </div>
 
         <div className={styles.card}>
@@ -38,9 +43,13 @@ export default function PricingSection() {
             <li>Accessibility & UX upgrade</li>
             <li>Scoped custom rebuild</li>
           </ul>
-          <button className={styles.button}>Start Recovery</button>
+          <button className={styles.button} onClick={() => setShowForm(true)}>Start Recovery</button>
         </div>
       </div>
+
+      <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
+        <IntakeForm />
+      </Modal>
     </section>
   );
 }
