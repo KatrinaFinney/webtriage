@@ -1,10 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import styles from '../styles/ServicesSection.module.css';
+import Modal from './Modal';
+import IntakeForm from './IntakeForm';
 
 export default function ServicesSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   const toggleCard = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -38,36 +42,49 @@ This is ideal for older or DIY-built websites that now need professional care to
   ];
 
   return (
-    <section className={styles.services}>
-      <h2 className={styles.title}>Choose Your Care Plan</h2>
-      <div className={styles.grid}>
-        {services.map((service, index) => (
-          <div
-            key={index}
-            className={styles.card}
-            onClick={() => toggleCard(index)}
-          >
-            <h3 className={styles.cardTitle}>{service.title}</h3>
-            <p className={styles.cardSummary}>{service.summary}</p>
+    <>
+      <motion.section
+        className={styles.services}
+        initial={{ opacity: 0, y: 60 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+        viewport={{ once: true, amount: 0.4 }}
+      >
+        <h2 className={styles.title}>Choose Your Care Plan</h2>
+        <div className={styles.grid}>
+          {services.map((service, index) => (
+            <div
+              key={index}
+              className={styles.card}
+              onClick={() => toggleCard(index)}
+            >
+              <h3 className={styles.cardTitle}>{service.title}</h3>
+              <p className={styles.cardSummary}>{service.summary}</p>
 
-            {openIndex === index ? (
-              <div className={styles.cardBody}>
-                <p className={styles.cardDescription}>{service.description}</p>
-                <button
-                  className={styles.button}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  {service.button}
-                </button>
-              </div>
-            ) : (
-              <span className={styles.expandHint}>Learn more ↓</span>
-            )}
-          </div>
-        ))}
-      </div>
-    </section>
+              {openIndex === index ? (
+                <div className={styles.cardBody}>
+                  <p className={styles.cardDescription}>{service.description}</p>
+                  <button
+                    className={styles.button}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowForm(true);
+                    }}
+                  >
+                    {service.button}
+                  </button>
+                </div>
+              ) : (
+                <span className={styles.expandHint}>Learn more ↓</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </motion.section>
+
+      <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
+        <IntakeForm />
+      </Modal>
+    </>
   );
 }

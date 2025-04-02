@@ -4,13 +4,20 @@ import { useState } from 'react';
 import styles from '../styles/CallToAction.module.css';
 import Modal from './Modal';
 import IntakeForm from './IntakeForm';
+import { motion } from 'framer-motion';
 
 export default function CallToAction() {
   const [showForm, setShowForm] = useState(false);
 
   return (
     <>
-      <section className={styles.ctaWrapper}>
+      <motion.section
+        className={styles.ctaWrapper}
+        initial={{ opacity: 0, y: 60 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+        viewport={{ once: true, amount: 0.4 }}
+      >
         <div className={styles.ctaContainer}>
           <h2 className={styles.title}>
             Stressed about your site?
@@ -30,7 +37,7 @@ export default function CallToAction() {
             </a>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
         <IntakeForm />
@@ -38,3 +45,4 @@ export default function CallToAction() {
     </>
   );
 }
+
