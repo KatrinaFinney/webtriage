@@ -1,71 +1,59 @@
 .pricing {
-    padding: 6rem 1rem;
+    padding: 5rem 1rem;
     max-width: 1080px;
     margin: 0 auto;
+    text-align: center;
   }
   
   .title {
     font-size: 2rem;
-    color: #ffffff;
-    text-align: center;
-    margin-bottom: 3rem;
+    color: white;
     font-family: var(--font-space-grotesk);
+    margin-bottom: 2.5rem;
   }
   
   .grid {
     display: grid;
     gap: 2rem;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: 1fr;
   }
   
-  .grid div {
+  .card {
     background-color: rgba(10, 17, 40, 0.75);
     padding: 2rem;
     border-radius: 1.25rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 460px;
-    transition: transform 0.3s ease;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   }
   
-  .grid div:hover {
-    transform: translateY(-4px);
+  .featured {
+    border: 1px solid rgba(90, 141, 238, 0.6);
+    background-color: rgba(20, 30, 60, 0.9);
   }
   
-  .highlight {
-    border: 1px solid #5a8dee;
-    box-shadow: 0 0 20px rgba(90, 141, 238, 0.25);
-  }
-  
-  .heading {
-    font-size: 1.25rem;
-    margin-bottom: 1rem;
-    font-family: var(--font-space-grotesk);
-    color: #ffffff;
+  .cardTitle {
+    font-size: 1.35rem;
+    color: white;
+    margin-bottom: 0.5rem;
   }
   
   .price {
     font-size: 1.75rem;
     font-weight: bold;
-    color: #5a8dee;
-    margin-bottom: 1.5rem;
-    font-family: var(--font-space-grotesk);
+    color: #7dd3fc;
+    margin-bottom: 1rem;
   }
   
-  .list {
+  .featureList {
     list-style: none;
-    padding-left: 0;
-    color: #dbeafe;
+    padding: 0;
+    margin: 0 0 1.5rem 0;
+    color: #cbd5e1;
     font-size: 0.95rem;
     line-height: 1.6;
-    margin-bottom: 2rem;
   }
   
   .button {
-    margin-top: auto;
     background-color: #5a8dee;
     color: white;
     padding: 0.75rem 1.25rem;
@@ -83,47 +71,39 @@
     background-color: #4b75c6;
   }
   
-  /* Responsive spacing on smaller screens */
-  @media (max-width: 640px) {
-    .pricing {
-      padding: 4rem 1rem;
+  @keyframes pulseButton {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(90, 141, 238, 0.4);
     }
-  
-    .title {
-      font-size: 1.75rem;
+    50% {
+      box-shadow: 0 0 8px 3px rgba(90, 141, 238, 0.3);
     }
   }
-  /* Inside your main file */
-.title {
-    text-align: center;
+  
+  @media (min-width: 768px) {
+    .grid {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+  }
+  .badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #f87171;
     color: white;
-    font-size: 2rem;
-    margin-bottom: 3rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    box-shadow: 0 4px 8px rgba(248, 113, 113, 0.3);
     font-family: var(--font-space-grotesk);
+    letter-spacing: 0.5px;
   }
   
-  /* Center content within each card */
-  .grid > div {
-    text-align: left;
-  }
-  
-  @media (max-width: 767px) {
-    .grid > div {
-      text-align: center;
-    }
-  
-    .grid h3 {
-      text-align: center;
-    }
-  
-    .grid p,
-    .grid ul {
-      text-align: center;
-      margin: 0 auto;
-    }
-  
-    .grid ul {
-      padding-left: 0;
-    }
+  .featured {
+    border: 1px solid rgba(90, 141, 238, 0.6);
+    background-color: rgba(20, 30, 60, 0.9);
+    position: relative;
   }
   
