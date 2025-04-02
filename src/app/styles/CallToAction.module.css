@@ -1,47 +1,51 @@
-.cta {
-    padding: 80px 20px;
-    background-color: rgba(18, 31, 61, 0.9);
+.ctaWrapper {
+    display: flex;
+    justify-content: center;
+    padding: 6rem 1rem;
+    background: transparent;
+  }
+  
+  .ctaContainer {
+    background-color: rgba(10, 17, 40, 0.75);
+    padding: 3rem 2rem;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(6px);
-    border-top: 1px solid var(--border);
     text-align: center;
-    border-radius: 20px;
-    margin: 4rem auto;
-    max-width: 900px;
+    max-width: 720px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 1s ease-out;
   }
   
-  .container {
-    max-width: 700px;
-    margin: 0 auto;
-  }
-  
-  .container h2 {
+  .title {
     font-size: 2rem;
+    color: #ffffff;
+    font-family: var(--font-space-grotesk);
     margin-bottom: 1rem;
-    color: var(--text);
   }
   
-  .container p {
-    font-size: 1.1rem;
-    color: var(--muted);
+  .subtitle {
+    font-size: 1.15rem;
+    color: #dbeafe;
     margin-bottom: 2rem;
+    font-family: var(--font-space-grotesk);
   }
   
-  .button {
-    display: inline-block;
-    padding: 0.75rem 1.75rem;
-    font-size: 1rem;
-    font-weight: 600;
-    background-color: #4e8fff;
+  .ctaButton {
+    background-color: #5a8dee;
     color: white;
+    font-size: 1rem;
+    padding: 0.85rem 1.75rem;
+    border-radius: 0.5rem;
     border: none;
-    border-radius: 8px;
-    text-decoration: none;
-    box-shadow: 0 0 12px rgba(78, 143, 255, 0.3);
-    transition: all 0.3s ease;
+    cursor: pointer;
+    font-family: var(--font-space-grotesk);
+    font-weight: 500;
+    animation: pulseButton 2.5s ease-in-out infinite;
+    transition: background-color 0.3s ease;
   }
   
-  .button:hover {
-    background-color: #3366cc;
-    box-shadow: 0 0 20px rgba(78, 143, 255, 0.5);
+  .ctaButton:hover {
+    background-color: #4b75c6;
   }
   

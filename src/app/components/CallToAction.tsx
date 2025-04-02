@@ -4,13 +4,15 @@ import styles from '../styles/CallToAction.module.css';
 
 export default function CallToAction() {
   return (
-    <section className={styles.cta}>
-      <div className={styles.container}>
-        <h2>Not sure what you need?</h2>
-        <p>
-          Whether it’s a bug, a breakdown, or just that “something’s off” feeling — We’ll take a look and give you a no-pressure diagnosis.
+    <section className={styles.ctaWrapper}>
+      <div className={styles.ctaContainer}>
+        <h2 className={styles.title}>
+          Stressed about your site?
+        </h2>
+        <p className={styles.subtitle}>
+          We’re your calm, fast support team — ready to triage and treat whatever’s broken.
         </p>
-        <a href="/triage-intake" className={styles.button}>Request a Site Triage</a>
+        <button className={styles.ctaButton}>Stabilize My Website</button>
       </div>
     </section>
   );
