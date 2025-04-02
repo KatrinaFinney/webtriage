@@ -1,64 +1,36 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
-import { VantaEffectInstance } from '@/types/VantaEffect';
-
-
 export default function HeroSection() {
-  const vantaRef = useRef<HTMLDivElement>(null);
-  const [vantaEffect, setVantaEffect] = useState<VantaEffectInstance | null>(null);
-
-  useEffect(() => {
-    if (!vantaEffect && typeof window !== 'undefined') {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js';
-      script.async = true;
-      script.onload = () => {
-        if (window.VANTA && vantaRef.current) {
-          const effect = window.VANTA.GLOBE({
-            el: vantaRef.current,
-            THREE: THREE,
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200.0,
-            minWidth: 200.0,
-            scale: 1.0,
-            scaleMobile: 1.0,
-            color: 0x4e8fff,
-            backgroundColor: 0x0a1128,
-            size: 1.2,
-            points: 12.0,
-          });
-
-          setVantaEffect(effect);
-        }
-      };
-      document.body.appendChild(script);
-    }
-
-    return () => {
-      if (vantaEffect) vantaEffect.destroy();
-    };
-  }, [vantaEffect]);
-
   return (
     <div
-      ref={vantaRef}
       style={{
         width: '100vw',
         height: '100vh',
         position: 'relative',
         overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2rem',
       }}
     >
+      {/* Pulsing red glow layer */}
       <div
         style={{
           position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
+          width: '400px',
+          height: '400px',
+          borderRadius: '50%',
+          backgroundColor: 'rgba(255, 0, 0, 0.15)',
+          filter: 'blur(80px)',
+          animation: 'pulseGlow 2.8s ease-in-out infinite',
+          zIndex: 0,
+        }}
+      />
+
+      {/* Main hero content */}
+      <div
+        style={{
           textAlign: 'center',
           color: 'white',
           padding: '2rem',
@@ -67,13 +39,15 @@ export default function HeroSection() {
           backdropFilter: 'blur(6px)',
           maxWidth: '90vw',
           fontFamily: "'Space Grotesk', sans-serif",
+          zIndex: 1,
+          position: 'relative',
         }}
       >
         <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>
-          Website Troubles? Let’s Fix That.
+          Urgent Care for Broken Websites.
         </h1>
         <p style={{ fontSize: '1.25rem', marginBottom: '2rem' }}>
-          Calm, fast, precise support for websites that just need help.
+          From critical bugs to silent failures — I diagnose fast, and fix even faster.
         </p>
         <button
           style={{
@@ -91,6 +65,26 @@ export default function HeroSection() {
           Start Your Fix
         </button>
       </div>
+
+      {/* Keyframes for pulse animation */}
+      <style>
+        {`
+          @keyframes pulseGlow {
+            0% {
+              transform: scale(1);
+              opacity: 0.7;
+            }
+            50% {
+              transform: scale(1.15);
+              opacity: 1;
+            }
+            100% {
+              transform: scale(1);
+              opacity: 0.7;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }
