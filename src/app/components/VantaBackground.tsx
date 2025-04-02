@@ -2,29 +2,21 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { VantaEffectInstance } from '@/types/VantaEffect';
 
-declare global {
-  interface Window {
-    VANTA: any;
-  }
-}
-
-type VantaEffectInstance = {
-  destroy: () => void;
-};
 
 export default function VantaBackground() {
   const vantaRef = useRef<HTMLDivElement>(null);
   const [vantaEffect, setVantaEffect] = useState<VantaEffectInstance | null>(null);
 
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js';
-    script.async = true;
-    script.onload = () => {
-      if (window.VANTA && vantaRef.current) {
-        setVantaEffect(
-          window.VANTA.NET({
+    if (!vantaEffect && typeof window !== 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js';
+      script.async = true;
+      script.onload = () => {
+        if (window.VANTA && vantaRef.current) {
+          const effect = window.VANTA.NET({
             el: vantaRef.current,
             THREE: THREE,
             color: 0x4e8fff,
@@ -35,11 +27,14 @@ export default function VantaBackground() {
             mouseControls: true,
             touchControls: true,
             gyroControls: false,
-          })
-        );
-      }
-    };
-    document.body.appendChild(script);
+          }) as VantaEffectInstance;
+          
+          setVantaEffect(effect);
+          
+        }
+      };
+      document.body.appendChild(script);
+    }
 
     return () => {
       if (vantaEffect) vantaEffect.destroy();

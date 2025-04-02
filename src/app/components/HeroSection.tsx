@@ -2,53 +2,42 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { VantaEffectInstance } from '@/types/VantaEffect';
 
-declare global {
-  interface Window {
-    VANTA: any;
-  }
-}
-
-type VantaEffectInstance = {
-  destroy: () => void;
-};
 
 export default function HeroSection() {
   const vantaRef = useRef<HTMLDivElement>(null);
   const [vantaEffect, setVantaEffect] = useState<VantaEffectInstance | null>(null);
 
   useEffect(() => {
-    const loadVanta = () => {
-      if (!vantaEffect && typeof window !== 'undefined') {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js';
-        script.async = true;
-        script.onload = () => {
-          if (window.VANTA && vantaRef.current) {
-            setVantaEffect(
-              window.VANTA.GLOBE({
-                el: vantaRef.current,
-                THREE: THREE,
-                mouseControls: true,
-                touchControls: true,
-                gyroControls: false,
-                minHeight: 200.0,
-                minWidth: 200.0,
-                scale: 1.0,
-                scaleMobile: 1.0,
-                color: 0x4e8fff,
-                backgroundColor: 0x0a1128,
-                size: 1.2,
-                points: 12.0,
-              })
-            );
-          }
-        };
-        document.body.appendChild(script);
-      }
-    };
+    if (!vantaEffect && typeof window !== 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js';
+      script.async = true;
+      script.onload = () => {
+        if (window.VANTA && vantaRef.current) {
+          const effect = window.VANTA.GLOBE({
+            el: vantaRef.current,
+            THREE: THREE,
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.0,
+            minWidth: 200.0,
+            scale: 1.0,
+            scaleMobile: 1.0,
+            color: 0x4e8fff,
+            backgroundColor: 0x0a1128,
+            size: 1.2,
+            points: 12.0,
+          });
 
-    loadVanta();
+          setVantaEffect(effect);
+        }
+      };
+      document.body.appendChild(script);
+    }
+
     return () => {
       if (vantaEffect) vantaEffect.destroy();
     };
