@@ -1,157 +1,155 @@
 'use client';
 
-export default function HeroSection() {
-  return (
-    <>
-      {/* Top-left animated brand */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '1rem',
-          left: '1rem',
-          zIndex: 10,
-          fontFamily: "'Space Grotesk', sans-serif",
-        }}
-      >
-        <p
-          style={{
-            fontSize: '1rem',
-            color: 'rgba(255, 255, 255, 0.8)',
-            fontWeight: 600,
-            letterSpacing: '0.05em',
-            marginBottom: '0.25rem',
-          }}
-        >
-          WebTriage.pro
-        </p>
-        <span
-          style={{
-            display: 'block',
-            height: '2px',
-            width: '100%',
-            background: 'rgba(255, 77, 77, 0.5)',
-            boxShadow: '0 0 6px 2px rgba(255, 77, 77, 0.3)',
-            animation: 'pulseUnderline 2.8s ease-in-out infinite',
-            borderRadius: '1px',
-          }}
-        />
-      </div>
+import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
 
-      {/* Full-screen hero container */}
+type VantaEffectInstance = {
+  destroy: () => void;
+};
+
+export default function HeroSection() {
+  const vantaRef = useRef<HTMLDivElement>(null);
+  const [vantaEffect, setVantaEffect] = useState<VantaEffectInstance | null>(null);
+
+  useEffect(() => {
+    const loadVanta = async () => {
+      if (!vantaEffect && typeof window !== 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js';
+        script.async = true;
+        script.onload = () => {
+          if (window.VANTA && vantaRef.current) {
+            setVantaEffect(
+              window.VANTA.GLOBE({
+                el: vantaRef.current,
+                THREE: THREE,
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.0,
+                minWidth: 200.0,
+                scale: 1.0,
+                scaleMobile: 1.0,
+                color: 0x4e8fff,
+                backgroundColor: 0x0a1128,
+                size: 1.2,
+                points: 12.0,
+              })
+            );
+          }
+        };
+        document.body.appendChild(script);
+      }
+    };
+
+    loadVanta();
+
+    return () => {
+      if (vantaEffect) {
+        vantaEffect.destroy();
+      }
+    };
+  }, [vantaEffect]);
+
+  return (
+    <div
+      ref={vantaRef}
+      style={{
+        width: '100vw',
+        height: '100vh',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* 🔥 webtriage.pro animated badge */}
       <div
         style={{
-          width: '100vw',
-          height: '100vh',
+          position: 'absolute',
+          top: '1.5rem',
+          left: '1.5rem',
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          padding: '0.5rem 1rem',
+          borderRadius: '0.75rem',
+          border: '1px solid rgba(255, 77, 77, 0.5)',
+          boxShadow: '0 0 10px rgba(255, 77, 77, 0.5)',
+          fontSize: '0.95rem',
+          fontFamily: 'Space Grotesk, sans-serif',
+          color: '#ff4d4d',
+          animation: 'pulseBadge 2.5s ease-in-out infinite, fadeIn 1s ease-out forwards',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          padding: '2rem',
-          position: 'relative',
-          overflow: 'hidden',
+          gap: '0.4rem',
+          opacity: 0, // fade-in
         }}
       >
-        {/* Red glowing pulse */}
-        <div
+        <span
           style={{
-            position: 'absolute',
-            width: '400px',
-            height: '400px',
+            display: 'inline-block',
+            width: '10px',
+            height: '10px',
             borderRadius: '50%',
-            backgroundColor: 'rgba(255, 0, 0, 0.15)',
-            filter: 'blur(80px)',
-            animation: 'pulseGlow 2.8s ease-in-out infinite',
-            zIndex: 0,
+            backgroundColor: '#ff4d4d',
+            animation: 'heartbeat 1.3s infinite ease-in-out',
           }}
-        />
+        ></span>
+        webtriage.pro
+      </div>
 
-        {/* Hero card */}
-        <div
+      {/* 🌌 Hero content */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          textAlign: 'center',
+          color: 'white',
+          padding: '3rem',
+          backgroundColor: 'rgba(0, 0, 0, 0.4)',
+          borderRadius: '1rem',
+          backdropFilter: 'blur(6px)',
+          maxWidth: '90vw',
+        }}
+      >
+        <h1
           style={{
-            textAlign: 'center',
-            color: 'white',
-            padding: '2rem',
-            backgroundColor: 'rgba(0, 0, 0, 0.4)',
-            borderRadius: '1rem',
-            backdropFilter: 'blur(6px)',
-            maxWidth: '90vw',
-            fontFamily: "'Space Grotesk', sans-serif",
-            zIndex: 1,
+            fontSize: '3.25rem',
+            marginBottom: '1rem',
+            fontFamily: 'Space Grotesk, sans-serif',
+            lineHeight: '1.2',
           }}
         >
-          <h1 style={{ fontSize: '2.25rem', marginBottom: '1rem' }}>
-            Urgent Care for Broken Websites.
-          </h1>
-          <p style={{ fontSize: '1.1rem', marginBottom: '2rem' }}>
-            From critical bugs to silent failures — We diagnose fast, and fix even faster.
-          </p>
-          <button
-            style={{
-              padding: '0.75rem 1.5rem',
-              fontSize: '1rem',
-              backgroundColor: '#5a8dee',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.5rem',
-              cursor: 'pointer',
-              animation: 'pulseButton 2.5s ease-in-out infinite',
-              boxShadow: '0 0 8px rgba(90, 141, 238, 0.2)',
-              transition: 'all 0.3s ease',
-            }}
-          >
-            Start Your Fix
-          </button>
-        </div>
-
-        {/* Animations */}
-        <style>
-          {`
-            @keyframes pulseGlow {
-              0% {
-                transform: scale(1);
-                opacity: 0.7;
-              }
-              50% {
-                transform: scale(1.15);
-                opacity: 1;
-              }
-              100% {
-                transform: scale(1);
-                opacity: 0.7;
-              }
-            }
-
-            @keyframes pulseUnderline {
-              0% {
-                transform: scaleX(1);
-                opacity: 0.5;
-              }
-              50% {
-                transform: scaleX(1.1);
-                opacity: 1;
-              }
-              100% {
-                transform: scaleX(1);
-                opacity: 0.5;
-              }
-            }
-
-            @keyframes pulseButton {
-              0% {
-                transform: scale(1);
-                box-shadow: 0 0 8px rgba(90, 141, 238, 0.2);
-              }
-              50% {
-                transform: scale(1.04);
-                box-shadow: 0 0 16px rgba(90, 141, 238, 0.35);
-              }
-              100% {
-                transform: scale(1);
-                box-shadow: 0 0 8px rgba(90, 141, 238, 0.2);
-              }
-            }
-          `}
-        </style>
+          <span style={{ display: 'block' }}>Website Problems?</span>
+          <span style={{ display: 'block' }}>Let’s Fix That.</span>
+        </h1>
+        <p
+          style={{
+            fontSize: '1.4rem',
+            marginBottom: '2rem',
+            fontFamily: 'Space Grotesk, sans-serif',
+            color: '#dbeafe',
+          }}
+        >
+          Calm, fast, precise support for websites that just need help.
+        </p>
+        <button
+          style={{
+            padding: '0.75rem 1.5rem',
+            fontSize: '1rem',
+            backgroundColor: '#5a8dee',
+            color: 'white',
+            border: 'none',
+            borderRadius: '0.5rem',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            animation: 'pulseButton 2.5s ease-in-out infinite',
+            fontFamily: 'Space Grotesk, sans-serif',
+            fontWeight: 500,
+          }}
+        >
+          Stabilize My Site
+        </button>
       </div>
-    </>
+    </div>
   );
 }
