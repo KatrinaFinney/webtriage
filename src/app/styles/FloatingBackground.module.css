@@ -1,0 +1,56 @@
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  
+  .shape1,
+  .shape2,
+  .shape3 {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.08;
+    filter: blur(40px);
+    animation: float 30s ease-in-out infinite alternate;
+  }
+  
+  .shape1 {
+    width: 300px;
+    height: 300px;
+    background: #4e8fff;
+    top: 10%;
+    left: 5%;
+  }
+  
+  .shape2 {
+    width: 200px;
+    height: 200px;
+    background: #89a6fb;
+    bottom: 15%;
+    right: 10%;
+    animation-delay: 5s;
+  }
+  
+  .shape3 {
+    width: 250px;
+    height: 250px;
+    background: #38bdf8;
+    top: 50%;
+    left: 50%;
+    animation-delay: 10s;
+  }
+  
+  @keyframes float {
+    0% {
+      transform: translateY(0) translateX(0);
+    }
+    100% {
+      transform: translateY(-30px) translateX(20px);
+    }
+  }
+  
