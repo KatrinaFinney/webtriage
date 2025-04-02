@@ -1,19 +1,18 @@
-import HeroSection from './components/HeroSection';
-import ServicesSection from './components/ServicesSection';
-import CallToAction from './components/CallToAction';
-import PricingSection from './components/PricingSection';
-import Footer from './components/Footer';
 import VantaBackground from './components/VantaBackground';
+import HeroSection from './components/HeroSection';
+import PricingSection from './components/PricingSection';
+import CallToAction from './components/CallToAction';
+import Footer from './components/Footer';
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <>
-      <VantaBackground />
+    <VantaBackground>
       <HeroSection />
-      <ServicesSection />
-      <PricingSection />
-      <CallToAction />
-      <Footer />
-    </>
+      <main>
+        <PricingSection />
+        <CallToAction />
+        <Footer />
+      </main>
+    </VantaBackground>
   );
 }

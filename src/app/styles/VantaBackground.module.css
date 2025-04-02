@@ -1,0 +1,11 @@
+/* Add to your Vanta styles (optional) */
+
+.vanta-loading {
+    opacity: 0;
+  }
+  
+  .vanta-ready {
+    opacity: 1;
+    transition: opacity 0.6s ease-in-out;
+  }
+  

@@ -1,28 +1,21 @@
 import './globals.css';
-import type { ReactNode } from 'react';
-import { Space_Grotesk } from 'next/font/google';
+import type { Metadata } from 'next';
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
-});
-
-export const metadata = {
-  title: 'WebTriage.dev',
-  description: 'Clean, fast, precise support for websites.',
+export const metadata: Metadata = {
+  title: 'WebTriage.pro',
+  description: 'Urgent care for broken websites.',
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        {/* Load Vanta globally once to improve speed */}
-        <script
-          src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"
-          async
+      <body>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+          rel="stylesheet"
         />
-      </head>
-      <body className={spaceGrotesk.className}>{children}</body>
+        {children}
+      </body>
     </html>
   );
 }
