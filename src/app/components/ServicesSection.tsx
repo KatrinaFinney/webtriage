@@ -39,7 +39,7 @@ This is ideal for older or DIY-built websites that now need professional care to
 
   return (
     <section className={styles.services}>
-      <h2 className={styles.title}>Care Options</h2>
+      <h2 className={styles.title}>Choose Your Care Plan</h2>
       <div className={styles.grid}>
         {services.map((service, index) => (
           <div
@@ -63,7 +63,7 @@ This is ideal for older or DIY-built websites that now need professional care to
                 </button>
               </div>
             ) : (
-              <span className={styles.expandHint}>Click to learn more ↓</span>
+              <span className={styles.expandHint}>Learn more ↓</span>
             )}
           </div>
         ))}
