@@ -109,4 +109,25 @@
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     }
   }
+  .expandHint {
+    display: block;
+    margin-top: 0.75rem;
+    font-size: 1.15rem;
+    color: #7dd3fc;
+    text-align: center;
+    animation: arrowBounce 2.4s ease-in-out infinite;
+    pointer-events: none;
+    font-family: var(--font-plex-mono, monospace);
+  }
+  
+  @keyframes arrowBounce {
+    0%, 100% {
+      transform: translateY(0);
+      opacity: 0.6;
+    }
+    50% {
+      transform: translateY(6px);
+      opacity: 1;
+    }
+  }
   

@@ -50,19 +50,20 @@ This is ideal for older or DIY-built websites that now need professional care to
             <h3 className={styles.cardTitle}>{service.title}</h3>
             <p className={styles.cardSummary}>{service.summary}</p>
 
-            {openIndex === index && (
+            {openIndex === index ? (
               <div className={styles.cardBody}>
                 <p className={styles.cardDescription}>{service.description}</p>
                 <button
                   className={styles.button}
                   onClick={(e) => {
-                    e.stopPropagation(); // prevent collapsing on button click
-                    // Add button logic if needed
+                    e.stopPropagation();
                   }}
                 >
                   {service.button}
                 </button>
               </div>
+            ) : (
+              <span className={styles.expandHint}>Click to learn more ↓</span>
             )}
           </div>
         ))}
