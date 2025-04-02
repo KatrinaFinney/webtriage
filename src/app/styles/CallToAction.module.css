@@ -48,4 +48,34 @@
   .ctaButton:hover {
     background-color: #4b75c6;
   }
+  .secondaryPrompt {
+    margin-top: 1.75rem;
+    font-size: 0.95rem;
+    text-align: center;
+    font-family: var(--font-space-grotesk);
+    color: #94a3b8;
+    line-height: 1.4;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .secondaryLink {
+    color: #5a8dee;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+  
+  .secondaryLink:hover {
+    color: #7ba6f0;
+  }
+  
+  /* Optional: slightly larger text on larger screens */
+  @media (min-width: 768px) {
+    .secondaryPrompt {
+      font-size: 1rem;
+    }
+  }
   
