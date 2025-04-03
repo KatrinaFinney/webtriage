@@ -11,14 +11,19 @@ import Footer from "./components/Footer";
 
 export default function HomePage() {
   return (
-    <VantaBackground
-      color={0x3b82f6}
-      backgroundColor={0x0a1128}
-      points={10}
-      size={1.3}
-    >
-      <main>
+    <>
+      {/* 🌌 Hero: Vanta Globe with badge */}
+      <VantaBackground
+        color={0x4e8fff}
+        backgroundColor={0x0a1128}
+        points={14}
+        size={1.3}
+      >
         <HeroSection />
+      </VantaBackground>
+
+      {/* 🔥 Animated background for rest of page */}
+      <main className="animated-bg">
         <FadeSection><PricingSection /></FadeSection>
         <FadeSection><ServicesSection /></FadeSection>
         <FadeSection><TrustSection /></FadeSection>
@@ -26,6 +31,6 @@ export default function HomePage() {
         <FadeSection><CallToAction /></FadeSection>
         <FadeSection><Footer /></FadeSection>
       </main>
-    </VantaBackground>
+    </>
   );
 }

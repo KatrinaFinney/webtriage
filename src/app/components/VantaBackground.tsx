@@ -86,15 +86,17 @@ export default function VantaBackground({
   ref={vantaRef}
   style={{
     position: "absolute",
-    top: "-500px", // ✅ Lift the globe higher
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: "0", // no need to lift anymore
+    left: "50%", // center horizontally
+    transform: "translate(-50%, -15%)", // center X, nudge upward
+    width: "100vw",
+    height: "100vh",
     zIndex: 0,
     pointerEvents: "none",
     backgroundColor: `#${backgroundColor.toString(16).padStart(6, "0")}`,
   }}
 />
+
 
 
       <div
