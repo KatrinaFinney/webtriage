@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useCallback } from 'react';
-import styles from '../styles/Modal.module.css';
 import { motion, AnimatePresence } from 'framer-motion';
+import styles from '../styles/Modal.module.css';
 
 interface ModalProps {
   isOpen: boolean;
@@ -47,7 +47,7 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
               onClick={onClose}
               aria-label="Close form"
             >
-              ×
+              &times;
             </button>
             {children}
           </motion.div>
