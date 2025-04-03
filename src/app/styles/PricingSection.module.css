@@ -1,121 +1,111 @@
 .pricing {
-    padding: 5rem 1rem;
-    max-width: 1080px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  
-  .title {
-    font-size: 2rem;
-    color: white;
-    font-family: var(--font-space-grotesk);
-    margin-bottom: 2.5rem;
-  }
-  
-  .grid {
-    display: grid;
-    gap: 2rem;
-    grid-template-columns: 1fr;
-  }
-  
+  background-color: transparent; /* ✅ Keep it glassy over dark bg */
+  padding: 5rem 1rem;
+  max-width: 1080px;
+  margin: 0 auto;
+  text-align: center;
+}
 
-    .card {
-  
+.title {
+  font-size: 2rem;
+  color: white;
+  font-family: var(--font-space-grotesk);
+  margin-bottom: 2.5rem;
+}
+
+.grid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1fr;
+}
+
+.card {
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 20px;
   border-radius: 1.25rem;
+  padding: 2rem;
+  padding-bottom: 20px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(10px); /* 💎 GLASS EFFECT */
+  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+.featured {
+  background-color: rgba(20, 30, 60, 0.9);
+  border: 1px solid rgba(90, 141, 238, 0.6);
+  position: relative;
+}
 
-  
-  .featured {
-    /* Highlight the featured plan */
-    border: 1px solid rgba(90, 141, 238, 0.6);
-    background-color: rgba(20, 30, 60, 0.9);
-    position: relative; /* So the .badge can be positioned inside */
+.cardTitle {
+  font-size: 1.35rem;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.price {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: #7dd3fc;
+  margin-bottom: 1rem;
+}
+
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.button {
+  background-color: #5a8dee;
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-family: var(--font-space-grotesk);
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: pulseButton 2.5s ease-in-out infinite;
+}
+
+.button:hover {
+  background-color: #4b75c6;
+}
+
+@keyframes pulseButton {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(90, 141, 238, 0.4);
   }
-  
-  .cardTitle {
-    font-size: 1.35rem;
-    color: white;
-    margin-bottom: 0.5rem;
+  50% {
+    box-shadow: 0 0 8px 3px rgba(90, 141, 238, 0.3);
   }
-  
-  .price {
-    font-size: 1.75rem;
-    font-weight: bold;
-    color: #7dd3fc;
-    margin-bottom: 1rem;
+}
+
+/* Responsive grid for larger screens */
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
-  
-  .featureList {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 1.5rem 0;
-    color: #cbd5e1;
-    font-size: 0.95rem;
-    line-height: 1.6;
-  }
-  
-  .button {
-    background-color: #5a8dee;
-    color: white;
-    padding: 0.75rem 1.25rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-family: var(--font-space-grotesk);
-    font-weight: 500;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    animation: pulseButton 2.5s ease-in-out infinite;
-  }
-  
-  .button:hover {
-    background-color: #4b75c6;
-  }
-  
-  @keyframes pulseButton {
-    0%, 100% {
-      box-shadow: 0 0 0 0 rgba(90, 141, 238, 0.4);
-    }
-    50% {
-      box-shadow: 0 0 8px 3px rgba(90, 141, 238, 0.3);
-    }
-  }
-  
-  @media (min-width: 768px) {
-    .grid {
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    }
-  }
-  
-  /* "Best Value" badge styling */
-  .badge {
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #f87171;
-    color: white;
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.3rem 0.75rem;
-    border-radius: 999px;
-    box-shadow: 0 4px 8px rgba(248, 113, 113, 0.3);
-    font-family: var(--font-space-grotesk);
-    letter-spacing: 0.5px;
-  }
-  .pricing {
-    background-color: transparent; /* ✅ Ensure no solid background blocks the gradient */
-    padding: 5rem 1rem;
-    max-width: 1080px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  
+}
+
+/* Badge for Featured card */
+.badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f87171;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 8px rgba(248, 113, 113, 0.3);
+  font-family: var(--font-space-grotesk);
+  letter-spacing: 0.5px;
+}
