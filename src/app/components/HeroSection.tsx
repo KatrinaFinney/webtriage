@@ -17,10 +17,9 @@ export default function HeroSection() {
           alignItems: "center",
           justifyContent: "center",
           position: "relative",
-          // Reduced from 2–3rem to 1rem to tighten top/bottom spacing
-          padding: "1rem",
+          padding: "1rem", // tightened top/bottom spacing
           textAlign: "center",
-          backgroundColor: "#0a1128", // If your old code had a fallback color
+          backgroundColor: "#0a1128", // fallback color
           zIndex: 1,
         }}
       >
@@ -77,14 +76,16 @@ export default function HeroSection() {
           webtriage.pro
         </div>
 
-        {/* 🌌 Hero Content */}
+        {/* 🌌 Hero Content: Now Glassy */}
         <div
           style={{
-            backgroundColor: "rgba(0, 0, 0, 0.4)",
-            // Reduced from "3rem" to "2rem"
-            padding: "2rem",
-            borderRadius: "1rem",
+            // Semi-transparent white background with blur for that glassy look
+            backgroundColor: "rgba(255, 255, 255, 0.05)",
             backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            border: "1px solid rgba(255, 255, 255, 0.15)",
+            borderRadius: "1rem",
+            padding: "2rem",
             maxWidth: "90vw",
             zIndex: 1,
           }}

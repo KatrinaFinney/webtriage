@@ -36,6 +36,7 @@ export default function HomePage() {
       {/* Main site content */}
       <main style={{ backgroundColor: "#0a1128" }}>
         <PricingSection />
+        <TravelingLine />
         <ServicesSection />
         <TrustSection />
         <FaqSection />
