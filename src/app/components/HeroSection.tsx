@@ -2,29 +2,29 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-
-type VantaEffectInstance = {
-  destroy: () => void;
-};
-
 import Modal from './Modal';
 import IntakeForm from './IntakeForm';
 
 export default function HeroSection() {
   const vantaRef = useRef<HTMLDivElement>(null);
-  const [vantaEffect, setVantaEffect] = useState<VantaEffectInstance | null>(null);
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    const loadVanta = async () => {
-      if (!vantaEffect && typeof window !== 'undefined') {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js';
-        script.async = true;
-        script.onload = () => {
-          if (window.VANTA && vantaRef.current) {
-            setVantaEffect(
-              window.VANTA.GLOBE({
+    let vantaEffect: { destroy: () => void } | null = null;
+
+    if (!vantaRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && typeof window !== 'undefined') {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js';
+          script.async = true;
+
+          script.onload = () => {
+            const VANTA = (window as { VANTA?: { GLOBE: (opts: object) => { destroy: () => void } } }).VANTA;
+            if (VANTA && vantaRef.current) {
+              vantaEffect = VANTA.GLOBE({
                 el: vantaRef.current,
                 THREE: THREE,
                 mouseControls: true,
@@ -38,22 +38,24 @@ export default function HeroSection() {
                 backgroundColor: 0x0a1128,
                 size: 1.2,
                 points: 12.0,
-              })
-            );
-          }
-        };
-        document.body.appendChild(script);
-      }
-    };
+              });
+            }
+          };
 
-    loadVanta();
+          document.body.appendChild(script);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(vantaRef.current);
 
     return () => {
-      if (vantaEffect) {
-        vantaEffect.destroy();
-      }
+      if (vantaEffect) vantaEffect.destroy();
+      observer.disconnect();
     };
-  }, [vantaEffect]);
+  }, []);
 
   return (
     <>
@@ -66,7 +68,7 @@ export default function HeroSection() {
           overflow: 'hidden',
         }}
       >
-        {/* 🔥 webtriage.pro animated badge */}
+        {/* 🔥 Badge */}
         <div
           style={{
             position: 'absolute',

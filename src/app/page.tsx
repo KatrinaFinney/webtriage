@@ -4,6 +4,8 @@ import PricingSection from './components/PricingSection';
 import ServicesSection from './components/ServicesSection';
 import CallToAction from './components/CallToAction';
 import Footer from './components/Footer';
+import FaqSection from './components/FaqSection';
+import TrustSection from './components/TrustSection';
 
 export default function HomePage() {
   return (
@@ -13,6 +15,8 @@ export default function HomePage() {
         <PricingSection />
         <ServicesSection />
         <CallToAction />
+        <TrustSection />
+        <FaqSection />
         <Footer />
       </main>
     </VantaBackground>
