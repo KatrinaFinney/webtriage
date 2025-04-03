@@ -79,7 +79,7 @@ export default function VantaBackground({ children }: VantaBackgroundProps) {
       style={{
         width: "100vw",
         minHeight: "100vh",
-        position: "relative",
+       // position: "relative",
         overflow: "hidden",
         zIndex: 0,
         backgroundColor: "#0a1128", // fallback color if Vanta is skipped
