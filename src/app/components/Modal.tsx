@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import styles from '../styles/Modal.module.css';
+import React, { useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import styles from "../styles/Modal.module.css";
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,16 +11,19 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, children }: ModalProps) {
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  }, [onClose]);
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    },
+    [onClose]
+  );
 
   useEffect(() => {
     if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener("keydown", handleKeyDown);
     }
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, handleKeyDown]);
 
@@ -40,13 +43,9 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.25, type: "spring", stiffness: 150 }}
           >
-            <button
-              className={styles.close}
-              onClick={onClose}
-              aria-label="Close form"
-            >
+            <button className={styles.close} onClick={onClose} aria-label="Close form">
               &times;
             </button>
             {children}

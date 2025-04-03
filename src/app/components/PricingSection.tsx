@@ -9,12 +9,11 @@ import IntakeForm from "./IntakeForm";
 export default function PricingSection() {
   const [showForm, setShowForm] = useState(false);
 
-  // Updated prices & text
   const services = [
     {
       title: "Emergency Fix",
       price: "$149",
-      summary: "One-time urgent repair for critical site issues.",
+      summary: "Urgent repair for critical site issues.",
       description: `Broken layout? Checkout down? Styles gone rogue? We rapidly triage the issue, fix what’s urgent, and restore stability.
 
 You’ll receive a diagnosis, a breakdown of what happened, and recommendations for further care. This is digital CPR for your website — fast and focused.`,
@@ -59,7 +58,6 @@ This is ideal for older or DIY-built websites that now need professional care to
               key={index}
               className={`${styles.card} ${service.featured ? styles.featured : ""}`}
             >
-              {/* "Best Value" badge if featured */}
               {service.featured && <span className={styles.badge}>Most Popular</span>}
 
               <h3 className={styles.cardTitle}>{service.title}</h3>

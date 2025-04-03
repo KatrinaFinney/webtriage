@@ -67,9 +67,9 @@ This is ideal for older or DIY-built websites that now need professional care to
                   <button
                     className={styles.button}
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent toggling the card
-                      setOpenIndex(null);  // Collapse any open card
-                      setShowForm(true);     // Open the modal
+                      e.stopPropagation();
+                      setOpenIndex(null);
+                      setShowForm(true);
                     }}
                   >
                     {service.button}

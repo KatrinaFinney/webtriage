@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from "react";
 import Modal from "./Modal";
@@ -19,9 +19,28 @@ export default function HeroSection() {
           position: "relative",
           padding: "2rem",
           textAlign: "center",
+          backgroundColor: "#0a1128",
           zIndex: 1,
         }}
       >
+        {/* 🔵 Floating Halo Background */}
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            width: "600px",
+            height: "600px",
+            background: "radial-gradient(circle, rgba(90, 141, 238, 0.5), transparent 70%)",
+            borderRadius: "50%",
+            filter: "blur(100px)",
+            transform: "translate(-50%, -50%)",
+            animation: "floatHalo 14s ease-in-out infinite",
+            zIndex: 0,
+            pointerEvents: "none",
+          }}
+        />
+
         {/* 🔥 Badge */}
         <div
           style={{
@@ -65,6 +84,7 @@ export default function HeroSection() {
             borderRadius: "1rem",
             backdropFilter: "blur(6px)",
             maxWidth: "90vw",
+            zIndex: 1,
           }}
         >
           <h1
@@ -111,7 +131,7 @@ export default function HeroSection() {
       </div>
 
       <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
-        <IntakeForm />
+        <IntakeForm onSuccess={() => setShowForm(false)} />
       </Modal>
     </>
   );
