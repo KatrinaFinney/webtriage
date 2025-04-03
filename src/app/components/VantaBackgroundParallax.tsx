@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { useScroll, useTransform, motion } from "framer-motion";
 
 type VantaEffectInstance = {
   destroy: () => void;
@@ -11,7 +12,7 @@ type VantaGlobal = {
   GLOBE?: (opts: object) => VantaEffectInstance;
 };
 
-interface VantaBackgroundProps {
+interface VantaBackgroundParallaxProps {
   children: React.ReactNode;
   color?: number;
   backgroundColor?: number;
@@ -21,7 +22,7 @@ interface VantaBackgroundProps {
   scaleMobile?: number;
 }
 
-export default function VantaBackground({
+export default function VantaBackgroundParallax({
   children,
   color = 0x4e8fff,
   backgroundColor = 0x0a1128,
@@ -29,10 +30,14 @@ export default function VantaBackground({
   size = 1.2,
   scale = 1.0,
   scaleMobile = 1.0,
-}: VantaBackgroundProps) {
+}: VantaBackgroundParallaxProps) {
   const vantaRef = useRef<HTMLDivElement>(null);
   const scriptRef = useRef<HTMLScriptElement | null>(null);
   const [vantaEffect, setVantaEffect] = useState<VantaEffectInstance | null>(null);
+
+  const wrapperRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: wrapperRef });
+  const scaleEffect = useTransform(scrollYProgress, [0, 1], [1, 1.1]); // gentle zoom
 
   useEffect(() => {
     if (vantaEffect || !vantaRef.current) return;
@@ -77,17 +82,29 @@ export default function VantaBackground({
   }, [vantaEffect]);
 
   return (
-    <div
-      ref={vantaRef}
+    <motion.div
+      ref={wrapperRef}
       style={{
         width: "100%",
         minHeight: "100dvh",
         position: "relative",
         overflow: "hidden",
         zIndex: 0,
-        backgroundColor: "#0a1128", // fallback
+        scale: scaleEffect, // 🔥 scroll-based parallax scaling
       }}
     >
+      <div
+        ref={vantaRef}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          height: "100%",
+          width: "100%",
+          zIndex: 0,
+          backgroundColor: "#0a1128",
+        }}
+      />
       <div
         style={{
           position: "relative",
@@ -98,6 +115,6 @@ export default function VantaBackground({
       >
         {children}
       </div>
-    </div>
+    </motion.div>
   );
 }
