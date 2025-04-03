@@ -68,6 +68,7 @@ This is ideal for older or DIY-built websites that now need professional care to
                     className={styles.button}
                     onClick={(e) => {
                       e.stopPropagation();
+                      setOpenIndex(null); // collapse any open card
                       setShowForm(true);
                     }}
                   >
@@ -83,7 +84,7 @@ This is ideal for older or DIY-built websites that now need professional care to
       </motion.section>
 
       <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
-        <IntakeForm />
+        <IntakeForm onSuccess={() => setShowForm(false)} />
       </Modal>
     </>
   );

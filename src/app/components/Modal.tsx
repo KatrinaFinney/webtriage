@@ -1,53 +1,58 @@
 'use client';
 
-import { ReactNode } from 'react';
+import React, { useEffect, useCallback } from 'react';
+import styles from '../styles/Modal.module.css';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export default function Modal({
-  isOpen,
-  onClose,
-  children,
-}: {
+interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  children: ReactNode;
-}) {
-  if (!isOpen) return null;
+  children: React.ReactNode;
+}
+
+export default function Modal({ isOpen, onClose, children }: ModalProps) {
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, handleKeyDown]);
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      backgroundColor: 'rgba(0,0,0,0.8)',
-      backdropFilter: 'blur(6px)',
-      zIndex: 999,
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: '1rem'
-    }}>
-      <div style={{
-        position: 'relative',
-        background: '#fff',
-        borderRadius: '10px',
-        padding: '2rem',
-        maxWidth: '720px',
-        width: '100%',
-        maxHeight: '90vh',
-        overflowY: 'auto',
-      }}>
-        <button onClick={onClose} style={{
-          position: 'absolute',
-          top: '0.75rem',
-          right: '0.75rem',
-          background: 'none',
-          border: 'none',
-          fontSize: '1.25rem',
-          cursor: 'pointer'
-        }}>
-          ✕
-        </button>
-        {children}
-      </div>
-    </div>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className={styles.overlay}
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className={styles.modal}
+            onClick={(e) => e.stopPropagation()}
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <button
+              className={styles.close}
+              onClick={onClose}
+              aria-label="Close form"
+            >
+              ×
+            </button>
+            {children}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
