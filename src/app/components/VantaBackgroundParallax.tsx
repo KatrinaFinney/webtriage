@@ -37,7 +37,7 @@ export default function VantaBackgroundParallax({
 
   const wrapperRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: wrapperRef });
-  const scaleEffect = useTransform(scrollYProgress, [0, 1], [1, 1.1]); // gentle zoom
+  const scaleEffect = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
 
   useEffect(() => {
     if (vantaEffect || !vantaRef.current) return;
@@ -87,10 +87,12 @@ export default function VantaBackgroundParallax({
       style={{
         width: "100%",
         minHeight: "100dvh",
+        margin: "0",
+        padding: "0",
         position: "relative",
-        overflow: "hidden",
+        overflow: "hidden",         // ✅ Ensures globe doesn't bleed
         zIndex: 0,
-        scale: scaleEffect, // 🔥 scroll-based parallax scaling
+        scale: scaleEffect,
       }}
     >
       <div
@@ -99,17 +101,18 @@ export default function VantaBackgroundParallax({
           position: "absolute",
           top: 0,
           left: 0,
-          height: "100%",
           width: "100%",
+          height: "100%",
+          overflow: "hidden",       // ✅ Ensures globe stays contained
           zIndex: 0,
-          backgroundColor: "#0a1128",
+          backgroundColor: `#${backgroundColor.toString(16).padStart(6, "0")}`,
         }}
       />
       <div
         style={{
           position: "relative",
           zIndex: 1,
-          paddingTop: "4rem",
+          paddingTop: "6rem",       // ✅ Adjust content spacing here only
           paddingBottom: "4rem",
         }}
       >

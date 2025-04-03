@@ -3,10 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
-type VantaEffectInstance = {
-  destroy: () => void;
-};
-
+type VantaEffectInstance = { destroy: () => void };
 type VantaGlobal = {
   GLOBE?: (opts: object) => VantaEffectInstance;
 };
@@ -78,22 +75,32 @@ export default function VantaBackground({
 
   return (
     <div
-      ref={vantaRef}
       style={{
-        width: "100%",
-        minHeight: "100dvh",
         position: "relative",
+        width: "100%",
+        minHeight: "100vh", // ✅ Ensures content grows beyond viewport
         overflow: "hidden",
-        zIndex: 0,
-        backgroundColor: "#0a1128", // fallback
       }}
     >
+      <div
+  ref={vantaRef}
+  style={{
+    position: "absolute",
+    top: "-500px", // ✅ Lift the globe higher
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 0,
+    pointerEvents: "none",
+    backgroundColor: `#${backgroundColor.toString(16).padStart(6, "0")}`,
+  }}
+/>
+
+
       <div
         style={{
           position: "relative",
           zIndex: 1,
-          paddingTop: "4rem",
-          paddingBottom: "4rem",
         }}
       >
         {children}

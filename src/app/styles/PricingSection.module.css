@@ -18,14 +18,18 @@
     grid-template-columns: 1fr;
   }
   
-  .card {
-    /* Translucent background for that see-through effect */
-    background-color: rgba(10, 17, 40, 0.75);
-    padding: 2rem;
-    border-radius: 1.25rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  }
+
+    .card {
+  background: rgba(10, 17, 40, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px); /* 💎 GLASS EFFECT */
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+
   
   .featured {
     /* Highlight the featured plan */
