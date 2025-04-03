@@ -19,6 +19,7 @@
   }
   
   .card {
+    /* Translucent background for that see-through effect */
     background-color: rgba(10, 17, 40, 0.75);
     padding: 2rem;
     border-radius: 1.25rem;
@@ -27,8 +28,10 @@
   }
   
   .featured {
+    /* Highlight the featured plan */
     border: 1px solid rgba(90, 141, 238, 0.6);
     background-color: rgba(20, 30, 60, 0.9);
+    position: relative; /* So the .badge can be positioned inside */
   }
   
   .cardTitle {
@@ -85,6 +88,8 @@
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     }
   }
+  
+  /* "Best Value" badge styling */
   .badge {
     position: absolute;
     top: -12px;
@@ -99,11 +104,5 @@
     box-shadow: 0 4px 8px rgba(248, 113, 113, 0.3);
     font-family: var(--font-space-grotesk);
     letter-spacing: 0.5px;
-  }
-  
-  .featured {
-    border: 1px solid rgba(90, 141, 238, 0.6);
-    background-color: rgba(20, 30, 60, 0.9);
-    position: relative;
   }
   

@@ -14,9 +14,9 @@ export default function HomePage() {
       <main>
         <PricingSection />
         <ServicesSection />
-        <CallToAction />
         <TrustSection />
         <FaqSection />
+        <CallToAction />
         <Footer />
       </main>
     </VantaBackground>
