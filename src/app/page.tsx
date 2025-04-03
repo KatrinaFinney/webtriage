@@ -1,3 +1,5 @@
+"use client";
+
 import VantaBackground from "./components/VantaBackground";
 import HeroSection from "./components/HeroSection";
 import PricingSection from "./components/PricingSection";
@@ -7,10 +9,18 @@ import FaqSection from "./components/FaqSection";
 import CallToAction from "./components/CallToAction";
 import Footer from "./components/Footer";
 
+/* 
+  The traveling line component.
+  Place it in ./components/TravelingLine.tsx if you prefer. 
+*/
+function TravelingLine() {
+  return <div className="travelingLine" />;
+}
+
 export default function HomePage() {
   return (
     <>
-      {/* 🌌 Hero Section with Vanta background */}
+      {/* Hero with Vanta background */}
       <VantaBackground
         color={0x4e8fff}
         backgroundColor={0x0a1128}
@@ -19,9 +29,11 @@ export default function HomePage() {
       >
         <HeroSection />
       </VantaBackground>
-      
 
-      {/* 🔷 Remaining site content — clean, elegant */}
+      {/* The traveling red line divider */}
+      <TravelingLine />
+
+      {/* Main site content */}
       <main style={{ backgroundColor: "#0a1128" }}>
         <PricingSection />
         <ServicesSection />

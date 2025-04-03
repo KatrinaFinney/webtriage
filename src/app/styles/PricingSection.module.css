@@ -109,3 +109,55 @@
   font-family: var(--font-space-grotesk);
   letter-spacing: 0.5px;
 }
+.priceContainer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+/* If you want “Starting at” or “One-Time” displayed in a smaller font, or prefix text */
+.frequency {
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  margin-left: 0.15rem;
+  margin-bottom: 2px; /* aligns baseline a bit */
+}
+
+/* The $ sign is separate, smaller but aligned to top baseline */
+.dollarSign {
+  font-size: 1.25rem;
+  color: #7dd3fc;
+  transform: translateY(-0.15em);
+}
+
+/* The main numeric value is big and bold */
+.priceAmount {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #7dd3fc;
+  line-height: 1;
+}
+
+.priceContainer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.dollarSign {
+  font-size: 1.25rem;
+  color: #7dd3fc;
+  transform: translateY(-0.15em);
+}
+
+
+
+.frequency {
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  margin-bottom: 2px; /* aligns baseline nicely */
+}

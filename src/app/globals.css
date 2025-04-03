@@ -96,5 +96,45 @@ img {
     opacity: 1;
   }
 }
+.pulseDivider {
+  width: 100%;
+  height: 4px;
+  background-color: #ff4d4d;
+  margin: 1.5rem 0; /* adjust as needed */
+  animation: pulseLine 2.4s ease-in-out infinite;
+}
+
+@keyframes pulseLine {
+  0%, 100% {
+    box-shadow: 0 0 4px 1px rgba(255, 77, 77, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 12px 3px rgba(255, 77, 77, 0.8);
+  }
+}
+.travelingLine {
+  width: 100%;
+  height: 4px;
+  margin: 1.5rem 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 77, 77, 0.2) 0%,
+    #ff4d4d 50%,
+    rgba(255, 77, 77, 0.2) 100%
+  );
+  background-size: 200% 100%;
+  animation: travelingLine 2s infinite linear;
+}
+
+/* Animate the background gradient from left to right */
+@keyframes travelingLine {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
 
 
