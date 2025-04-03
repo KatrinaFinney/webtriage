@@ -15,7 +15,7 @@ export default function PricingSection() {
     {
       title: "Emergency Fix",
       amount: 149,
-      frequency: "One-Time",
+      frequency: "",
       summary: "One-time urgent repair for critical site issues.",
       description: `Broken layout? Checkout down? Styles gone rogue? We rapidly triage the issue, fix what’s urgent, and restore stability.
 

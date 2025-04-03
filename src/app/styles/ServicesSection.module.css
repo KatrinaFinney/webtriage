@@ -28,6 +28,7 @@
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    text-align: center; /* ✅ This centers all text within the card */
   }
   
   .card::before {
