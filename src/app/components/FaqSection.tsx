@@ -1,57 +1,67 @@
 'use client';
 
-import styles from '../styles/FaqSection.module.css';
-import { useState } from 'react';
-
-const faqs = [
-  {
-    question: 'What is a website triage?',
-    answer:
-      'It’s a quick, expert diagnosis of your website issue — whether it’s broken, slow, or unresponsive. We assess the damage, stabilize the problem, and recommend next steps.',
-  },
-  {
-    question: 'Do I have to commit to anything after the triage?',
-    answer:
-      'Nope. You’ll receive a clear diagnosis and treatment options — no pressure, no surprise charges.',
-  },
-  {
-    question: 'What kinds of issues can you fix?',
-    answer:
-      'We handle layout bugs, broken functionality, plugin conflicts, speed issues, mobile problems, and more. If it’s web-related, we can fix it or guide you to the right solution.',
-  },
-  {
-    question: 'How fast will you respond?',
-    answer:
-      'We typically respond within a few hours — and critical issues are prioritized immediately. You’ll always know where things stand.',
-  },
-  {
-    question: 'Can you rebuild my site if it’s outdated?',
-    answer:
-      'Absolutely. Our Full Recovery Plan is designed to refresh, rebuild, and optimize websites that need a full transformation.',
-  },
-];
-
-export default function FaqSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  const toggle = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
-
+export default function FAQSection() {
   return (
-    <section className={styles.faq}>
-      <h2 className={styles.title}>Frequently Asked Questions</h2>
-      <div className={styles.list}>
-        {faqs.map((faq, index) => (
-          <div
-            key={index}
-            className={`${styles.item} ${openIndex === index ? styles.open : ''}`}
-            onClick={() => toggle(index)}
-          >
-            <h3 className={styles.question}>{faq.question}</h3>
-            {openIndex === index && <p className={styles.answer}>{faq.answer}</p>}
-          </div>
-        ))}
+    <section
+      style={{
+        padding: '4rem 1rem',
+        backgroundImage: 'linear-gradient(to bottom, rgba(10, 17, 40, 0.75), #0a1128)',
+        display: 'flex',
+        justifyContent: 'center',
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          padding: '2rem',
+          borderRadius: '1rem',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          maxWidth: '700px',
+          width: '100%',
+          color: '#f1f5f9',
+          fontFamily: 'Space Grotesk, sans-serif',
+        }}
+      >
+        <h2
+          style={{
+            fontSize: '2rem',
+            marginBottom: '2rem',
+            textAlign: 'center',
+            color: '#ff4d4d',
+          }}
+        >
+          Frequently Asked Questions
+        </h2>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#f87171' }}>
+            How fast can you fix my site?
+          </h3>
+          <p style={{ lineHeight: '1.6' }}>
+            Most emergency issues are resolved within 24–48 hours. We’ll assess the problem and begin triage as soon as we receive your intake form.
+          </p>
+        </div>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#f87171' }}>
+            Is this automated or AI-generated support?
+          </h3>
+          <p style={{ lineHeight: '1.6' }}>
+            Nope. Every fix is handled by a real developer who knows your site’s code.
+            No bots. No templates. Just thoughtful, expert attention.
+          </p>
+        </div>
+
+        <div>
+          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#f87171' }}>
+            What if I don’t know what’s wrong?
+          </h3>
+          <p style={{ lineHeight: '1.6' }}>
+            No problem. Just describe what’s happening in plain language — we’ll investigate and let you know what we find during the triage session.
+          </p>
+        </div>
       </div>
     </section>
   );
