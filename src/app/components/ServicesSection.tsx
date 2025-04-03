@@ -48,7 +48,7 @@ This is ideal for older or DIY-built websites that now need professional care to
         initial={{ opacity: 0, y: 60 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
-        viewport={{ once: true, amount: 0.4 }}
+        viewport={{ once: true, amount: 0 }}
       >
         <h2 className={styles.title}>Choose Your Care Plan</h2>
         <div className={styles.grid}>

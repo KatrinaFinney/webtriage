@@ -1,11 +1,29 @@
-'use client';
+"use client";
 
-import styles from '../styles/TrustSection.module.css';
+import styles from "../styles/TrustSection.module.css";
 
 export default function TrustSection() {
   return (
-    <section className={styles.trust}>
-      <div className={styles.container}>
+    <section className={styles.trust} style={{ position: "relative", overflow: "hidden" }}>
+      {/* 🔵 Floating Halo Background */}
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          width: "600px",
+          height: "600px",
+          background: "radial-gradient(circle, rgba(54, 226, 177, 0.4), transparent 70%)",
+          borderRadius: "50%",
+          filter: "blur(90px)",
+          transform: "translate(-50%, -50%)",
+          animation: "floatHalo 14s ease-in-out infinite",
+          zIndex: 0,
+          pointerEvents: "none",
+        }}
+      />
+
+      <div className={styles.container} style={{ position: "relative", zIndex: 1 }}>
         <h2 className={styles.title}>You’re In Good Hands</h2>
         <p className={styles.description}>
           WebTriage.pro delivers steady, expert support for sites in distress.

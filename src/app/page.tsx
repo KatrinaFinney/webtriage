@@ -19,6 +19,7 @@ export default function HomePage() {
       >
         <HeroSection />
       </VantaBackground>
+      
 
       {/* 🔷 Remaining site content — clean, elegant */}
       <main style={{ backgroundColor: "#0a1128" }}>

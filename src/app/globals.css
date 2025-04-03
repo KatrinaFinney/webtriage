@@ -86,5 +86,15 @@ img {
     box-shadow: 0 0 0px rgba(90, 141, 238, 0.6);
   }
 }
+@keyframes floatHalo {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-48%, -52%) scale(1.1);
+    opacity: 1;
+  }
+}
 
 

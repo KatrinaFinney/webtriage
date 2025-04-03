@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 import Modal from "./Modal";
@@ -17,9 +17,10 @@ export default function HeroSection() {
           alignItems: "center",
           justifyContent: "center",
           position: "relative",
-          padding: "2rem",
+          // Reduced from 2–3rem to 1rem to tighten top/bottom spacing
+          padding: "1rem",
           textAlign: "center",
-          backgroundColor: "#0a1128",
+          backgroundColor: "#0a1128", // If your old code had a fallback color
           zIndex: 1,
         }}
       >
@@ -80,7 +81,8 @@ export default function HeroSection() {
         <div
           style={{
             backgroundColor: "rgba(0, 0, 0, 0.4)",
-            padding: "3rem",
+            // Reduced from "3rem" to "2rem"
+            padding: "2rem",
             borderRadius: "1rem",
             backdropFilter: "blur(6px)",
             maxWidth: "90vw",
@@ -93,6 +95,7 @@ export default function HeroSection() {
               marginBottom: "1rem",
               fontFamily: "Space Grotesk, sans-serif",
               lineHeight: "1.2",
+              color: "#ffffff",
             }}
           >
             <span>Website Problems?</span>
@@ -131,7 +134,7 @@ export default function HeroSection() {
       </div>
 
       <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
-        <IntakeForm onSuccess={() => setShowForm(false)} />
+        <IntakeForm />
       </Modal>
     </>
   );
