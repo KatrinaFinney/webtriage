@@ -1,10 +1,10 @@
 'use client';
 
-import styles from '../styles/PricingSection.module.css';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
+import styles from '../styles/PricingSection.module.css';
 import Modal from './Modal';
 import IntakeForm from './IntakeForm';
-import { motion } from 'framer-motion';
 
 export default function PricingSection() {
   const [showForm, setShowForm] = useState(false);
@@ -56,7 +56,7 @@ This is ideal for older or DIY-built websites that now need professional care to
                 <button
                   className={styles.button}
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevent card toggle
+                    e.stopPropagation(); // Prevent any unwanted card toggling
                     setShowForm(true);   // Open the modal
                   }}
                 >

@@ -10,6 +10,12 @@ export default function HeroSection() {
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
+    // ✅ Only load Vanta if screen is >= 768px
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      // On mobile, skip Vanta & keep fallback background
+      return;
+    }
+
     let vantaEffect: { destroy: () => void } | null = null;
 
     if (!vantaRef.current) return;
@@ -66,6 +72,8 @@ export default function HeroSection() {
           height: '100vh',
           position: 'relative',
           overflow: 'hidden',
+          // Fallback for mobile or if Vanta fails to load
+          backgroundColor: '#0a1128',
         }}
       >
         {/* 🔥 Badge */}
@@ -102,7 +110,7 @@ export default function HeroSection() {
           webtriage.pro
         </div>
 
-        {/* 🌌 Hero content */}
+        {/* 🌌 Hero Content */}
         <div
           style={{
             position: 'absolute',
