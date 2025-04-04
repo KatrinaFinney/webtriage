@@ -28,6 +28,7 @@ export default function HeroSection() {
           width: "100%",
           minHeight: "100vh",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           position: "relative",
@@ -103,7 +104,7 @@ export default function HeroSection() {
             padding: "2rem",
             maxWidth: "90vw",
             zIndex: 1,
-            marginTop: isMobile ? "4rem" : "0", // Added extra margin on mobile
+            marginTop: isMobile ? "4rem" : "0",
           }}
         >
           <h1
@@ -130,11 +131,26 @@ export default function HeroSection() {
           >
             Fast, precise, worry-free support whenever your website needs it.
           </p>
+        </div>
 
+        {/* Free First Aid Card */}
+        <div
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.1)",
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            borderRadius: "0.75rem",
+            padding: "1.5rem",
+            maxWidth: "90vw",
+            marginTop: "2rem",
+            zIndex: 1,
+          }}
+        >
           <p
             style={{
               fontSize: "1.1rem",
-              marginBottom: "2rem",
+              marginBottom: "1rem",
               fontFamily: "Space Grotesk, sans-serif",
               color: "#94a3b8",
             }}
@@ -153,7 +169,6 @@ export default function HeroSection() {
             </span>{" "}
             at no cost.
           </p>
-
           <button
             onClick={() => openForm("First Aid")}
             style={{
