@@ -12,6 +12,19 @@ export default function PricingSection() {
   // Each plan now uses descriptionPoints: string[], for bullet points.
   const services = [
     {
+      title: "Site Triage",
+      amount: 99,
+      frequency: "",
+      summary: "Full site diagnosis & action plan.",
+      descriptionPoints: [
+        "Comprehensive performance & UX scan",
+        "SEO, mobile, and accessibility checks",
+        "Recorded walkthrough + roadmap",
+      ],
+      button: "Start Triage",
+      featured: false,
+    },
+    {
       title: "Emergency Fix",
       amount: 149,
       frequency: "",
@@ -62,6 +75,20 @@ export default function PricingSection() {
         transition={{ duration: 0.8, ease: "easeOut" }}
         viewport={{ once: true, amount: 0 }}
       >
+        <div className={styles.firstAidBlock}>
+  <h3 className={styles.firstAidTitle}>🩹 Just need a quick checkup?</h3>
+  <p className={styles.firstAidText}>
+    Try our free <strong>First Aid Scan</strong> and get a rapid review of your site’s homepage health.
+  </p>
+  <button
+    className={styles.button}
+    onClick={() => setShowForm(true)}
+    style={{ marginBottom: "2rem" }}
+  >
+    Request First Aid
+  </button>
+</div>
+
         <h2 className={styles.title}>Tailored Treatment Options</h2>
 
         <div className={styles.grid}>

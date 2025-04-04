@@ -19,7 +19,7 @@ export default function HeroSection() {
           position: "relative",
           padding: "1rem",
           textAlign: "center",
-          backgroundColor: "#0a1128", // fallback color
+          backgroundColor: "#0a1128",
           zIndex: 1,
         }}
       >
@@ -102,6 +102,7 @@ export default function HeroSection() {
             <br />
             <span>Let’s Fix That.</span>
           </h1>
+
           <p
             style={{
               fontSize: "1.4rem",
@@ -112,34 +113,97 @@ export default function HeroSection() {
           >
             Fast, precise, and worry-free support whenever your website needs it.
           </p>
+
           <p
+  style={{
+    fontSize: "1.1rem",
+    marginBottom: "0.5rem",
+    fontFamily: "Space Grotesk, sans-serif",
+    color: "#94a3b8",
+  }}
+>
+  Just need a quick checkup? Try a{" "}
+  <span
+    onClick={() => setShowForm(true)}
+    style={{
+      color: "#5a8dee",
+      fontWeight: 500,
+      cursor: "pointer",
+    }}
+  >
+    First Aid
+  </span>{" "}
+  scan at no cost.
+</p>
+
+<p
+  style={{
+    fontSize: "1.1rem",
+    marginBottom: "2rem",
+    fontFamily: "Space Grotesk, sans-serif",
+    color: "#94a3b8",
+  }}
+>
+  Not sure what you need? Start with a full{" "}
+  <span
+    onClick={() => setShowForm(true)}
+    style={{
+      color: "#5a8dee",
+      fontWeight: 500,
+      cursor: "pointer",
+    }}
+  >
+    Site Triage
+  </span>{" "}
+  for just $99.
+</p>
+          {/* Dual CTA Buttons */}
+          <div
             style={{
-              fontSize: "1.1rem",
-              marginBottom: "2rem",
-              fontFamily: "Space Grotesk, sans-serif",
-              color: "#94a3b8",
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: "1rem",
             }}
           >
-            Not sure what you need? Request a site triage, and we’ll diagnose your best path forward.
-          </p>
-          <button
-            onClick={() => setShowForm(true)}
-            style={{
-              padding: "0.75rem 1.5rem",
-              fontSize: "1rem",
-              backgroundColor: "#5a8dee",
-              color: "white",
-              border: "none",
-              borderRadius: "0.5rem",
-              cursor: "pointer",
-              transition: "all 0.3s ease",
-              animation: "pulseButton 2.5s ease-in-out infinite",
-              fontFamily: "Space Grotesk, sans-serif",
-              fontWeight: 500,
-            }}
-          >
-            Stabilize My Site
-          </button>
+            {/* Start Triage = Paid */}
+            <button
+              onClick={() => setShowForm(true)}
+              style={{
+                padding: "0.75rem 1.5rem",
+                fontSize: "1rem",
+                backgroundColor: "#5a8dee",
+                color: "white",
+                border: "none",
+                borderRadius: "0.5rem",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                animation: "pulseButton 2.5s ease-in-out infinite",
+                fontFamily: "Space Grotesk, sans-serif",
+                fontWeight: 500,
+              }}
+            >
+              Start Site Triage
+            </button>
+
+            {/* Free First Aid = Free */}
+            <button
+              onClick={() => setShowForm(true)}
+              style={{
+                padding: "0.75rem 1.5rem",
+                fontSize: "1rem",
+                backgroundColor: "transparent",
+                border: "1px solid #5a8dee",
+                color: "#5a8dee",
+                borderRadius: "0.5rem",
+                cursor: "pointer",
+                fontFamily: "Space Grotesk, sans-serif",
+                fontWeight: 500,
+              }}
+            >
+              Get First Aid
+            </button>
+          </div>
         </div>
       </div>
 
