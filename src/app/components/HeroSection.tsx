@@ -143,7 +143,7 @@ export default function HeroSection() {
             borderRadius: "0.75rem",
             padding: "1.5rem",
             maxWidth: "90vw",
-            marginTop: "2rem",
+            marginTop: isMobile ? "6rem" : "2rem", // Increased top margin on mobile
             zIndex: 1,
           }}
         >
