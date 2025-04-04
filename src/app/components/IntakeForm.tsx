@@ -1,23 +1,24 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import styles from '../styles/IntakeForm.module.css';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from "react";
+import styles from "../styles/IntakeForm.module.css";
+import { motion } from "framer-motion";
 
 interface IntakeFormProps {
   onSuccess?: () => void;
+  selectedService?: string;
 }
 
-export default function IntakeForm({ onSuccess }: IntakeFormProps) {
+export default function IntakeForm({ onSuccess, selectedService }: IntakeFormProps) {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    website: '',
-    issue: '',
-    urgency: '',
+    name: "",
+    email: "",
+    website: "",
+    issue: "",
+    service: selectedService || "",
   });
 
-  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -28,28 +29,28 @@ export default function IntakeForm({ onSuccess }: IntakeFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('submitting');
+    setStatus("submitting");
 
     try {
-      const res = await fetch('/api/submit-intake', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/submit-intake", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       if (res.ok) {
-        setStatus('success');
+        setStatus("success");
       } else {
-        setStatus('error');
+        setStatus("error");
       }
     } catch (err) {
-      console.error('Error submitting form:', err);
-      setStatus('error');
+      console.error("Error submitting form:", err);
+      setStatus("error");
     }
   };
 
   useEffect(() => {
-    if (status === 'success' && onSuccess) {
+    if (status === "success" && onSuccess) {
       const timer = setTimeout(onSuccess, 2500);
       return () => clearTimeout(timer);
     }
@@ -59,27 +60,27 @@ export default function IntakeForm({ onSuccess }: IntakeFormProps) {
     <form onSubmit={handleSubmit} className={styles.form}>
       <h2 className={styles.title}>Request Website Triage</h2>
 
-      {status === 'success' ? (
-        <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+      {status === "success" ? (
+        <div style={{ marginTop: "1rem", textAlign: "center" }}>
           <motion.div
             initial={{ scale: 0, rotate: -45, opacity: 0 }}
             animate={{ scale: 1, rotate: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
             style={{
-              display: 'inline-block',
-              width: '60px',
-              height: '60px',
-              borderRadius: '50%',
-              backgroundColor: '#22c55e',
-              color: 'white',
-              fontSize: '2rem',
-              lineHeight: '60px',
+              display: "inline-block",
+              width: "60px",
+              height: "60px",
+              borderRadius: "50%",
+              backgroundColor: "#22c55e",
+              color: "white",
+              fontSize: "2rem",
+              lineHeight: "60px",
               fontWeight: 700,
             }}
           >
             ✓
           </motion.div>
-          <p style={{ marginTop: '1rem', color: '#38bdf8' }}>
+          <p style={{ marginTop: "1rem", color: "#38bdf8" }}>
             We&rsquo;ll be in touch shortly to schedule your triage.
           </p>
         </div>
@@ -127,27 +128,29 @@ export default function IntakeForm({ onSuccess }: IntakeFormProps) {
 
           <select
             className={styles.input}
-            name="urgency"
-            value={formData.urgency}
+            name="service"
+            value={formData.service}
             onChange={handleChange}
             required
           >
-            <option value="">Select urgency level</option>
-            <option value="Critical">Critical</option>
-            <option value="Urgent">Urgent</option>
-            <option value="Moderate">Moderate</option>
+            <option value="">Select a service</option>
+            <option value="First Aid">First Aid</option>
+            <option value="Site Triage">Site Triage</option>
+            <option value="Emergency Fix">Emergency Fix</option>
+            <option value="Continuous Care">Continuous Care</option>
+            <option value="Full Recovery Plan">Full Recovery Plan</option>
           </select>
 
           <button
             className={styles.button}
             type="submit"
-            disabled={status === 'submitting'}
+            disabled={status === "submitting"}
           >
-            {status === 'submitting' ? 'Sending...' : 'Submit Request'}
+            {status === "submitting" ? "Sending..." : "Submit Request"}
           </button>
 
-          {status === 'error' && (
-            <p style={{ marginTop: '1rem', color: '#f87171' }}>
+          {status === "error" && (
+            <p style={{ marginTop: "1rem", color: "#f87171" }}>
               Something went wrong. Please try again.
             </p>
           )}

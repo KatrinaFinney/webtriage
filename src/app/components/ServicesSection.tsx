@@ -9,9 +9,15 @@ import IntakeForm from "./IntakeForm";
 export default function ServicesSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
 
   const toggleCard = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
+  };
+
+  const handleSelect = (title: string) => {
+    setSelectedService(title);
+    setShowForm(true);
   };
 
   const services = [
@@ -68,14 +74,13 @@ Perfect for older or DIY-built sites that need a fresh start.`,
                     onClick={(e) => {
                       e.stopPropagation();
                       setOpenIndex(null);
-                      setShowForm(true);
+                      handleSelect(service.title);
                     }}
                   >
                     {service.button}
                   </button>
                 </div>
               ) : (
-                // A clearer hint that the card is clickable
                 <span className={styles.expandHint}>
                   Tap or Click to View Details ↓
                 </span>
@@ -86,7 +91,10 @@ Perfect for older or DIY-built sites that need a fresh start.`,
       </motion.section>
 
       <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
-        <IntakeForm onSuccess={() => setShowForm(false)} />
+        <IntakeForm
+          selectedService={selectedService || undefined}
+          onSuccess={() => setShowForm(false)}
+        />
       </Modal>
     </>
   );

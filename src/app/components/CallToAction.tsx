@@ -1,4 +1,5 @@
 "use client";
+
 import styles from "../styles/CallToAction.module.css";
 import { useState } from "react";
 import Modal from "./Modal";
@@ -6,6 +7,12 @@ import IntakeForm from "./IntakeForm";
 
 export default function CallToAction() {
   const [showForm, setShowForm] = useState(false);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+
+  const handleClick = () => {
+    setSelectedService("Site Triage");
+    setShowForm(true);
+  };
 
   return (
     <section className={styles.section}>
@@ -16,13 +23,16 @@ export default function CallToAction() {
         <p className={styles.subtext}>
           Whether you're facing a sudden outage or need a long-overdue upgrade, we've got you covered. Let’s work together to restore and enhance your site—so you can get back to what matters most.
         </p>
-        <button className={styles.button} onClick={() => setShowForm(true)}>
+        <button className={styles.button} onClick={handleClick}>
           Stabilize My Site
         </button>
       </div>
 
       <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
-        <IntakeForm onSuccess={() => setShowForm(false)} />
+        <IntakeForm
+          selectedService={selectedService || undefined}
+          onSuccess={() => setShowForm(false)}
+        />
       </Modal>
     </section>
   );

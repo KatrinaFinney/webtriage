@@ -6,6 +6,12 @@ import IntakeForm from "./IntakeForm";
 
 export default function HeroSection() {
   const [showForm, setShowForm] = useState(false);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+
+  const openForm = (service: string) => {
+    setSelectedService(service);
+    setShowForm(true);
+  };
 
   return (
     <>
@@ -76,7 +82,7 @@ export default function HeroSection() {
           webtriage.pro
         </div>
 
-        {/* 🌌 Hero Content: Now Glassy */}
+        {/* 🌌 Hero Content */}
         <div
           style={{
             backgroundColor: "rgba(255, 255, 255, 0.05)",
@@ -115,49 +121,51 @@ export default function HeroSection() {
           </p>
 
           <p
-  style={{
-    fontSize: "1.1rem",
-    marginBottom: "0.5rem",
-    fontFamily: "Space Grotesk, sans-serif",
-    color: "#94a3b8",
-  }}
->
-  Just need a quick checkup? Try a{" "}
-  <span
-    onClick={() => setShowForm(true)}
-    style={{
-      color: "#5a8dee",
-      fontWeight: 500,
-      cursor: "pointer",
-    }}
-  >
-    First Aid
-  </span>{" "}
-  scan at no cost.
-</p>
+            style={{
+              fontSize: "1.1rem",
+              marginBottom: "0.5rem",
+              fontFamily: "Space Grotesk, sans-serif",
+              color: "#94a3b8",
+            }}
+          >
+            Just need a quick checkup? Try a{" "}
+            <span
+              onClick={() => openForm("First Aid")}
+              style={{
+                color: "#5a8dee",
+                fontWeight: 500,
+                textDecoration: "underline",
+                cursor: "pointer",
+              }}
+            >
+              First Aid
+            </span>{" "}
+            scan at no cost.
+          </p>
 
-<p
-  style={{
-    fontSize: "1.1rem",
-    marginBottom: "2rem",
-    fontFamily: "Space Grotesk, sans-serif",
-    color: "#94a3b8",
-  }}
->
-  Not sure what you need? Start with a full{" "}
-  <span
-    onClick={() => setShowForm(true)}
-    style={{
-      color: "#5a8dee",
-      fontWeight: 500,
-      cursor: "pointer",
-    }}
-  >
-    Site Triage
-  </span>{" "}
-  for just $99.
-</p>
-          {/* Dual CTA Buttons */}
+          <p
+            style={{
+              fontSize: "1.1rem",
+              marginBottom: "2rem",
+              fontFamily: "Space Grotesk, sans-serif",
+              color: "#94a3b8",
+            }}
+          >
+            Not sure what you need? Start with a full{" "}
+            <span
+              onClick={() => openForm("Site Triage")}
+              style={{
+                color: "#5a8dee",
+                fontWeight: 500,
+                textDecoration: "underline",
+                cursor: "pointer",
+              }}
+            >
+              Site Triage
+            </span>{" "}
+            for just $99.
+          </p>
+
           <div
             style={{
               display: "flex",
@@ -166,9 +174,8 @@ export default function HeroSection() {
               gap: "1rem",
             }}
           >
-            {/* Start Triage = Paid */}
             <button
-              onClick={() => setShowForm(true)}
+              onClick={() => openForm("Site Triage")}
               style={{
                 padding: "0.75rem 1.5rem",
                 fontSize: "1rem",
@@ -186,9 +193,8 @@ export default function HeroSection() {
               Start Site Triage
             </button>
 
-            {/* Free First Aid = Free */}
             <button
-              onClick={() => setShowForm(true)}
+              onClick={() => openForm("First Aid")}
               style={{
                 padding: "0.75rem 1.5rem",
                 fontSize: "1rem",
@@ -208,7 +214,7 @@ export default function HeroSection() {
       </div>
 
       <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
-        <IntakeForm />
+        <IntakeForm selectedService={selectedService || undefined} />
       </Modal>
     </>
   );

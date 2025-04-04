@@ -8,6 +8,7 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  selectedService?: string; 
 }
 
 export default function Modal({ isOpen, onClose, children }: ModalProps) {

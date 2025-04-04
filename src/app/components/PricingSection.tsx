@@ -8,8 +8,13 @@ import IntakeForm from "./IntakeForm";
 
 export default function PricingSection() {
   const [showForm, setShowForm] = useState(false);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
 
-  // Each plan now uses descriptionPoints: string[], for bullet points.
+  const openForm = (service: string) => {
+    setSelectedService(service);
+    setShowForm(true);
+  };
+
   const services = [
     {
       title: "Site Triage",
@@ -53,7 +58,7 @@ export default function PricingSection() {
     {
       title: "Full Recovery Plan",
       amount: 999,
-      frequency: "Starting at", // triggers "Starting at $999"
+      frequency: "Starting at",
       summary: "Complete makeover for underperforming websites.",
       descriptionPoints: [
         "In-depth site audit & modern rebuild",
@@ -76,18 +81,18 @@ export default function PricingSection() {
         viewport={{ once: true, amount: 0 }}
       >
         <div className={styles.firstAidBlock}>
-  <h3 className={styles.firstAidTitle}>🩹 Just need a quick checkup?</h3>
-  <p className={styles.firstAidText}>
-    Try our free <strong>First Aid Scan</strong> and get a rapid review of your site’s homepage health.
-  </p>
-  <button
-    className={styles.button}
-    onClick={() => setShowForm(true)}
-    style={{ marginBottom: "2rem" }}
-  >
-    Request First Aid
-  </button>
-</div>
+          <h3 className={styles.firstAidTitle}>Just need a quick checkup?</h3>
+          <p className={styles.firstAidText}>
+            Try our free <strong>First Aid Scan</strong> and get a rapid review of your site’s homepage health.
+          </p>
+          <button
+            className={styles.button}
+            onClick={() => openForm("First Aid")}
+            style={{ marginBottom: "2rem" }}
+          >
+            Request First Aid
+          </button>
+        </div>
 
         <h2 className={styles.title}>Tailored Treatment Options</h2>
 
@@ -97,24 +102,19 @@ export default function PricingSection() {
               key={index}
               className={`${styles.card} ${service.featured ? styles.featured : ""}`}
             >
-              {service.featured && (
-                <span className={styles.badge}>Most Popular</span>
-              )}
+              {service.featured && <span className={styles.badge}>Most Popular</span>}
 
               <h3 className={styles.cardTitle}>{service.title}</h3>
 
-              {/* PRICE DISPLAY LOGIC */}
               <div className={styles.priceContainer}>
                 {service.frequency.toLowerCase().includes("start") ? (
                   <>
-                    {/* e.g. "Starting at $999" */}
                     <span className={styles.frequency}>{service.frequency}</span>
                     <span className={styles.dollarSign}>$</span>
                     <span className={styles.priceAmount}>{service.amount}</span>
                   </>
                 ) : (
                   <>
-                    {/* e.g. "$149" or "$499 /month" */}
                     <span className={styles.dollarSign}>$</span>
                     <span className={styles.priceAmount}>{service.amount}</span>
                     <span className={styles.frequency}>{service.frequency}</span>
@@ -125,7 +125,6 @@ export default function PricingSection() {
               <p className={styles.cardSummary}>{service.summary}</p>
 
               <div className={styles.cardBody}>
-                {/* Render bullet points via an unordered list */}
                 <ul className={styles.bulletList}>
                   {service.descriptionPoints.map((point, i) => (
                     <li key={i}>{point}</li>
@@ -136,7 +135,7 @@ export default function PricingSection() {
                   className={styles.button}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowForm(true);
+                    openForm(service.title);
                   }}
                 >
                   {service.button}
@@ -148,7 +147,10 @@ export default function PricingSection() {
       </motion.section>
 
       <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
-        <IntakeForm onSuccess={() => setShowForm(false)} />
+        <IntakeForm
+          selectedService={selectedService || undefined}
+          onSuccess={() => setShowForm(false)}
+        />
       </Modal>
     </>
   );
