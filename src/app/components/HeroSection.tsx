@@ -33,6 +33,7 @@ export default function HeroSection() {
           justifyContent: "center",
           position: "relative",
           padding: "1rem",
+          paddingTop: "2rem", // Added extra top padding
           textAlign: "center",
           backgroundColor: "#0a1128",
           zIndex: 1,
@@ -143,7 +144,7 @@ export default function HeroSection() {
             borderRadius: "0.75rem",
             padding: "1.5rem",
             maxWidth: "90vw",
-            marginTop: isMobile ? "6rem" : "2rem", // Increased top margin on mobile
+            marginTop: isMobile ? "6rem" : "2rem",
             zIndex: 1,
           }}
         >
