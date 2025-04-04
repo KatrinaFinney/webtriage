@@ -119,7 +119,7 @@ export default function HeroSection() {
               color: "#dbeafe",
             }}
           >
-            Fast, precise, and worry-free support whenever your website needs it.
+            Fast, precise, worry-free support whenever your website needs it.
           </p>
 
           <p
