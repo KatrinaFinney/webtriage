@@ -41,6 +41,7 @@ export default function HomePage() {
         <TrustSection />
         <FaqSection />
         <CallToAction />
+        <TravelingLine />
         <Footer />
       </main>
     </>

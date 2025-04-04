@@ -10,10 +10,11 @@ export default function CallToAction() {
   return (
     <section className={styles.section}>
       <div className={styles.container}>
-        {/* REVERTED / RESTORED COPY: reassuring and on brand */}
-        <h2 className={styles.heading}>Let’s Fix Your Website</h2>
+        <h2 className={styles.heading}>
+          Breathe New Life into Your Website
+        </h2>
         <p className={styles.subtext}>
-          Whether it’s an emergency or a long overdue upgrade, we’re here to help. Get in touch and let’s stabilize your site together.
+          Whether you're facing a sudden outage or need a long-overdue upgrade, we've got you covered. Let’s work together to restore and enhance your site—so you can get back to what matters most.
         </p>
         <button className={styles.button} onClick={() => setShowForm(true)}>
           Stabilize My Site

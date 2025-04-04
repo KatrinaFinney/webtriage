@@ -17,7 +17,7 @@ export default function HeroSection() {
           alignItems: "center",
           justifyContent: "center",
           position: "relative",
-          padding: "1rem", // tightened top/bottom spacing
+          padding: "1rem",
           textAlign: "center",
           backgroundColor: "#0a1128", // fallback color
           zIndex: 1,
@@ -79,7 +79,6 @@ export default function HeroSection() {
         {/* 🌌 Hero Content: Now Glassy */}
         <div
           style={{
-            // Semi-transparent white background with blur for that glassy look
             backgroundColor: "rgba(255, 255, 255, 0.05)",
             backdropFilter: "blur(6px)",
             WebkitBackdropFilter: "blur(6px)",
@@ -106,12 +105,22 @@ export default function HeroSection() {
           <p
             style={{
               fontSize: "1.4rem",
-              marginBottom: "2rem",
+              marginBottom: "1rem",
               fontFamily: "Space Grotesk, sans-serif",
               color: "#dbeafe",
             }}
           >
-            Calm, fast, precise support for websites that just need help.
+            Fast, precise, and worry-free support whenever your website needs it.
+          </p>
+          <p
+            style={{
+              fontSize: "1.1rem",
+              marginBottom: "2rem",
+              fontFamily: "Space Grotesk, sans-serif",
+              color: "#94a3b8",
+            }}
+          >
+            Not sure what you need? Request a site triage, and we’ll diagnose your best path forward.
           </p>
           <button
             onClick={() => setShowForm(true)}
