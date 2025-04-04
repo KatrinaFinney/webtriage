@@ -2,161 +2,104 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import styles from "../styles/PricingSection.module.css";
+import styles from "../styles/ServicesSection.module.css";
 import Modal from "./Modal";
 import IntakeForm from "./IntakeForm";
 
-export default function PricingSection() {
+export default function ServicesSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
 
-  const openForm = (service: string) => {
-    setSelectedService(service);
-    setShowForm(true);
+  const toggleCard = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index);
   };
 
   const services = [
     {
       title: "Site Triage",
-      amount: 99,
-      frequency: "",
       summary: "Full site diagnosis & action plan.",
-      descriptionPoints: [
-        "Comprehensive performance & UX scan",
-        "SEO, mobile, and accessibility checks",
-        "Recorded walkthrough + roadmap",
-      ],
+      description: `Receive a comprehensive overview of your site’s health. We evaluate performance, usability, and accessibility to craft a tailored roadmap for improvement.`,
       button: "Start Triage",
-      featured: false,
     },
     {
       title: "Emergency Fix",
-      amount: 149,
-      frequency: "",
-      summary: "Rapid repair for critical website meltdowns.",
-      descriptionPoints: [
-        "Pinpoint issues fast and fix them swiftly",
-        "Restore site stability and calm",
-        "Deliver a concise post-fix report",
-      ],
-      button: "Request a Fix",
-      featured: false,
+      summary: "Rapid rescue for urgent site issues.",
+      description: `Encounter a sudden glitch or critical error? We respond immediately to restore stability, fix the core issues, and provide actionable insights for future prevention.`,
+      button: "Request Emergency Fix",
     },
     {
       title: "Continuous Care",
-      amount: 499,
-      frequency: "/month",
-      summary: "Proactive monthly support & monitoring.",
-      descriptionPoints: [
-        "Ongoing uptime monitoring & bug fixes",
-        "Monthly speed & security checks",
-        "Your calm, reliable web caretaker",
-      ],
-      button: "Start Care",
-      featured: true,
+      summary: "Proactive monthly maintenance & monitoring.",
+      description: `Keep your website running smoothly with regular updates, bug fixes, and performance audits. Our dedicated caretaker ensures your site remains secure and optimized all month long.`,
+      button: "Start Continuous Care",
     },
     {
       title: "Full Recovery Plan",
-      amount: 999,
-      frequency: "Starting at",
-      summary: "Complete makeover for underperforming websites.",
-      descriptionPoints: [
-        "In-depth site audit & modern rebuild",
-        "Improved performance & accessibility",
-        "Fresh, engaging user experience",
-        "Ideal for older or DIY sites",
-      ],
-      button: "Start Recovery",
-      featured: false,
+      summary: "Complete overhaul for underperforming websites.",
+      description: `Transform your outdated site into a modern, fast, and accessible platform. We rebuild your frontend, optimize performance, and enhance user experience for lasting impact.`,
+      button: "Begin Recovery",
     },
     {
       title: "Performance & SEO Boost",
-      amount: 199,
-      frequency: "",
-      summary: "Optimize site speed and boost your search rankings.",
-      descriptionPoints: [
-        "Advanced speed optimization techniques",
-        "Targeted SEO audit and improvements",
-        "Enhanced search visibility and engagement",
-      ],
+      summary: "Optimize speed and elevate search rankings.",
+      description: `Accelerate your site’s performance and improve visibility with targeted speed optimizations and SEO enhancements. Watch as your engagement and search rankings climb.`,
       button: "Boost Performance",
-      featured: false,
     },
     {
       title: "Security & Compliance Package",
-      amount: 299,
-      frequency: "",
-      summary: "Protect your website and ensure compliance.",
-      descriptionPoints: [
-        "Comprehensive security audit & threat removal",
-        "Firewall setup and malware cleanup",
-        "Compliance review for industry standards",
-      ],
+      summary: "Protect your site and ensure industry compliance.",
+      description: `Secure your online presence with a thorough security audit, threat mitigation, and compliance checks. Stay safe and meet regulatory standards effortlessly.`,
       button: "Secure My Site",
-      featured: false,
     },
   ];
 
   return (
     <>
       <motion.section
-        className={styles.pricing}
+        className={styles.services}
         initial={{ opacity: 0, y: 60 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         viewport={{ once: true, amount: 0 }}
       >
-        <h2 className={styles.title}>Tailored Treatment Options</h2>
+        <h2 className={styles.title}>Choose Your Care Option</h2>
         <div className={styles.grid}>
           {services.map((service, index) => (
             <div
               key={index}
-              className={`${styles.card} ${service.featured ? styles.featured : ""}`}
+              className={styles.card}
+              onClick={() => toggleCard(index)}
             >
-              {service.featured && <span className={styles.badge}>Most Popular</span>}
               <h3 className={styles.cardTitle}>{service.title}</h3>
-              <div className={styles.priceContainer}>
-                {service.frequency.toLowerCase().includes("start") ? (
-                  <>
-                    <span className={styles.frequency}>{service.frequency}</span>
-                    <span className={styles.dollarSign}>$</span>
-                    <span className={styles.priceAmount}>{service.amount}</span>
-                  </>
-                ) : (
-                  <>
-                    <span className={styles.dollarSign}>$</span>
-                    <span className={styles.priceAmount}>{service.amount}</span>
-                    <span className={styles.frequency}>{service.frequency}</span>
-                  </>
-                )}
-              </div>
               <p className={styles.cardSummary}>{service.summary}</p>
-              <div className={styles.cardBody}>
-                <ul className={styles.bulletList}>
-                  {service.descriptionPoints.map((point, i) => (
-                    <li key={i}>{point}</li>
-                  ))}
-                </ul>
-                <button
-                  className={styles.button}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openForm(service.title);
-                  }}
-                >
-                  {service.button}
-                </button>
-              </div>
+              {openIndex === index ? (
+                <div className={styles.cardBody}>
+                  <p className={styles.cardDescription}>
+                    {service.description}
+                  </p>
+                  <button
+                    className={styles.button}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenIndex(null);
+                      setShowForm(true);
+                    }}
+                  >
+                    {service.button}
+                  </button>
+                </div>
+              ) : (
+                <span className={styles.expandHint}>
+                  Tap or Click for Details ↓
+                </span>
+              )}
             </div>
           ))}
         </div>
       </motion.section>
 
       <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
-        <IntakeForm
-          selectedService={selectedService || undefined}
-          onSuccess={() => setShowForm(false)}
-        />
+        <IntakeForm onSuccess={() => setShowForm(false)} />
       </Modal>
     </>
   );

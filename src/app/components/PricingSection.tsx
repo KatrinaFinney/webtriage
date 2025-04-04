@@ -69,6 +69,32 @@ export default function PricingSection() {
       button: "Start Recovery",
       featured: false,
     },
+    {
+      title: "Performance & SEO Boost",
+      amount: 199,
+      frequency: "",
+      summary: "Optimize site speed and boost your search rankings.",
+      descriptionPoints: [
+        "Advanced speed optimization techniques",
+        "Targeted SEO audit and improvements",
+        "Enhanced search visibility and engagement",
+      ],
+      button: "Boost Performance",
+      featured: false,
+    },
+    {
+      title: "Security & Compliance Package",
+      amount: 299,
+      frequency: "",
+      summary: "Protect your website and ensure compliance.",
+      descriptionPoints: [
+        "Comprehensive security audit & threat removal",
+        "Firewall setup and malware cleanup",
+        "Compliance review for industry standards",
+      ],
+      button: "Secure My Site",
+      featured: false,
+    },
   ];
 
   return (
@@ -80,22 +106,7 @@ export default function PricingSection() {
         transition={{ duration: 0.8, ease: "easeOut" }}
         viewport={{ once: true, amount: 0 }}
       >
-        <div className={styles.firstAidBlock}>
-          <h3 className={styles.firstAidTitle}>Just need a quick checkup?</h3>
-          <p className={styles.firstAidText}>
-            Try our free <strong>First Aid Scan</strong> and get a rapid review of your site’s homepage health.
-          </p>
-          <button
-            className={styles.button}
-            onClick={() => openForm("First Aid")}
-            style={{ marginBottom: "2rem" }}
-          >
-            Request First Aid
-          </button>
-        </div>
-
         <h2 className={styles.title}>Tailored Treatment Options</h2>
-
         <div className={styles.grid}>
           {services.map((service, index) => (
             <div
@@ -103,9 +114,7 @@ export default function PricingSection() {
               className={`${styles.card} ${service.featured ? styles.featured : ""}`}
             >
               {service.featured && <span className={styles.badge}>Most Popular</span>}
-
               <h3 className={styles.cardTitle}>{service.title}</h3>
-
               <div className={styles.priceContainer}>
                 {service.frequency.toLowerCase().includes("start") ? (
                   <>
@@ -121,16 +130,13 @@ export default function PricingSection() {
                   </>
                 )}
               </div>
-
               <p className={styles.cardSummary}>{service.summary}</p>
-
               <div className={styles.cardBody}>
                 <ul className={styles.bulletList}>
                   {service.descriptionPoints.map((point, i) => (
                     <li key={i}>{point}</li>
                   ))}
                 </ul>
-
                 <button
                   className={styles.button}
                   onClick={(e) => {
