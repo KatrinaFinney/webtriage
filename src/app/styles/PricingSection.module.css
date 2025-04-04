@@ -200,7 +200,7 @@
   margin-bottom: 1rem;
 }
 
-/* Ensure the card body uses flex to push the button to the bottom */
+/* Card body uses flex to push the button to the bottom */
 .cardBody {
   display: flex;
   flex-direction: column;
@@ -210,4 +210,12 @@
 /* Push the button to the bottom of the card body */
 .cardBody .button {
   margin-top: auto;
+}
+
+/* Mobile override: on mobile, revert button margin to preserve original width/appearance */
+@media (max-width: 767px) {
+  .cardBody .button {
+    margin-top: 1rem;  /* Use a standard margin instead of auto */
+    align-self: center; /* Center the button */
+  }
 }
