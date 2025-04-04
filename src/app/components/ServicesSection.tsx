@@ -28,18 +28,6 @@ export default function ServicesSection() {
       button: "Request Emergency Fix",
     },
     {
-      title: "Continuous Care",
-      summary: "Proactive monthly maintenance & monitoring.",
-      description: `Keep your website running smoothly with regular updates, bug fixes, and performance audits. Our dedicated caretaker ensures your site remains secure and optimized all month long.`,
-      button: "Start Continuous Care",
-    },
-    {
-      title: "Full Recovery Plan",
-      summary: "Complete overhaul for underperforming websites.",
-      description: `Transform your outdated site into a modern, fast, and accessible platform. We rebuild your frontend, optimize performance, and enhance user experience for lasting impact.`,
-      button: "Begin Recovery",
-    },
-    {
       title: "Performance & SEO Boost",
       summary: "Optimize speed and elevate search rankings.",
       description: `Accelerate your site’s performance and improve visibility with targeted speed optimizations and SEO enhancements. Watch as your engagement and search rankings climb.`,
@@ -50,6 +38,18 @@ export default function ServicesSection() {
       summary: "Protect your site and ensure industry compliance.",
       description: `Secure your online presence with a thorough security audit, threat mitigation, and compliance checks. Stay safe and meet regulatory standards effortlessly.`,
       button: "Secure My Site",
+    },
+    {
+      title: "Continuous Care",
+      summary: "Proactive monthly maintenance & monitoring.",
+      description: `Keep your website running smoothly with regular updates, bug fixes, and performance audits. Our dedicated caretaker ensures your site remains secure and optimized all month long.`,
+      button: "Start Continuous Care",
+    },
+    {
+      title: "Full Recovery Plan",
+      summary: "Complete overhaul for underperforming websites.",
+      description: `Transform your outdated site into a modern, fast, and accessible platform. We rebuild your frontend, optimize performance, and enhance user experience for lasting impact.`,
+      button: "Begin Recovery",
     },
   ];
 
