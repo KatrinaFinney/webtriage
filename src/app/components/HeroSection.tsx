@@ -1,17 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Modal from "./Modal";
 import IntakeForm from "./IntakeForm";
 
 export default function HeroSection() {
   const [showForm, setShowForm] = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const openForm = (service: string) => {
     setSelectedService(service);
     setShowForm(true);
   };
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   return (
     <>
@@ -95,6 +103,7 @@ export default function HeroSection() {
             padding: "2rem",
             maxWidth: "90vw",
             zIndex: 1,
+            marginTop: isMobile ? "4rem" : "0", // Added extra margin on mobile
           }}
         >
           <h1
