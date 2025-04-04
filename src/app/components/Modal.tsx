@@ -21,15 +21,17 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
 
   useEffect(() => {
     if (isOpen) {
+      document.body.style.overflow = "hidden";
       document.addEventListener("keydown", handleKeyDown);
     }
     return () => {
+      document.body.style.overflow = "auto";
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, handleKeyDown]);
 
   return (
-    <AnimatePresence>
+    <AnimatePresence onExitComplete={() => (document.body.style.overflow = "auto")}>
       {isOpen && (
         <motion.div
           className={styles.overlay}
