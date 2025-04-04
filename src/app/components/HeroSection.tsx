@@ -29,7 +29,7 @@ export default function HeroSection() {
           zIndex: 1,
         }}
       >
-        {/* 🔵 Floating Halo Background */}
+        {/* Floating Halo Background */}
         <div
           style={{
             position: "absolute",
@@ -37,7 +37,8 @@ export default function HeroSection() {
             left: "50%",
             width: "600px",
             height: "600px",
-            background: "radial-gradient(circle, rgba(90, 141, 238, 0.5), transparent 70%)",
+            background:
+              "radial-gradient(circle, rgba(90, 141, 238, 0.5), transparent 70%)",
             borderRadius: "50%",
             filter: "blur(100px)",
             transform: "translate(-50%, -50%)",
@@ -47,7 +48,7 @@ export default function HeroSection() {
           }}
         />
 
-        {/* 🔥 Badge */}
+        {/* Badge */}
         <div
           style={{
             position: "absolute",
@@ -61,7 +62,8 @@ export default function HeroSection() {
             fontSize: "0.95rem",
             fontFamily: "Space Grotesk, sans-serif",
             color: "#ff4d4d",
-            animation: "pulseBadge 2.5s ease-in-out infinite, fadeIn 1s ease-out forwards",
+            animation:
+              "pulseBadge 2.5s ease-in-out infinite, fadeIn 1s ease-out forwards",
             display: "flex",
             alignItems: "center",
             gap: "0.4rem",
@@ -82,7 +84,7 @@ export default function HeroSection() {
           webtriage.pro
         </div>
 
-        {/* 🌌 Hero Content */}
+        {/* Hero Content */}
         <div
           style={{
             backgroundColor: "rgba(255, 255, 255, 0.05)",
@@ -123,37 +125,14 @@ export default function HeroSection() {
           <p
             style={{
               fontSize: "1.1rem",
-              marginBottom: "0.5rem",
-              fontFamily: "Space Grotesk, sans-serif",
-              color: "#94a3b8",
-            }}
-          >
-            Just need a quick checkup? Try a{" "}
-            <span
-              onClick={() => openForm("First Aid")}
-              style={{
-                color: "#5a8dee",
-                fontWeight: 500,
-                textDecoration: "underline",
-                cursor: "pointer",
-              }}
-            >
-              First Aid
-            </span>{" "}
-            scan at no cost.
-          </p>
-
-          <p
-            style={{
-              fontSize: "1.1rem",
               marginBottom: "2rem",
               fontFamily: "Space Grotesk, sans-serif",
               color: "#94a3b8",
             }}
           >
-            Not sure what you need? Start with a full{" "}
+            Just need a quick checkup? Try our{" "}
             <span
-              onClick={() => openForm("Site Triage")}
+              onClick={() => openForm("First Aid")}
               style={{
                 color: "#5a8dee",
                 fontWeight: 500,
@@ -161,55 +140,29 @@ export default function HeroSection() {
                 cursor: "pointer",
               }}
             >
-              Site Triage
+              Free First Aid Scan
             </span>{" "}
-            for just $99.
+            at no cost.
           </p>
 
-          <div
+          <button
+            onClick={() => openForm("First Aid")}
             style={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "center",
-              gap: "1rem",
+              padding: "0.75rem 1.5rem",
+              fontSize: "1rem",
+              backgroundColor: "#5a8dee",
+              color: "white",
+              border: "none",
+              borderRadius: "0.5rem",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              animation: "pulseButton 2.5s ease-in-out infinite",
+              fontFamily: "Space Grotesk, sans-serif",
+              fontWeight: 500,
             }}
           >
-            <button
-              onClick={() => openForm("Site Triage")}
-              style={{
-                padding: "0.75rem 1.5rem",
-                fontSize: "1rem",
-                backgroundColor: "#5a8dee",
-                color: "white",
-                border: "none",
-                borderRadius: "0.5rem",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                animation: "pulseButton 2.5s ease-in-out infinite",
-                fontFamily: "Space Grotesk, sans-serif",
-                fontWeight: 500,
-              }}
-            >
-              Start Site Triage
-            </button>
-
-            <button
-              onClick={() => openForm("First Aid")}
-              style={{
-                padding: "0.75rem 1.5rem",
-                fontSize: "1rem",
-                backgroundColor: "transparent",
-                border: "1px solid #5a8dee",
-                color: "#5a8dee",
-                borderRadius: "0.5rem",
-                cursor: "pointer",
-                fontFamily: "Space Grotesk, sans-serif",
-                fontWeight: 500,
-              }}
-            >
-              Get First Aid
-            </button>
-          </div>
+            Get First Aid
+          </button>
         </div>
       </div>
 
