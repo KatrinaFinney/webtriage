@@ -61,6 +61,9 @@ export default function Modal({ isOpen, onClose, selectedService }: ModalProps) 
                 <p className={styles.loadingText}>Loading secure intake form…</p>
               </div>
             )}
+<p style={{ color: "#dbeafe", fontSize: "0.9rem", marginBottom: "0.5rem" }}>
+  All data securely stored and processed by WebTriage — no spam, no upsells.
+</p>
 
             <iframe
               src={formURL}
