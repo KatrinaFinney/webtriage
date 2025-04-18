@@ -26,6 +26,6 @@ declare global {
       GLOBE: (options: VantaOptions) => VantaEffectInstance;
       NET: (options: VantaOptions) => VantaEffectInstance;
     };
-    gtag?: (...args: any[]) => void;
+    gtag?: (...args: [string, string, Record<string, unknown>]) => void;
   }
 }
