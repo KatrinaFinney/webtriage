@@ -1,17 +1,20 @@
 "use client";
 
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "../styles/Modal.module.css";
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  children: React.ReactNode;
-  selectedService?: string; 
+  selectedService?: string;
 }
 
-export default function Modal({ isOpen, onClose, children }: ModalProps) {
+export default function Modal({ isOpen, onClose, selectedService }: ModalProps) {
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+
+  const formURL = `https://tally.so/r/mOV2q8${selectedService ? `?service=${encodeURIComponent(selectedService)}` : ""}`;
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -31,7 +34,7 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
   }, [isOpen, handleKeyDown]);
 
   return (
-    <AnimatePresence onExitComplete={() => (document.body.style.overflow = "auto")}>
+    <AnimatePresence>
       {isOpen && (
         <motion.div
           className={styles.overlay}
@@ -51,7 +54,28 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
             <button className={styles.close} onClick={onClose} aria-label="Close form">
               &times;
             </button>
-            {children}
+
+            {!iframeLoaded && (
+              <div className={styles.spinnerContainer}>
+                <div className={styles.spinner}></div>
+                <p className={styles.loadingText}>Loading secure intake form…</p>
+              </div>
+            )}
+
+            <iframe
+              src={formURL}
+              width="100%"
+              height="700"
+              onLoad={() => setIframeLoaded(true)}
+              style={{ border: "none", display: iframeLoaded ? "block" : "none" }}
+              title="WebTriage Intake Form"
+            />
+
+            {iframeLoaded && (
+              <p className={styles.trustMessage}>
+                🔒 All data is encrypted and securely stored. No credit card required.
+              </p>
+            )}
           </motion.div>
         </motion.div>
       )}
