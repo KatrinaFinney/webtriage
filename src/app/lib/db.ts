@@ -20,8 +20,26 @@ interface JobRow {
 }
 
 export async function createJob(job: JobRow) {
-  await supabaseAdmin
-    .from('jobs')
-    .insert([job])
-    .single();
-} 
+    const { error } = await supabaseAdmin
+      .from('jobs')
+      .insert([{
+        full_name: job.fullName,
+        business_email: job.businessEmail,
+        website_url: job.websiteUrl,
+        service: job.service,
+        notes: job.notes,
+        encrypted_blob: job.encrypted_blob,
+        ciphertext_data_key: job.ciphertext_data_key,
+        iv: job.iv,
+        tag: job.tag,
+      }])
+      .single();
+  
+    if (error) {
+      console.error('❌ Supabase insert error:', error);
+      throw error;
+    } else {
+      console.log('✅ Supabase insert success');
+    }
+  }
+  
