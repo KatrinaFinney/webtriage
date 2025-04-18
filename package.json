@@ -9,7 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-kms": "^3.787.0",
     "@next/font": "^14.2.15",
+    "@supabase/supabase-js": "^2.49.4",
+    "aws-sdk": "^2.1692.0",
     "framer-motion": "^12.6.3",
     "gsap": "^3.12.7",
     "next": "15.2.4",
@@ -20,6 +23,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/aws-sdk": "^0.0.42",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
