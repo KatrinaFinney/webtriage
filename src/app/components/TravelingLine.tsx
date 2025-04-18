@@ -1,5 +1,5 @@
 "use client";
 
-export default function PulseDivider() {
-  return <div className="pulseDivider" />;
+export default function TravelingLine() {
+  return <div className="travelingLine" />;
 }
