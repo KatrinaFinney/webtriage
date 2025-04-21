@@ -24,6 +24,8 @@ export async function POST(request: NextRequest) {
       fields[field.key] = field.value;
     });
 
+    console.log("🧪 Flattened fields object:", fields); 
+
     const fullName = fields["fullName"] || "";
     const businessEmail = fields["businessEmail"] || "";
     const websiteUrl = fields["websiteUrl"] || "";
