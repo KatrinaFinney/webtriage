@@ -25,6 +25,15 @@ export async function POST(request: NextRequest) {
       question_P1YpyP: 'notes',
     };
 
+    const serviceIdMap: Record<string, string> = {
+      '7942f92a-29a7-4b99-9861-fac6036eae6f': 'Site Triage',
+      '41a4fba6-fe9a-499e-be05-78a9f17b4995': 'Emergency Fix',
+      '6bb3c4f2-fc2b-490c-a10b-d3950b1c019f': 'Performance & SEO Boost',
+      'd5e8b3a4-70e5-45a2-8b15-bb19d2f1d0ef': 'Security & Compliance',
+      '9d8b2b25-e9d3-4f58-845e-b750cde7070a': 'Continuous Care',
+      '3e392115-8e96-47ba-8629-7af1e730a937': 'Full Recovery Plan',
+    };
+
     type TallyField = {
       key: string;
       value: string | string[] | null;
@@ -46,7 +55,8 @@ export async function POST(request: NextRequest) {
     const fullName = normalize(fields["fullName"]);
     const businessEmail = normalize(fields["businessEmail"]);
     const websiteUrl = normalize(fields["websiteUrl"]);
-    const service = normalize(fields["service"]);
+    const rawService = normalize(fields["service"]);
+    const service = serviceIdMap[rawService] || rawService;
     const credentials = normalize(fields["credentials"]);
     const notes = normalize(fields["notes"]);
 
@@ -70,13 +80,11 @@ export async function POST(request: NextRequest) {
     };
 
     const { error } = await createJob(jobData);
-
     if (error) {
       console.error("❌ Supabase insert error:", error);
       return new NextResponse("Supabase insert error", { status: 500 });
     }
 
-    // 🔐 Use env var for Slack webhook
     const slackWebhook = process.env.SLACK_WEBHOOK_URL;
     if (slackWebhook) {
       const slackRes = await fetch(slackWebhook, {
@@ -91,7 +99,7 @@ export async function POST(request: NextRequest) {
       const slackBody = await slackRes.text();
       console.log("🔔 Slack response body:", slackBody);
     } else {
-      console.warn("⚠️ Slack webhook URL not defined in env.");
+      console.warn("⚠️ Slack webhook URL not defined.");
     }
 
     console.log("✅ Supabase insert + Slack alert success");
