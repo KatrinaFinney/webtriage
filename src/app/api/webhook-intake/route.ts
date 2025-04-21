@@ -16,7 +16,6 @@ export async function POST(request: NextRequest) {
 
     const fieldsArray = payload?.data?.fields;
 
-    // Map Tally auto-generated keys to clean names
     const fieldKeyMap: Record<string, string> = {
       question_RMYxlv: 'fullName',
       question_oedEQ5: 'businessEmail',
@@ -26,7 +25,6 @@ export async function POST(request: NextRequest) {
       question_P1YpyP: 'notes'
     };
 
-    // Safe Tally field structure
     type TallyField = {
       key: string;
       value: string | string[] | null;
@@ -42,7 +40,6 @@ export async function POST(request: NextRequest) {
 
     console.log("🧪 Mapped fields:", fields);
 
-    // Normalize all values to strings
     const normalize = (value: string | string[] | null): string =>
       Array.isArray(value) ? value[0] ?? "" : value ?? "";
 
@@ -79,7 +76,16 @@ export async function POST(request: NextRequest) {
       return new NextResponse("Supabase insert error", { status: 500 });
     }
 
-    console.log("✅ Supabase insert success:", data);
+    // 🔔 Slack notification
+    await fetch("https://hooks.slack.com/services/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", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: `🚨 *New WebTriage Intake!*\n\n👤 *Name:* ${fullName}\n📧 *Email:* ${businessEmail}\n🌐 *Website:* ${websiteUrl}\n🛠️ *Service:* ${service}\n📝 *Notes:* ${notes || '—'}`,
+      }),
+    });
+
+    console.log("✅ Supabase insert + Slack alert success");
     return NextResponse.json({ status: 'queued' });
   } catch (err) {
     console.error("❌ Webhook handler error:", err);
