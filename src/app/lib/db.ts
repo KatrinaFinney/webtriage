@@ -20,7 +20,7 @@ interface JobRow {
 }
 
 export async function createJob(job: JobRow) {
-    const { error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('jobs')
       .insert([{
         full_name: job.fullName,
@@ -37,9 +37,11 @@ export async function createJob(job: JobRow) {
   
     if (error) {
       console.error('❌ Supabase insert error:', error);
-      throw error;
     } else {
-      console.log('✅ Supabase insert success');
+      console.log('✅ Supabase insert success:', data);
     }
+  
+    return { data, error };
   }
+  
   

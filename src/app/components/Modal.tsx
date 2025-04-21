@@ -13,7 +13,10 @@ interface ModalProps {
 export default function Modal({ isOpen, onClose, selectedService }: ModalProps) {
   const [iframeLoaded, setIframeLoaded] = useState(false);
 
-  const formURL = `https://tally.so/r/mOV2q8${selectedService ? `?service=${encodeURIComponent(selectedService)}` : ""}`;
+  // Build Tally URL with selected service prefilled
+  const formURL = selectedService
+    ? `https://tally.so/r/mOV2q8?service=${encodeURIComponent(selectedService)}`
+    : "https://tally.so/r/mOV2q8";
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -55,15 +58,18 @@ export default function Modal({ isOpen, onClose, selectedService }: ModalProps) 
               &times;
             </button>
 
+            {/* Loader while iframe is loading */}
             {!iframeLoaded && (
               <div className={styles.spinnerContainer}>
                 <div className={styles.spinner}></div>
                 <p className={styles.loadingText}>Loading secure intake form…</p>
               </div>
             )}
-<p style={{ color: "#dbeafe", fontSize: "0.9rem", marginBottom: "0.5rem" }}>
-  All data securely stored and processed by WebTriage — no spam, no upsells.
-</p>
+
+            {/* Above-form trust message */}
+            <p style={{ color: "#dbeafe", fontSize: "0.9rem", marginBottom: "0.5rem" }}>
+              Your request is safe and confidential. WebTriage will never sell your data.
+            </p>
 
             <iframe
               src={formURL}
@@ -74,6 +80,7 @@ export default function Modal({ isOpen, onClose, selectedService }: ModalProps) 
               title="WebTriage Intake Form"
             />
 
+            {/* Below-form trust message */}
             {iframeLoaded && (
               <p className={styles.trustMessage}>
                 🔒 All data is encrypted and securely stored. No credit card required.

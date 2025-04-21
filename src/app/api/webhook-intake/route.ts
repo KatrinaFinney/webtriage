@@ -5,7 +5,6 @@ import { encryptCredentials } from '../../lib/vault';
 import { createJob } from '../../lib/db';
 
 export function GET() {
-  // Quick health‑check endpoint
   return new NextResponse('Webhook stub is up and running', {
     status: 200,
     headers: { 'Content-Type': 'text/plain' }
@@ -13,44 +12,52 @@ export function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  // 1. Parse incoming JSON
-  const {
-    fullName,
-    businessEmail,
-    websiteUrl,
-    service,
-    credentials = '',
-    notes = ''
-  } = await request.json();
+  try {
+    const payload = await request.json();
 
-  // 2. Encrypt credentials if provided
-  let vaultRecord: {
-    encryptedBlob: string;
-    ciphertextDataKey: string;
-    iv: string;
-    tag: string;
-  } | null = null;
+    const {
+      fullName,
+      businessEmail,
+      websiteUrl,
+      service,
+      credentials = '',
+      notes = ''
+    } = payload;
 
-  if (credentials.trim()) {
-    vaultRecord = await encryptCredentials(credentials);
+    console.log("Incoming webhook submission:", payload);
+
+    // Encrypt credentials if present
+    let vaultRecord = null;
+    if (credentials.trim()) {
+      vaultRecord = await encryptCredentials(credentials);
+    }
+
+    const jobData = {
+      fullName,
+      businessEmail,
+      websiteUrl,
+      service,
+      notes,
+      ...(vaultRecord && {
+        encrypted_blob: vaultRecord.encryptedBlob,
+        ciphertext_data_key: vaultRecord.ciphertextDataKey,
+        iv: vaultRecord.iv,
+        tag: vaultRecord.tag,
+      }),
+    };
+
+    const { error } = await createJob(jobData);
+
+    if (error) {
+      console.error("Supabase insert error:", error);
+      return new NextResponse("Error saving submission", { status: 500 });
+    }
+
+    return NextResponse.json({ status: 'queued' });
+  } catch (err) {
+    console.error("Webhook handler error:", err);
+    return new NextResponse("Invalid request body or internal error", {
+      status: 500,
+    });
   }
-
-  // 3. Enqueue the job
-  await createJob({
-    fullName,
-    businessEmail,
-    websiteUrl,
-    service,
-    notes,
-    // only spread vault fields when they exist
-    ...(vaultRecord && {
-      encrypted_blob: vaultRecord.encryptedBlob,
-      ciphertext_data_key: vaultRecord.ciphertextDataKey,
-      iv: vaultRecord.iv,
-      tag: vaultRecord.tag,
-    }),
-  });
-
-  // 4. Respond immediately so Tally knows we succeeded
-  return NextResponse.json({ status: 'queued' });
 }
