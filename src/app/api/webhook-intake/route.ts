@@ -1,5 +1,3 @@
-// src/app/api/webhook-intake/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import { encryptCredentials } from '../../lib/vault';
 import { createJob } from '../../lib/db';
@@ -14,32 +12,40 @@ export function GET() {
 export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
-    console.log("Incoming webhook submission:", payload);
+    console.log("📩 Incoming webhook payload:", payload);
 
     const fieldsArray = payload?.data?.fields;
 
-    // 🧠 Flatten Tally fields into a usable object
-    const fields: Record<string, string> = {};
-    fieldsArray?.forEach((field: { key: string; value: string }) => {
-      fields[field.key] = field.value;
+    // 🧭 Map of Tally's auto-generated keys → your schema
+    const fieldKeyMap: Record<string, string> = {
+      question_RMYxlv: 'fullName',
+      question_oedEQ5: 'businessEmail',
+      question_G9D6yQ: 'websiteUrl',
+      question_O4Yayk: 'service',
+      question_VQYGyN: 'credentials',
+      question_P1YpyP: 'notes'
+    };
+
+    // 🧱 Flatten the array into { fullName: "Jane", ... }
+    const fields: Record<string, any> = {};
+    fieldsArray?.forEach((field: { key: string; value: any }) => {
+      const mappedKey = fieldKeyMap[field.key];
+      if (mappedKey) {
+        fields[mappedKey] = field.value;
+      }
     });
 
-    console.log("🧪 Flattened fields object:", fields); 
+    console.log("🧪 Mapped fields:", fields);
 
     const fullName = fields["fullName"] || "";
     const businessEmail = fields["businessEmail"] || "";
     const websiteUrl = fields["websiteUrl"] || "";
-    const service = fields["service"] || "";
+    const rawService = fields["service"];
+    const service = Array.isArray(rawService) ? rawService[0] : rawService || "";
     const credentials = fields["credentials"] || "";
     const notes = fields["notes"] || "";
 
-    let vaultRecord: {
-      encryptedBlob: string;
-      ciphertextDataKey: string;
-      iv: string;
-      tag: string;
-    } | null = null;
-
+    let vaultRecord = null;
     if (credentials.trim()) {
       vaultRecord = await encryptCredentials(credentials);
     }
