@@ -1,3 +1,5 @@
+// src/app/api/webhook-intake/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { encryptCredentials } from '../../lib/vault';
 import { createJob } from '../../lib/db';
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
       value: string | string[] | null;
     };
 
-    const fields: Record<string, string | string[] | null> = {};
+    const fields: Record<string, unknown> = {};
     (fieldsArray as TallyField[])?.forEach((field) => {
       const mappedKey = fieldKeyMap[field.key];
       if (mappedKey) {
@@ -49,8 +51,11 @@ export async function POST(request: NextRequest) {
 
     console.log("🧪 Mapped fields:", fields);
 
-    const normalize = (value: string | string[] | null): string =>
-      Array.isArray(value) ? value[0] ?? "" : value ?? "";
+    const normalize = (value: unknown): string => {
+      if (Array.isArray(value)) return value[0] ?? "";
+      if (typeof value === "string") return value;
+      return "";
+    };
 
     const fullName = normalize(fields["fullName"]);
     const businessEmail = normalize(fields["businessEmail"]);
