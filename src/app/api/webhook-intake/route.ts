@@ -106,15 +106,22 @@ export async function POST(request: NextRequest) {
       console.log("🔔 Slack response status:", slackRes.status);
       const slackBody = await slackRes.text();
       console.log("🔔 Slack response body:", slackBody);
-    } else {
-      console.warn("⚠️ Slack webhook URL not defined.");
     }
 
     // 📧 Autoresponder Email
+    const from = 'WebTriage Team <support@webtriage.pro>';
+    const to = businessEmail;
+    const subject = `We received your ${service} request`;
+
+    console.log("📤 Sending autoresponder email:");
+    console.log("From:", from);
+    console.log("To:", to);
+    console.log("Subject:", subject);
+
     const emailRes = await resend.emails.send({
-      from: 'WebTriage Team <support@webtriage.pro>',
-      to: businessEmail,
-      subject: `We received your ${service} request`,
+      from,
+      to,
+      subject,
       html: `
         <div style="font-family: sans-serif; color: #0a1128;">
           <h2>Thanks, ${fullName}!</h2>
