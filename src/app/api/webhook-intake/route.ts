@@ -61,8 +61,9 @@ export async function POST(request: NextRequest) {
     const fullName = normalize(fields["fullName"]);
     const businessEmail = normalize(fields["businessEmail"]);
     const websiteUrl = normalize(fields["websiteUrl"]);
-    const rawService = normalize(fields["service"]);
-    const service = serviceIdMap[rawService] || rawService;
+    const rawServiceValue = fields["service"];
+    const rawServiceId = Array.isArray(rawServiceValue) ? rawServiceValue[0] : rawServiceValue || "";
+    const service = serviceIdMap[rawServiceId] || rawServiceId;
     const credentials = normalize(fields["credentials"]);
     const notes = normalize(fields["notes"]);
 
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
       return new NextResponse("Supabase insert error", { status: 500 });
     }
 
-    // 🔔 Slack notification
+    // 🔔 Slack Notification
     const slackWebhook = process.env.SLACK_WEBHOOK_URL;
     if (slackWebhook) {
       const slackRes = await fetch(slackWebhook, {
@@ -109,8 +110,8 @@ export async function POST(request: NextRequest) {
       console.warn("⚠️ Slack webhook URL not defined.");
     }
 
-    // 📧 Autoresponder via Resend
-    const emailResponse = await resend.emails.send({
+    // 📧 Autoresponder Email
+    const emailRes = await resend.emails.send({
       from: 'WebTriage Team <support@webtriage.pro>',
       to: businessEmail,
       subject: `We received your ${service} request`,
@@ -127,9 +128,8 @@ export async function POST(request: NextRequest) {
       `,
     });
 
-    console.log("📤 Resend email response:", emailResponse);
+    console.log("📤 Resend email response:", emailRes);
 
-    console.log("✅ Supabase insert + Slack alert + Email success");
     return NextResponse.json({ status: 'queued' });
   } catch (err) {
     console.error("❌ Webhook handler error:", err);
