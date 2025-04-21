@@ -5,7 +5,7 @@ import { createJob } from '../../lib/db';
 export function GET() {
   return new NextResponse('Webhook stub is up and running', {
     status: 200,
-    headers: { 'Content-Type': 'text/plain' }
+    headers: { 'Content-Type': 'text/plain' },
   });
 }
 
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       question_G9D6yQ: 'websiteUrl',
       question_O4Yayk: 'service',
       question_VQYGyN: 'credentials',
-      question_P1YpyP: 'notes'
+      question_P1YpyP: 'notes',
     };
 
     type TallyField = {
@@ -76,18 +76,23 @@ export async function POST(request: NextRequest) {
       return new NextResponse("Supabase insert error", { status: 500 });
     }
 
-    // 🔔 Slack notification
-    const slackRes = await fetch("https://hooks.slack.com/services/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", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: `🚨 *New WebTriage Intake!*\n\n👤 *Name:* ${fullName}\n📧 *Email:* ${businessEmail}\n🌐 *Website:* ${websiteUrl}\n🛠️ *Service:* ${service}\n📝 *Notes:* ${notes || '—'}`,
-      }),
-    });
+    // 🔐 Use env var for Slack webhook
+    const slackWebhook = process.env.SLACK_WEBHOOK_URL;
+    if (slackWebhook) {
+      const slackRes = await fetch(slackWebhook, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: `🚨 *New WebTriage Intake!*\n\n👤 *Name:* ${fullName}\n📧 *Email:* ${businessEmail}\n🌐 *Website:* ${websiteUrl}\n🛠️ *Service:* ${service}\n📝 *Notes:* ${notes || '—'}`,
+        }),
+      });
 
-    console.log("🔔 Slack response status:", slackRes.status);
-    const slackBody = await slackRes.text();
-    console.log("🔔 Slack response body:", slackBody);
+      console.log("🔔 Slack response status:", slackRes.status);
+      const slackBody = await slackRes.text();
+      console.log("🔔 Slack response body:", slackBody);
+    } else {
+      console.warn("⚠️ Slack webhook URL not defined in env.");
+    }
 
     console.log("✅ Supabase insert + Slack alert success");
     return NextResponse.json({ status: 'queued' });
