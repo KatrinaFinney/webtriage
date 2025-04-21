@@ -77,13 +77,17 @@ export async function POST(request: NextRequest) {
     }
 
     // 🔔 Slack notification
-    await fetch("https://hooks.slack.com/services/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", {
+    const slackRes = await fetch("https://hooks.slack.com/services/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", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         text: `🚨 *New WebTriage Intake!*\n\n👤 *Name:* ${fullName}\n📧 *Email:* ${businessEmail}\n🌐 *Website:* ${websiteUrl}\n🛠️ *Service:* ${service}\n📝 *Notes:* ${notes || '—'}`,
       }),
     });
+
+    console.log("🔔 Slack response status:", slackRes.status);
+    const slackBody = await slackRes.text();
+    console.log("🔔 Slack response body:", slackBody);
 
     console.log("✅ Supabase insert + Slack alert success");
     return NextResponse.json({ status: 'queued' });
