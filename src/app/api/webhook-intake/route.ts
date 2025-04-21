@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     const fieldsArray = payload?.data?.fields;
 
-    // 💡 Mapping Tally field keys → meaningful names
+    // Map Tally auto-generated keys to clean names
     const fieldKeyMap: Record<string, string> = {
       question_RMYxlv: 'fullName',
       question_oedEQ5: 'businessEmail',
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       question_P1YpyP: 'notes'
     };
 
-    // ✅ Safe field typing
+    // Safe Tally field structure
     type TallyField = {
       key: string;
       value: string | string[] | null;
@@ -42,16 +42,19 @@ export async function POST(request: NextRequest) {
 
     console.log("🧪 Mapped fields:", fields);
 
-    const fullName = fields["fullName"] || "";
-    const businessEmail = fields["businessEmail"] || "";
-    const websiteUrl = fields["websiteUrl"] || "";
-    const rawService = fields["service"];
-    const service = Array.isArray(rawService) ? rawService[0] : rawService || "";
-    const credentials = fields["credentials"] || "";
-    const notes = fields["notes"] || "";
+    // Normalize all values to strings
+    const normalize = (value: string | string[] | null): string =>
+      Array.isArray(value) ? value[0] ?? "" : value ?? "";
+
+    const fullName = normalize(fields["fullName"]);
+    const businessEmail = normalize(fields["businessEmail"]);
+    const websiteUrl = normalize(fields["websiteUrl"]);
+    const service = normalize(fields["service"]);
+    const credentials = normalize(fields["credentials"]);
+    const notes = normalize(fields["notes"]);
 
     let vaultRecord = null;
-    if (typeof credentials === "string" && credentials.trim()) {
+    if (credentials.trim()) {
       vaultRecord = await encryptCredentials(credentials);
     }
 
