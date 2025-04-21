@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     const fieldsArray = payload?.data?.fields;
 
-    // 🧭 Map of Tally's auto-generated keys → your schema
+    // 💡 Mapping Tally field keys → meaningful names
     const fieldKeyMap: Record<string, string> = {
       question_RMYxlv: 'fullName',
       question_oedEQ5: 'businessEmail',
@@ -26,9 +26,14 @@ export async function POST(request: NextRequest) {
       question_P1YpyP: 'notes'
     };
 
-    // 🧱 Flatten the array into { fullName: "Jane", ... }
-    const fields: Record<string, any> = {};
-    fieldsArray?.forEach((field: { key: string; value: any }) => {
+    // ✅ Safe field typing
+    type TallyField = {
+      key: string;
+      value: string | string[] | null;
+    };
+
+    const fields: Record<string, string | string[] | null> = {};
+    (fieldsArray as TallyField[])?.forEach((field) => {
       const mappedKey = fieldKeyMap[field.key];
       if (mappedKey) {
         fields[mappedKey] = field.value;
@@ -46,7 +51,7 @@ export async function POST(request: NextRequest) {
     const notes = fields["notes"] || "";
 
     let vaultRecord = null;
-    if (credentials.trim()) {
+    if (typeof credentials === "string" && credentials.trim()) {
       vaultRecord = await encryptCredentials(credentials);
     }
 
