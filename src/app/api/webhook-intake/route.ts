@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       }),
     };
 
-    const { data, error } = await createJob(jobData);
+    const { error } = await createJob(jobData);
 
     if (error) {
       console.error("❌ Supabase insert error:", error);
