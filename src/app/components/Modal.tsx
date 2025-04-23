@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React, { useEffect, useCallback, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import styles from "../styles/Modal.module.css";
+import React, { useEffect, useCallback, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import styles from '../styles/Modal.module.css'; // ← adjust if your CSS is elsewhere
 
 interface ModalProps {
   isOpen: boolean;
@@ -10,29 +10,35 @@ interface ModalProps {
   selectedService?: string;
 }
 
-export default function Modal({ isOpen, onClose, selectedService }: ModalProps) {
+export default function Modal({
+  isOpen,
+  onClose,
+  selectedService,
+}: ModalProps) {
   const [iframeLoaded, setIframeLoaded] = useState(false);
 
   // Build Tally URL with selected service prefilled
   const formURL = selectedService
-    ? `https://tally.so/r/mOV2q8?service=${encodeURIComponent(selectedService)}`
-    : "https://tally.so/r/mOV2q8";
+    ? `https://tally.so/r/mOV2q8?service=${encodeURIComponent(
+        selectedService
+      )}`
+    : 'https://tally.so/r/mOV2q8';
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === 'Escape') onClose();
     },
     [onClose]
   );
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden";
-      document.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
     }
     return () => {
-      document.body.style.overflow = "auto";
-      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = 'auto';
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, handleKeyDown]);
 
@@ -52,23 +58,34 @@ export default function Modal({ isOpen, onClose, selectedService }: ModalProps) 
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ duration: 0.25, type: "spring", stiffness: 150 }}
+            transition={{ duration: 0.25, type: 'spring', stiffness: 150 }}
           >
-            <button className={styles.close} onClick={onClose} aria-label="Close form">
+            <button
+              className={styles.close}
+              onClick={onClose}
+              aria-label="Close form"
+            >
               &times;
             </button>
 
-            {/* Loader while iframe is loading */}
             {!iframeLoaded && (
               <div className={styles.spinnerContainer}>
-                <div className={styles.spinner}></div>
-                <p className={styles.loadingText}>Loading secure intake form…</p>
+                <div className={styles.spinner} />
+                <p className={styles.loadingText}>
+                  Loading secure intake form…
+                </p>
               </div>
             )}
 
-            {/* Above-form trust message */}
-            <p style={{ color: "#dbeafe", fontSize: "0.9rem", marginBottom: "0.5rem" }}>
-              Your request is safe and confidential. WebTriage will never sell your data.
+            <p
+              style={{
+                color: '#dbeafe',
+                fontSize: '0.9rem',
+                marginBottom: '0.5rem',
+              }}
+            >
+              Your request is safe and confidential. WebTriage will never sell
+              your data.
             </p>
 
             <iframe
@@ -76,14 +93,17 @@ export default function Modal({ isOpen, onClose, selectedService }: ModalProps) 
               width="100%"
               height="700"
               onLoad={() => setIframeLoaded(true)}
-              style={{ border: "none", display: iframeLoaded ? "block" : "none" }}
+              style={{
+                border: 'none',
+                display: iframeLoaded ? 'block' : 'none',
+              }}
               title="WebTriage Intake Form"
             />
 
-            {/* Below-form trust message */}
             {iframeLoaded && (
               <p className={styles.trustMessage}>
-                🔒 All data is encrypted and securely stored. No credit card required.
+                🔒 All data is encrypted and securely stored. No credit card
+                required.
               </p>
             )}
           </motion.div>

@@ -20,6 +20,7 @@ type VantaOptions = {
   minWidth?: number;
 };
 
+// Declare our Vanta and analytics globals
 declare global {
   interface Window {
     VANTA: {
@@ -29,3 +30,7 @@ declare global {
     gtag?: (...args: [string, string, Record<string, unknown>]) => void;
   }
 }
+
+// Declare un‑typed modules so TS stops complaining
+declare module 'chrome-aws-lambda';
+declare module 'lighthouse';

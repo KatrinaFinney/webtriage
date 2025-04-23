@@ -1,26 +1,46 @@
-"use client";
+'use client';
 
-import VantaBackground from "./components/VantaBackground";
-import HeroSection from "./components/HeroSection";
-import PricingSection from "./components/PricingSection";
-import ServicesSection from "./components/ServicesSection";
-import TrustSection from "./components/TrustSection";
-import FaqSection from "./components/FaqSection";
-import CallToAction from "./components/CallToAction";
-import Footer from "./components/Footer";
-
-/* 
-  The traveling line component.
-  Place it in ./components/TravelingLine.tsx if you prefer. 
-*/
-function TravelingLine() {
-  return <div className="travelingLine" />;
-}
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import VantaBackground from './components/VantaBackground';
+import HeroSection from './components/HeroSection';
+import PricingSection from './components/PricingSection';
+import ServicesSection from './components/ServicesSection';
+import TrustSection from './components/TrustSection';
+import FaqSection from './components/FaqSection';
+import CallToAction from './components/CallToAction';
+import Footer from './components/Footer';
+import Modal from './components/Modal';
 
 export default function HomePage() {
+  const router = useRouter();
+  const [domain, setDomain] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState<string>();
+
+  // Grab current hostname for /scan?site=
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setDomain(window.location.hostname);
+    }
+  }, []);
+
+  const handleSelectService = (service: string) => {
+    if (service === 'Free Scan') {
+      router.push(`/scan?site=${encodeURIComponent(domain)}`);
+    } else {
+      setSelectedService(service);
+      setModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedService(undefined);
+  };
+
   return (
     <>
-      {/* Hero with Vanta background */}
       <VantaBackground
         color={0x4e8fff}
         backgroundColor={0x0a1128}
@@ -30,20 +50,24 @@ export default function HomePage() {
         <HeroSection />
       </VantaBackground>
 
-      {/* The traveling red line divider */}
-      <TravelingLine />
+      <div className="travelingLine" />
 
-      {/* Main site content */}
-      <main style={{ backgroundColor: "#0a1128" }}>
+      <main style={{ backgroundColor: '#0a1128' }}>
         <PricingSection />
-        <TravelingLine />
+        <div className="travelingLine" />
         <ServicesSection />
         <TrustSection />
         <FaqSection />
         <CallToAction />
-        <TravelingLine />
+        <div className="travelingLine" />
         <Footer />
       </main>
+
+      <Modal
+        isOpen={modalOpen}
+        onClose={handleCloseModal}
+        selectedService={selectedService}
+      />
     </>
   );
 }

@@ -1,0 +1,7 @@
+/* src/app/components/ScanLoader.module.css */
+.loader {
+    width: 80px;
+    height: 80px;
+    margin: auto;
+  }
+  
