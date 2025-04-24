@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 'use client';
 
 import { useState } from 'react';
@@ -20,7 +21,7 @@ type PSIResult = {
     accessibility: { score: number };
     seo: { score: number };
   };
-  audits?: Record<string, Audit>;
+  audits: Record<string, Audit>;
 };
 
 interface ScanResponse {
@@ -109,10 +110,23 @@ export default function ScanPage() {
       body: JSON.stringify({ site: domain, email }),
     });
 
-    const json = (await res.json()) as ScanResponse;
+    // parse & type the response (guard against HTML error pages)
+    let json: ScanResponse;
+    try {
+      json = (await res.json()) as ScanResponse;
+    } catch (parseErr) {
+      const text = await res.text();
+      console.error('🔴 /api/scan did not return JSON:', text);
+      alert(`Server error (${res.status}). Please try again or check console.`);
+      setPhase('form');
+      return;
+    }
+
+    // record logs & timestamp
     if (Array.isArray(json.logs)) setLogs(json.logs);
     setScanTime(new Date());
 
+    // handle rate-limit or other errors
     if (res.status === 429) {
       alert(json.error || 'One free scan per URL per day.');
       setPhase('form');
@@ -124,22 +138,25 @@ export default function ScanPage() {
       return;
     }
 
+    // DEBUG dump (dev only)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🗒️ scan result:', json.result);
+    }
+
+    // success!
     setResult(json.result!);
     setPhase('results');
   };
 
-  // ─── Prepare category entries safely
-  const safeCategories = result?.categories ?? {
-    performance: { score: 0 },
-    accessibility: { score: 0 },
-    seo: { score: 0 },
-  };
-  const categoryEntries = Object.entries(
-    safeCategories
-  ) as Array<[keyof typeof categoryLabels, { score: number }]>;
-
-  // ─── Safe audits map
-  const safeAudits = result?.audits ?? {};
+  // ─── Prepare category entries
+  let categoryEntries: Array<
+    [keyof typeof categoryLabels, { score: number }]
+  > = [];
+  if (result) {
+    categoryEntries = Object.entries(
+      result.categories
+    ) as Array<[keyof typeof categoryLabels, { score: number }]>;
+  }
 
   return (
     <div className={styles.page}>
@@ -228,10 +245,7 @@ export default function ScanPage() {
               <div className={styles.scanMeta}>
                 Scanned on <strong>{scanTime.toLocaleString()}</strong>{' '}
                 {process.env.NODE_ENV !== 'production' && (
-                  <button
-                    className={styles.rerun}
-                    onClick={startScan}
-                  >
+                  <button className={styles.rerun} onClick={startScan}>
                     Re-run
                   </button>
                 )}
@@ -243,9 +257,7 @@ export default function ScanPage() {
               Vital Signs for{' '}
               <span className={styles.resultDomain}>{domain}</span>
             </h2>
-            <p className={styles.overview}>
-              A quick, one-page health check.
-            </p>
+            <p className={styles.overview}>A quick, one-page health check.</p>
 
             {/* Top-level scores */}
             <div className={styles.grid}>
@@ -268,12 +280,10 @@ export default function ScanPage() {
             </div>
 
             {/* Explanation */}
-            <h3 className={styles.subheading}>
-              Key Checkups &amp; Advice
-            </h3>
+            <h3 className={styles.subheading}>Key Checkups &amp; Advice</h3>
             <p className={styles.sectionIntro}>
-              We’ve distilled your site’s health into four critical checkups—
-              each with a simple narrative and one clear tip.
+              We’ve distilled your site’s health into four critical checkups—each
+              with a simple narrative and one clear tip.
             </p>
             <p className={styles.legend}>
               Hover the ℹ️ to see the technical metric and why it matters.
@@ -288,7 +298,7 @@ export default function ScanPage() {
                     brand: 'First Visual Pulse',
                     tech: 'First Contentful Paint (FCP)',
                     narrative: (v: string) =>
-                      `Your site shows its first visual element in ${v}, so visitors never see a blank screen.`,
+                      `Your site’s first visual element appears in ${v}, so visitors never see a blank screen.`,
                     tipPool: metricAdvicePools['first-contentful-paint'],
                   },
                   {
@@ -313,12 +323,11 @@ export default function ScanPage() {
                     tech: 'Total Blocking Time (TBT)',
                     narrative: (v: string) =>
                       `With ${v} blocked, your page becomes interactive smoothly and swiftly.`,
-                    tipPool: metricAdvicePools['total-blocking-time'],  
+                    tipPool: metricAdvicePools['total-blocking-time'],
                   },
                 ] as const
               ).map(({ id, brand, tech, narrative, tipPool }) => {
-                // use a safe fallback if audit missing
-                const audit = safeAudits[id] ?? { displayValue: 'N/A' };
+                const audit = result.audits[id] ?? { displayValue: 'N/A' };
                 const valText = formatValue(id, audit.displayValue);
                 const tip =
                   tipPool[Math.floor(Math.random() * tipPool.length)];
@@ -370,12 +379,10 @@ export default function ScanPage() {
 
             {/* ── NEXT STEPS ── */}
             <section className={styles.nextSteps}>
-              <h3 className={styles.nextStepsTitle}>
-                Ready to Level Up?
-              </h3>
+              <h3 className={styles.nextStepsTitle}>Ready to Level Up?</h3>
               <p className={styles.nextStepsIntro}>
-                One-off deep dives or ongoing care—choose the plan that
-                matches your goals, and let’s get your site into peak shape.
+                One-off deep dives or ongoing care—choose the plan that matches
+                your goals, and let’s get your site into peak shape.
               </p>
 
               <div className={styles.servicesGrid}>
