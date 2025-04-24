@@ -1,9 +1,8 @@
+// src/app/layout.tsx
 import './globals.css';
 import { spaceGrotesk, plexMono } from './fonts';
 import Head from 'next/head';
-
-
-
+import { ModalProvider } from './components/ModalContext';
 
 export const metadata = {
   title: 'WebTriage.pro',
@@ -36,11 +35,15 @@ export default function RootLayout({
       lang="en"
       className={`${spaceGrotesk.variable} ${plexMono.variable}`}
     >
-<Head>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
-</Head>
-      <body>{children}</body>
+      <Head>
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+        <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+      </Head>
+      <body>
+        <ModalProvider>
+          {children}
+        </ModalProvider>
+      </body>
     </html>
   );
 }

@@ -219,3 +219,77 @@
     align-self: center; /* Center the button */
   }
 }
+.pricingSection {
+  background-color: #0f2344;
+  padding: 4rem 1rem;
+}
+
+.inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.title {
+  font-family: Space Grotesk, sans-serif;
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.intro {
+  font-family: Space Grotesk, sans-serif;
+  font-size: 1.1rem;
+  color: #cbd5e1;
+  margin-bottom: 2rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.cardTitle {
+  font-family: Space Grotesk, sans-serif;
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+}
+
+.cardPrice {
+  font-family: Plex Mono, monospace;
+  font-size: 1.25rem;
+  color: #4fd1c5;
+  margin-bottom: 0.75rem;
+}
+
+.cardSummary {
+  font-family: Space Grotesk, sans-serif;
+  font-size: 1rem;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+.features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
+  color: #cbd5e1;
+}
+.features li {
+  margin-bottom: 0.5rem;
+}
+
+.button:hover {
+  background-color: #38b2ac;
+}
+
+@media (min-width: 768px) {
+  .pricingSection {
+    padding: 6rem 2rem;
+  }
+  .title {
+    font-size: 3rem;
+  }
+}

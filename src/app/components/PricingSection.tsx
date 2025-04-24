@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -79,46 +79,58 @@ export default function PricingSection() {
     },
     {
       title: "Full Recovery Plan",
-      price: "Starting at $999",
+      price: "From $999",
       summary: "Complete redesign & modernization.",
       features: [
         "Site rebuild + UX overhaul",
         "Performance + accessibility boost",
         "Fresh, engaging user experience",
       ],
-      button: "Start Recovery",
+      button: "Plan Recovery",
     },
   ];
 
   return (
     <>
       <motion.section
-        className={styles.pricing}
+        className={styles.pricingSection}
         initial={{ opacity: 0, y: 60 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         viewport={{ once: true }}
       >
-        <h2 className={styles.title}>Tailored Treatment Options</h2>
-        <div className={styles.grid}>
-          {services.map((service, index) => (
-            <div className={styles.card} key={index}>
-              <h3 className={styles.cardTitle}>{service.title}</h3>
-              <p className={styles.cardPrice}>{service.price}</p>
-              <p className={styles.cardSummary}>{service.summary}</p>
-              <ul className={styles.cardFeatures}>
-                {service.features.map((feature, i) => (
-                  <li key={i}>{feature}</li>
-                ))}
-              </ul>
-              <button
-                className={styles.button}
-                onClick={() => openForm(service.title)}
+        <div className={styles.inner}>
+          <h2 className={styles.title}>Tailored Treatment Options</h2>
+          <p className={styles.intro}>
+            Choose the level of care that fits your needs—from a quick triage
+            to a full recovery plan.
+          </p>
+
+          <div className={styles.grid}>
+            {services.map((service) => (
+              <motion.div
+                key={service.title}
+                className={styles.card}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                {service.button}
-              </button>
-            </div>
-          ))}
+                <h3 className={styles.cardTitle}>{service.title}</h3>
+                <p className={styles.cardPrice}>{service.price}</p>
+                <p className={styles.cardSummary}>{service.summary}</p>
+                <ul className={styles.features}>
+                  {service.features.map((feat, i) => (
+                    <li key={i}>{feat}</li>
+                  ))}
+                </ul>
+                <button
+                  className={styles.button}
+                  onClick={() => openForm(service.title)}
+                >
+                  {service.button}
+                </button>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </motion.section>
 

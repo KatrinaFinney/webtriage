@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import VantaBackground from './components/VantaBackground';
 import HeroSection from './components/HeroSection';
+import ServiceSelector from './components/ServiceSelector';
 import PricingSection from './components/PricingSection';
 import ServicesSection from './components/ServicesSection';
 import TrustSection from './components/TrustSection';
@@ -41,6 +42,7 @@ export default function HomePage() {
 
   return (
     <>
+      {/* Hero with Vanta background */}
       <VantaBackground
         color={0x4e8fff}
         backgroundColor={0x0a1128}
@@ -50,19 +52,36 @@ export default function HomePage() {
         <HeroSection />
       </VantaBackground>
 
+      {/* Traveling red line divider */}
       <div className="travelingLine" />
 
       <main style={{ backgroundColor: '#0a1128' }}>
+        {/* <-- Service selector inserted here --> */}
+        <div style={{ padding: '2rem 1rem', maxWidth: '900px', margin: '0 auto' }}>
+          <ServiceSelector
+            domain={domain}
+            onSelectService={handleSelectService}
+          />
+        </div>
+
         <PricingSection />
+
         <div className="travelingLine" />
+
         <ServicesSection />
+
         <TrustSection />
+
         <FaqSection />
+
         <CallToAction />
+
         <div className="travelingLine" />
+
         <Footer />
       </main>
 
+      {/* Modal for non‐scan services */}
       <Modal
         isOpen={modalOpen}
         onClose={handleCloseModal}

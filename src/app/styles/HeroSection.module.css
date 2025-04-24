@@ -1,0 +1,157 @@
+.container {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    padding: 2rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #0a1128;
+    text-align: center;
+    overflow: hidden;
+  }
+  
+  /* Floating halo */
+  .halo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(90, 141, 238, 0.5), transparent 70%);
+    border-radius: 50%;
+    filter: blur(100px);
+    transform: translate(-50%, -50%);
+    animation: floatHalo 14s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  /* Pulse badge top‐left */
+  .badge {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 77, 77, 0.5);
+    box-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
+    font-family: Space Grotesk, sans-serif;
+    font-size: 0.95rem;
+    color: #ff4d4d;
+    animation: pulseBadge 2.5s ease-in-out infinite,
+               fadeIn 1s ease-out forwards;
+    opacity: 0;
+    z-index: 2;
+  }
+  
+  .badgeDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ff4d4d;
+    animation: heartbeat 1.3s infinite ease-in-out;
+  }
+  
+  /* Hero content wrapper */
+  .heroContent {
+    position: relative;
+    z-index: 1;
+    max-width: 90vw;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 1rem;
+    padding: 2rem;
+  }
+  
+  .heroContentMobile {
+    margin-top: 4rem;
+  }
+  
+  .title {
+    font-family: Space Grotesk, sans-serif;
+    font-size: 3.25rem;
+    line-height: 1.2;
+    color: #ffffff;
+    margin-bottom: 1rem;
+  }
+  
+  .subtitle {
+    font-family: Space Grotesk, sans-serif;
+    font-size: 1.4rem;
+    color: #dbeafe;
+  }
+  
+  /* Free First Aid card */
+  .freeAidCard {
+    position: relative;
+    z-index: 1;
+    max-width: 90vw;
+    margin-top: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+  }
+  
+  .cardText {
+    font-family: Space Grotesk, sans-serif;
+    font-size: 1.1rem;
+    color: #94a3b8;
+    margin-bottom: 1rem;
+  }
+  
+  .freeAidLink {
+    color: #5a8dee;
+    font-weight: 500;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  
+  .freeAidButton {
+    font-family: Space Grotesk, sans-serif;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    background-color: #5a8dee;
+    color: #ffffff;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: pulseButton 2.5s ease-in-out infinite;
+  }
+  
+  /* Animations */
+  @keyframes floatHalo {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.05); }
+  }
+  
+  @keyframes pulseBadge {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  
+  @keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    25%,75% { transform: scale(1.2); }
+  }
+  
+  @keyframes pulseButton {
+    0%,100% { box-shadow: 0 0 0 rgba(90,140,238,0.7); }
+    50% { box-shadow: 0 0 10px rgba(90,140,238,0.7); }
+  }
+  
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+  
