@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ScanLoader from '../components/ScanLoader';
 import styles from '../styles/ScanPage.module.css';
 
@@ -36,6 +36,7 @@ interface ScanResponse {
 
 export default function ScanPage() {
   const router = useRouter();
+  const search = useSearchParams();
 
   // ─── Form state
   const [domain, setDomain] = useState('');
@@ -48,15 +49,18 @@ export default function ScanPage() {
   const [scanTime, setScanTime] = useState<Date | null>(null);
   const [showDebug, setShowDebug] = useState(false);
 
+  // ─── Seed domain from ?site=… on mount
+  useEffect(() => {
+    const s = search.get('site');
+    if (s) setDomain(s);
+  }, [search]);
+
   // ─── Plain-English summaries
   const metricSummaries: Record<string, string> = {
     'first-contentful-paint': 'Time until the first text or image appears.',
-    'largest-contentful-paint':
-      'Time until the main content image or text appears.',
-    'cumulative-layout-shift':
-      'How much visible elements shift unexpectedly.',
-    'total-blocking-time':
-      'Total time the page was unresponsive after first paint.',
+    'largest-contentful-paint': 'Time until the main content image or text appears.',
+    'cumulative-layout-shift': 'How much visible elements shift unexpectedly.',
+    'total-blocking-time': 'Total time the page was unresponsive after first paint.',
   };
 
   // ─── Advice pools
@@ -98,6 +102,8 @@ export default function ScanPage() {
 
   // ─── Kick off scan
   const startScan = async () => {
+    console.log('🔎 startScan called with', { domain, email });
+
     setPhase('scanning');
     setLogs([]);
     setShowDebug(false);
@@ -110,23 +116,13 @@ export default function ScanPage() {
       body: JSON.stringify({ site: domain, email }),
     });
 
-    // parse & type the response (guard against HTML error pages)
-    let json: ScanResponse;
-    try {
-      json = (await res.json()) as ScanResponse;
-    } catch (parseErr) {
-      const text = await res.text();
-      console.error('🔴 /api/scan did not return JSON:', text);
-      alert(`Server error (${res.status}). Please try again or check console.`);
-      setPhase('form');
-      return;
-    }
+    const json = (await res.json()) as ScanResponse;
 
     // record logs & timestamp
     if (Array.isArray(json.logs)) setLogs(json.logs);
     setScanTime(new Date());
 
-    // handle rate-limit or other errors
+    // handle rate-limit or errors
     if (res.status === 429) {
       alert(json.error || 'One free scan per URL per day.');
       setPhase('form');
@@ -138,20 +134,13 @@ export default function ScanPage() {
       return;
     }
 
-    // DEBUG dump (dev only)
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('🗒️ scan result:', json.result);
-    }
-
     // success!
     setResult(json.result!);
     setPhase('results');
   };
 
-  // ─── Prepare category entries
-  let categoryEntries: Array<
-    [keyof typeof categoryLabels, { score: number }]
-  > = [];
+  // ─── Prepare category entries for rendering
+  let categoryEntries: Array<[keyof typeof categoryLabels, { score: number }]> = [];
   if (result) {
     categoryEntries = Object.entries(
       result.categories
@@ -211,7 +200,7 @@ export default function ScanPage() {
               whileTap={{ scale: 0.98 }}
               className={styles.scanButton}
               onClick={startScan}
-              disabled={!domain || !email}
+              /* disabled={!domain || !email} */
             >
               Run Scan
             </motion.button>
@@ -257,7 +246,9 @@ export default function ScanPage() {
               Vital Signs for{' '}
               <span className={styles.resultDomain}>{domain}</span>
             </h2>
-            <p className={styles.overview}>A quick, one-page health check.</p>
+            <p className={styles.overview}>
+              A quick, one-page health check.
+            </p>
 
             {/* Top-level scores */}
             <div className={styles.grid}>
@@ -282,8 +273,7 @@ export default function ScanPage() {
             {/* Explanation */}
             <h3 className={styles.subheading}>Key Checkups &amp; Advice</h3>
             <p className={styles.sectionIntro}>
-              We’ve distilled your site’s health into four critical checkups—each
-              with a simple narrative and one clear tip.
+              We’ve distilled your site’s health into four critical checkups—each with a simple narrative and one clear tip.
             </p>
             <p className={styles.legend}>
               Hover the ℹ️ to see the technical metric and why it matters.
@@ -298,7 +288,7 @@ export default function ScanPage() {
                     brand: 'First Visual Pulse',
                     tech: 'First Contentful Paint (FCP)',
                     narrative: (v: string) =>
-                      `Your site’s first visual element appears in ${v}, so visitors never see a blank screen.`,
+                      `Your site shows its first visual element in ${v}, so visitors never see a blank screen.`,
                     tipPool: metricAdvicePools['first-contentful-paint'],
                   },
                   {
@@ -371,9 +361,7 @@ export default function ScanPage() {
                 >
                   {showDebug ? 'Hide Logs' : 'Show Debug Logs'}
                 </button>
-                {showDebug && (
-                  <pre className={styles.debug}>{logs.join('\n')}</pre>
-                )}
+                {showDebug && <pre className={styles.debug}>{logs.join('\n')}</pre>}
               </>
             )}
 
@@ -381,10 +369,8 @@ export default function ScanPage() {
             <section className={styles.nextSteps}>
               <h3 className={styles.nextStepsTitle}>Ready to Level Up?</h3>
               <p className={styles.nextStepsIntro}>
-                One-off deep dives or ongoing care—choose the plan that matches
-                your goals, and let’s get your site into peak shape.
+                One-off deep dives or ongoing care—choose the plan that matches your goals, and let’s get your site into peak shape.
               </p>
-
               <div className={styles.servicesGrid}>
                 {[
                   {
@@ -417,15 +403,10 @@ export default function ScanPage() {
                   },
                 ].map((svc) => (
                   <div key={svc.name} className={styles.serviceCard}>
-                    <div className={styles.servicePriceBadge}>
-                      {svc.price}
-                    </div>
+                    <div className={styles.servicePriceBadge}>{svc.price}</div>
                     <h4 className={styles.serviceTitle}>{svc.name}</h4>
                     <p className={styles.serviceDesc}>{svc.desc}</p>
-                    <button
-                      className={styles.serviceButton}
-                      onClick={() => router.push(svc.link)}
-                    >
+                    <button className={styles.serviceButton} onClick={() => router.push(svc.link)}>
                       {svc.cta}
                     </button>
                   </div>
