@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+// src/app/scan/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import ScanLoader from '../components/ScanLoader';
 import styles from '../styles/ScanPage.module.css';
 
@@ -11,10 +12,7 @@ import styles from '../styles/ScanPage.module.css';
 // — Types
 //////////////////////////////////
 
-type Audit = {
-  displayValue: string;
-};
-
+type Audit = { displayValue: string };
 type PSIResult = {
   categories: {
     performance: { score: number };
@@ -36,7 +34,6 @@ interface ScanResponse {
 
 export default function ScanPage() {
   const router = useRouter();
-  const search = useSearchParams();
 
   // ─── Form state
   const [domain, setDomain] = useState('');
@@ -49,11 +46,13 @@ export default function ScanPage() {
   const [scanTime, setScanTime] = useState<Date | null>(null);
   const [showDebug, setShowDebug] = useState(false);
 
-  // ─── Seed domain from ?site=… on mount
+  // ─── Pull site=… from URL once on mount
   useEffect(() => {
-    const s = search.get('site');
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const s = params.get('site');
     if (s) setDomain(s);
-  }, [search]);
+  }, []);
 
   // ─── Plain-English summaries
   const metricSummaries: Record<string, string> = {
@@ -93,7 +92,6 @@ export default function ScanPage() {
     accessibility: 'Usability',
     seo: 'Discoverability',
   } as const;
-
   const categorySummaries = {
     performance: 'How fast your pages load & respond.',
     accessibility: 'How easy it is for everyone to use.',
@@ -102,8 +100,6 @@ export default function ScanPage() {
 
   // ─── Kick off scan
   const startScan = async () => {
-    console.log('🔎 startScan called with', { domain, email });
-
     setPhase('scanning');
     setLogs([]);
     setShowDebug(false);
@@ -115,14 +111,11 @@ export default function ScanPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ site: domain, email }),
     });
-
     const json = (await res.json()) as ScanResponse;
 
-    // record logs & timestamp
     if (Array.isArray(json.logs)) setLogs(json.logs);
     setScanTime(new Date());
 
-    // handle rate-limit or errors
     if (res.status === 429) {
       alert(json.error || 'One free scan per URL per day.');
       setPhase('form');
@@ -134,13 +127,14 @@ export default function ScanPage() {
       return;
     }
 
-    // success!
     setResult(json.result!);
     setPhase('results');
   };
 
-  // ─── Prepare category entries for rendering
-  let categoryEntries: Array<[keyof typeof categoryLabels, { score: number }]> = [];
+  // ─── Prepare category entries
+  let categoryEntries: Array<
+    [keyof typeof categoryLabels, { score: number }]
+  > = [];
   if (result) {
     categoryEntries = Object.entries(
       result.categories
@@ -163,7 +157,6 @@ export default function ScanPage() {
             <p className={styles.subtext}>
               Enter your URL &amp; email below. We’ll email you the full report.
             </p>
-
             <div className={styles.field}>
               <label htmlFor="site" className={styles.label}>
                 Website URL
@@ -177,7 +170,6 @@ export default function ScanPage() {
                 className={styles.input}
               />
             </div>
-
             <div className={styles.field}>
               <label htmlFor="email" className={styles.label}>
                 Email Address
@@ -194,13 +186,12 @@ export default function ScanPage() {
                 We’ll send you a copy of your scan results.
               </p>
             </div>
-
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className={styles.scanButton}
               onClick={startScan}
-              /* disabled={!domain || !email} */
+              disabled={!domain || !email}
             >
               Run Scan
             </motion.button>
@@ -246,9 +237,7 @@ export default function ScanPage() {
               Vital Signs for{' '}
               <span className={styles.resultDomain}>{domain}</span>
             </h2>
-            <p className={styles.overview}>
-              A quick, one-page health check.
-            </p>
+            <p className={styles.overview}>A quick, one-page health check.</p>
 
             {/* Top-level scores */}
             <div className={styles.grid}>
@@ -270,16 +259,14 @@ export default function ScanPage() {
               })}
             </div>
 
-            {/* Explanation */}
+            {/* Detailed mini-reports */}
             <h3 className={styles.subheading}>Key Checkups &amp; Advice</h3>
             <p className={styles.sectionIntro}>
-              We’ve distilled your site’s health into four critical checkups—each with a simple narrative and one clear tip.
+              Four critical checkups—each with a simple narrative and one clear tip.
             </p>
             <p className={styles.legend}>
               Hover the ℹ️ to see the technical metric and why it matters.
             </p>
-
-            {/* Detailed mini-reports */}
             <div className={styles.auditGrid}>
               {(
                 [
@@ -288,7 +275,7 @@ export default function ScanPage() {
                     brand: 'First Visual Pulse',
                     tech: 'First Contentful Paint (FCP)',
                     narrative: (v: string) =>
-                      `Your site shows its first visual element in ${v}, so visitors never see a blank screen.`,
+                      `Your site’s first visual element appears in ${v}, so visitors never stare at a blank screen.`,
                     tipPool: metricAdvicePools['first-contentful-paint'],
                   },
                   {
@@ -296,7 +283,7 @@ export default function ScanPage() {
                     brand: 'Main Visual Pulse',
                     tech: 'Largest Contentful Paint (LCP)',
                     narrative: (v: string) =>
-                      `At ${v}, your main content is visible—keeping users engaged from the start.`,
+                      `At ${v}, your main content is visible—keeping users engaged immediately.`,
                     tipPool: metricAdvicePools['largest-contentful-paint'],
                   },
                   {
@@ -304,7 +291,7 @@ export default function ScanPage() {
                     brand: 'Stability Score',
                     tech: 'Cumulative Layout Shift (CLS)',
                     narrative: (v: string) =>
-                      `A CLS of ${v} means your layout feels stable—elements aren’t jumping around.`,
+                      `A CLS of ${v} means your layout stays solid—no unexpected jumps.`,
                     tipPool: metricAdvicePools['cumulative-layout-shift'],
                   },
                   {
@@ -335,14 +322,12 @@ export default function ScanPage() {
                         </span>
                       </h4>
                     </header>
-
                     <div className={styles.auditValue}>
                       <strong>{valText}</strong>
                     </div>
                     <p className={styles.reportParagraph}>
                       {narrative(valText)}
                     </p>
-
                     <div className={styles.auditSuggestion}>
                       <span className={styles.suggestionLabel}>Tip:</span>
                       <p className={styles.suggestionText}>{tip}</p>
@@ -369,35 +354,40 @@ export default function ScanPage() {
             <section className={styles.nextSteps}>
               <h3 className={styles.nextStepsTitle}>Ready to Level Up?</h3>
               <p className={styles.nextStepsIntro}>
-                One-off deep dives or ongoing care—choose the plan that matches your goals, and let’s get your site into peak shape.
+                One-off deep dives or ongoing care—pick the plan that matches your
+                goals, and let’s get your site into peak shape.
               </p>
               <div className={styles.servicesGrid}>
                 {[
                   {
                     name: 'Site Triage',
                     price: '$99',
-                    desc: `In-depth performance, UX, SEO & accessibility audit with a clear roadmap.`,
+                    desc: `In-depth performance, UX, SEO & accessibility audit with a
+                          clear action roadmap.`,
                     cta: 'Start Triage',
                     link: '/services?service=Site%20Triage',
                   },
                   {
                     name: 'Emergency Fix',
                     price: '$149',
-                    desc: `Fast, targeted repairs for critical issues so your site stays stable.`,
+                    desc: `Fast, targeted repairs for critical issues so your site
+                          stays stable.`,
                     cta: 'Request Fix',
                     link: '/services?service=Emergency%20Fix',
                   },
                   {
                     name: 'Continuous Care',
                     price: '$499/mo',
-                    desc: `Monthly health checks, proactive updates & 24/7 monitoring—never worry again.`,
+                    desc: `Monthly health checks, proactive updates & 24/7 monitoring—
+                          never worry again.`,
                     cta: 'Subscribe',
                     link: '/services?service=Continuous%20Care',
                   },
                   {
                     name: 'Full Recovery Plan',
                     price: 'From $999',
-                    desc: `Complete rebuild & optimization for top performance, design & accessibility.`,
+                    desc: `Complete rebuild & optimization for top performance,
+                          design & accessibility.`,
                     cta: 'Plan Recovery',
                     link: '/services?service=Full%20Recovery%20Plan',
                   },
@@ -406,7 +396,10 @@ export default function ScanPage() {
                     <div className={styles.servicePriceBadge}>{svc.price}</div>
                     <h4 className={styles.serviceTitle}>{svc.name}</h4>
                     <p className={styles.serviceDesc}>{svc.desc}</p>
-                    <button className={styles.serviceButton} onClick={() => router.push(svc.link)}>
+                    <button
+                      className={styles.serviceButton}
+                      onClick={() => router.push(svc.link)}
+                    >
                       {svc.cta}
                     </button>
                   </div>
