@@ -133,15 +133,15 @@ export default function ScanPage() {
     setPhase('results');
   };
 
-  // ─── Prepare category entries for rendering
-  let categoryEntries: Array<
-    [keyof typeof categoryLabels, { score: number }]
-  > = [];
-  if (result) {
-    categoryEntries = Object.entries(
-      result.categories
-    ) as Array<[keyof typeof categoryLabels, { score: number }]>;
-  }
+  // ─── Prepare category entries safely
+  const safeCategories = result?.categories ?? {
+    performance: { score: 0 },
+    accessibility: { score: 0 },
+    seo: { score: 0 },
+  };
+  const categoryEntries = Object.entries(
+    safeCategories
+  ) as Array<[keyof typeof categoryLabels, { score: number }]>;
 
   return (
     <div className={styles.page}>
