@@ -1,26 +1,35 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
-
-// src/app/api/submit-intake/route.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import chromeLambda from 'chrome-aws-lambda'
-import puppeteerCore from 'puppeteer-core'
-import lighthouse, { RunnerResult } from 'lighthouse'
+import puppeteerCore, { Browser } from 'puppeteer-core'
+import lighthouse from 'lighthouse'
+import type { RunnerResult } from 'lighthouse'
+
+// ────────────────────────────────────────────────────────────────
+// 0) Make sure our server‐side env vars are set
+// ────────────────────────────────────────────────────────────────
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+}
+
+// ────────────────────────────────────────────────────────────────
+// 1) Create Supabase service‐role client
+// ────────────────────────────────────────────────────────────────
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { persistSession: false } }
+)
 
 interface ScanResponse {
   result?: unknown
   logs: string[]
   error?: string
 }
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-)
 
 function normalizeSite(raw: string): string {
   try {
@@ -40,11 +49,10 @@ export async function POST(req: Request) {
   try {
     logs.push('🏥 [scan] Handler start')
 
-    // 1) Parse & validate
-    const body = await req.json()
+    // 1) parse + validate
+    const body: any = await req.json()
     logs.push(`🔍 Payload: ${JSON.stringify(body)}`)
-    const { site: rawSite, email } = body as { site?: string; email?: string }
-    if (!rawSite || !email) {
+    if (!body.site || !body.email) {
       logs.push('❌ Missing site or email')
       return NextResponse.json<ScanResponse>(
         { error: 'Missing site or email', logs },
@@ -52,22 +60,24 @@ export async function POST(req: Request) {
       )
     }
 
-    // 2) Normalize URL
-    const site = normalizeSite(rawSite)
+    // 2) normalize
+    const site = normalizeSite(body.site as string)
     logs.push(`🌐 Normalized site: ${site}`)
 
-    // 3) Reserve DB slot
+    // 3) reserve slot
     const { data: inserted, error: insertErr } = await supabase
       .from('scans')
-      .insert([{ site, email, results: {} }])
+      .insert([{ site, email: body.email, results: {} }])
       .select('id')
       .single()
-    if (insertErr || !inserted) throw insertErr || new Error('DB insert failed')
+    if (insertErr || !inserted) {
+      throw insertErr || new Error('DB insert failed')
+    }
     const scanId = inserted.id
     logs.push(`✅ Reserved slot id=${scanId}`)
 
-    // 4) Launch Chrome (AWS or local)
-    let browser = await puppeteerCore.launch({ headless: true })
+    // 4) launch Chrome
+    let browser: Browser
     try {
       const exePath = await chromeLambda.executablePath
       logs.push(`🔧 execPath: ${exePath}`)
@@ -80,14 +90,13 @@ export async function POST(req: Request) {
       logs.push('🚀 AWS Chrome launched')
     } catch (awsErr: any) {
       logs.push(`⚠️ AWS Chrome failed: ${awsErr.message}`)
-      // fallback to local Puppeteer
       browser = await puppeteerCore.launch({ headless: true })
       logs.push('🚀 Local Puppeteer launched')
     }
 
-    // 5) Run Lighthouse audit
+    // 5) run Lighthouse
     const wsUrl = browser.wsEndpoint()
-    const port = parseInt(new URL(wsUrl).port, 10)     // ◀︎ parseInt to ensure number
+    const port = parseInt(new URL(wsUrl).port, 10)
     const runner = (await lighthouse(site, {
       port,
       output: 'json',
@@ -96,14 +105,14 @@ export async function POST(req: Request) {
     })) as RunnerResult
     const lhr = runner.lhr
     logs.push(
-      `📊 LH perf=${Math.round((lhr.categories.performance.score! || 0) * 100)}%`
+      `📊 LH perf=${Math.round((lhr.categories.performance.score || 0) * 100)}%`
     )
 
-    // 6) Clean up
-    await browser.close()                             // now correctly typed
+    // 6) cleanup
+    await browser.close()
     logs.push('🔒 Browser closed')
 
-    // 7) Persist results
+    // 7) persist back to Supabase
     const { error: updateErr } = await supabase
       .from('scans')
       .update({ results: lhr })
