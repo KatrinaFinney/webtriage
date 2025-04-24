@@ -2,14 +2,14 @@
 
 /**
  * The shape of the result our ScanPage UI expects:
- * 
+ *
  *   {
  *     categories: {
  *       performance: { score: number };
  *       accessibility: { score: number };
  *       seo: { score: number };
  *     };
- *     // (you can add `audits` here if your UI needs them)
+ *     audits?: Record<string, { displayValue: string; score: number }>;
  *   }
  */
 export interface PSIResult {
@@ -21,7 +21,7 @@ export interface PSIResult {
   audits?: Record<string, { displayValue: string; score: number }>;
 }
 
-// These are your “mock” percentages, on a 0–1 scale
+// These are our “mock” percentages, on a 0–1 scale
 const DEFAULT_SCORES = {
   performance: 0.82,
   accessibility: 0.88,
@@ -30,10 +30,13 @@ const DEFAULT_SCORES = {
 
 /**
  * Simulates a 4-second scan, then resolves to a PSIResult.
- * 
- * @param domain — the URL being “scanned” (unused in mock)
+ *
+ * @param domain — the URL being “scanned”
  */
-export default function mockScan(_domain: string): Promise<PSIResult> {
+export default function mockScan(domain: string): Promise<PSIResult> {
+  // reference `domain` so ESLint/TS won't complain about an unused parameter
+  console.debug(`[mockScan] running fake scan for: ${domain}`);
+
   return new Promise(resolve => {
     setTimeout(() => {
       resolve({
