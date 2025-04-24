@@ -20,7 +20,7 @@ type PSIResult = {
     accessibility: { score: number };
     seo: { score: number };
   };
-  audits: Record<string, Audit>;
+  audits?: Record<string, Audit>;
 };
 
 interface ScanResponse {
@@ -109,14 +109,10 @@ export default function ScanPage() {
       body: JSON.stringify({ site: domain, email }),
     });
 
-    // parse & type the response
     const json = (await res.json()) as ScanResponse;
-
-    // record logs & timestamp
     if (Array.isArray(json.logs)) setLogs(json.logs);
     setScanTime(new Date());
 
-    // handle rate-limit or errors
     if (res.status === 429) {
       alert(json.error || 'One free scan per URL per day.');
       setPhase('form');
@@ -128,7 +124,6 @@ export default function ScanPage() {
       return;
     }
 
-    // success!
     setResult(json.result!);
     setPhase('results');
   };
@@ -142,6 +137,9 @@ export default function ScanPage() {
   const categoryEntries = Object.entries(
     safeCategories
   ) as Array<[keyof typeof categoryLabels, { score: number }]>;
+
+  // ─── Safe audits map
+  const safeAudits = result?.audits ?? {};
 
   return (
     <div className={styles.page}>
@@ -315,11 +313,12 @@ export default function ScanPage() {
                     tech: 'Total Blocking Time (TBT)',
                     narrative: (v: string) =>
                       `With ${v} blocked, your page becomes interactive smoothly and swiftly.`,
-                    tipPool: metricAdvicePools['total-blocking-time'],
+                    tipPool: metricAdvicePools['total-blocking-time'],  
                   },
                 ] as const
               ).map(({ id, brand, tech, narrative, tipPool }) => {
-                const audit = result.audits[id] ?? { displayValue: 'N/A' };
+                // use a safe fallback if audit missing
+                const audit = safeAudits[id] ?? { displayValue: 'N/A' };
                 const valText = formatValue(id, audit.displayValue);
                 const tip =
                   tipPool[Math.floor(Math.random() * tipPool.length)];
