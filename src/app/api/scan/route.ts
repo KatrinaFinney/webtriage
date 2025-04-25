@@ -118,8 +118,9 @@ export async function POST(req: NextRequest) {
         .eq('site', site)
         .eq('created_day', new Date().toISOString().slice(0, 10))
         .single()
+
       if (existing) {
-        logs.push('ℹ️ already scanned today → returning existing')
+        logs.push('ℹ️ already scanned today → checking cache validity')
         const { data: prev } = await supabase
           .from('scans')
           .select('results')
@@ -127,10 +128,22 @@ export async function POST(req: NextRequest) {
           .order('created_at', { ascending: false })
           .limit(1)
           .single()
-        return NextResponse.json(
-          { logs, result: prev!.results as PSIResult },
-          { status: 200 }
-        )
+
+        // If cached results are invalid or missing, fall through to fresh scan
+        if (
+          !prev ||
+          !prev.results ||
+          typeof (prev.results as any).categories !== 'object' ||
+          !(prev.results as any).audits
+        ) {
+          logs.push('⚠️ cached results invalid or missing → running fresh scan')
+        } else {
+          logs.push('ℹ️ returning valid cached scan')
+          return NextResponse.json(
+            { logs, result: prev.results as PSIResult },
+            { status: 200 }
+          )
+        }
       }
     }
 
