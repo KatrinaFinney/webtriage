@@ -205,23 +205,21 @@ export default function ScanPage() {
               </p>
             </div>
            
-            <button
-  type="button"
-  onClick={() => console.log('🔥 Plain button clicked!')}
-  disabled={!domain || !email}
-  className={styles.scanButton}
+           
+<motion.div
+  whileHover={{ scale: 1.02 }}
+  whileTap={{ scale: 0.98 }}
 >
-  Test Click
-</button>
-            {/* <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={styles.scanButton}
-              onClick={startScan}
-              disabled={!domain || !email}
-            >
-              Run Scan
-            </motion.button> */}
+  <button
+    type="button"
+    className={styles.scanButton}
+    onClick={startScan}
+    disabled={!domain || !email}
+  >
+    Run Scan
+  </button>
+</motion.div>
+
           </motion.div>
         )}
 
