@@ -100,6 +100,24 @@ export default function ScanPage() {
 
   // ─── Kick off scan
   const startScan = async () => {
+    const startScan = async () => {
+      console.log('⚡ startScan invoked with', { domain, email });
+      const endpoint =
+        '/api/scan' + (process.env.NODE_ENV !== 'production' ? '?force=1' : '');
+      console.log('→ Posting to:', endpoint);
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ site: domain, email }),
+        });
+        // …rest of your code
+      } catch (err) {
+        console.error('❌ fetch error:', err);
+        throw err;
+      }
+    };
+    
     setPhase('scanning');
     setLogs([]);
     setShowDebug(false);
