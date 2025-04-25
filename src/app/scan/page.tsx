@@ -100,36 +100,32 @@ export default function ScanPage() {
 
   // ─── Kick off scan
   const startScan = async () => {
-    const startScan = async () => {
-      console.log('⚡ startScan invoked with', { domain, email });
-      const endpoint =
-        '/api/scan' + (process.env.NODE_ENV !== 'production' ? '?force=1' : '');
-      console.log('→ Posting to:', endpoint);
-      try {
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ site: domain, email }),
-        });
-        // …rest of your code
-      } catch (err) {
-        console.error('❌ fetch error:', err);
-        throw err;
-      }
-    };
-    
+    console.log('⚡ startScan invoked with', { domain, email });
+
+    const endpoint =
+      '/api/scan' + (process.env.NODE_ENV !== 'production' ? '?force=1' : '');
+    console.log('→ Posting to:', endpoint);
+
     setPhase('scanning');
     setLogs([]);
     setShowDebug(false);
 
-    const endpoint =
-      '/api/scan' + (process.env.NODE_ENV !== 'production' ? '?force=1' : '');
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ site: domain, email }),
-    });
+    let res: Response;
+    try {
+      res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ site: domain, email }),
+      });
+    } catch (err) {
+      console.error('❌ fetch error:', err);
+      alert('Network error');
+      setPhase('form');
+      return;
+    }
+
     const json = (await res.json()) as ScanResponse;
+    console.log('📡 Scan response:', json);
 
     if (Array.isArray(json.logs)) setLogs(json.logs);
     setScanTime(new Date());
@@ -153,10 +149,12 @@ export default function ScanPage() {
   let categoryEntries: Array<
     [keyof typeof categoryLabels, { score: number }]
   > = [];
-  if (result) {
+  if (result?.categories) {
     categoryEntries = Object.entries(
       result.categories
     ) as Array<[keyof typeof categoryLabels, { score: number }]>;
+  } else if (result) {
+    console.error('❌ Missing categories in result:', result);
   }
 
   return (
@@ -204,22 +202,19 @@ export default function ScanPage() {
                 We’ll send you a copy of your scan results.
               </p>
             </div>
-           
-           
-<motion.div
-  whileHover={{ scale: 1.02 }}
-  whileTap={{ scale: 0.98 }}
->
-  <button
-    type="button"
-    className={styles.scanButton}
-    onClick={startScan}
-    disabled={!domain || !email}
-  >
-    Run Scan
-  </button>
-</motion.div>
-
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <button
+                type="button"
+                className={styles.scanButton}
+                onClick={startScan}
+                disabled={!domain || !email}
+              >
+                Run Scan
+              </button>
+            </motion.div>
           </motion.div>
         )}
 
