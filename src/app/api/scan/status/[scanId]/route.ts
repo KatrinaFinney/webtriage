@@ -30,7 +30,7 @@ export async function GET(
   // Fetch status, results, and optional logs
   const { data, error } = await supabase
     .from('scans')
-    .select('status, results, logs')
+    .select('status, results')
     .eq('id', id)
     .single()
 
@@ -45,7 +45,6 @@ export async function GET(
     {
       status: data.status,
       result: data.results ?? null,
-      logs: data.logs ?? null,
     },
     { status: 200 }
   )
