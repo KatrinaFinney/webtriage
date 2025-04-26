@@ -22,12 +22,6 @@ interface ScanRequest {
   email: string
 }
 
-/** What we return to the client */
-interface ScanResponse {
-  logs: string[]
-  result?: PSIResult
-  error?: string
-}
 
 // ─── 1) ENV + Supabase client ─────────────────────────────────
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
