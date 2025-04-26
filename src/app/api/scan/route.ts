@@ -151,28 +151,29 @@ export async function POST(req: NextRequest) {
         }
       }
     }
+// ─── 3.6) Launch Chrome via chrome-aws-lambda + chrome-launcher ───────────────
+const chromeAws = (await import('chrome-aws-lambda')).default as any
+const launcherMod = await import('chrome-launcher')
 
-        // ─── 3.6) Launch Chrome via chrome-aws-lambda + chrome-launcher ───────────────
-        const { default: chromeLambda } = await import('chrome-aws-lambda')
-        const chromeLauncher = await import('chrome-launcher')
-    
-        const chrome = await chromeLauncher.launch({
-          chromePath: await chromeLambda.executablePath,
-          chromeFlags: chromeLambda.args,
-        })
-        logs.push(`🚀 AWS Chrome launched on port ${chrome.port}`)
-    
-        // ─── 3.7) Run Lighthouse ────────────────────────────────────────────────────
-        const { default: lighthouse } = await import('lighthouse')
-  const runner = (await lighthouse(site, {
-    port: chrome.port,
-    output: 'json',
-    logLevel: 'error',
-    onlyCategories: ['performance', 'accessibility', 'seo'],
-    throttlingMethod: 'provided',
-  })) as unknown as { lhr: PSIResult }
+const chrome = await launcherMod.launch({
+  chromePath: await chromeAws.executablePath,
+  chromeFlags: chromeAws.args,
+})
+logs.push(`🚀 AWS Chrome launched on port ${chrome.port}`)
 
-const lhr: PSIResult = runner.lhr
+// ─── 3.7) Run Lighthouse ────────────────────────────────────────────────────
+const lhMod = await import('lighthouse')
+const lighthouse = (lhMod as any).default || lhMod
+const runner = (await lighthouse(site, {
+  port: chrome.port,
+  output: 'json',
+  logLevel: 'error',
+  onlyCategories: ['performance','accessibility','seo'],
+  throttlingMethod: 'provided',
+})) as { lhr: PSIResult }
+const lhr = runner.lhr
+logs.push(`📊 scores: perf=${Math.round((lhr.categories.performance.score||0)*100)}%`)
+
     // ─── 3.8) Tear down & save ─────────────────────────────────────────────────
     await chrome.kill()
     logs.push('🔒 Chrome killed')
