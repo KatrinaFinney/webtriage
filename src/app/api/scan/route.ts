@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/api/scan/route.ts
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -30,9 +29,7 @@ interface ScanResponse {
   error?: string
 }
 
-// ────────────────────────────────────────────────────────────────
-// 1) ENV + Supabase client
-// ────────────────────────────────────────────────────────────────
+// ─── 1) ENV + Supabase client ─────────────────────────────────
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
 }
@@ -41,9 +38,7 @@ const supabase = createClient<any, any>(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-// ────────────────────────────────────────────────────────────────
-// 2) Normalize incoming URL
-// ────────────────────────────────────────────────────────────────
+// ─── 2) Normalize incoming URL ─────────────────────────────────
 function normalizeSite(raw: string): string {
   try {
     const u = new URL(raw.trim())
@@ -58,9 +53,7 @@ function normalizeSite(raw: string): string {
   }
 }
 
-// ────────────────────────────────────────────────────────────────
-// 3) POST handler
-// ────────────────────────────────────────────────────────────────
+// ─── 3) POST handler ────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   const logs: string[] = []
   try {
@@ -86,10 +79,7 @@ export async function POST(req: NextRequest) {
       typeof (body as any).email !== 'string'
     ) {
       logs.push('❌ missing or invalid site/email')
-      return NextResponse.json(
-        { logs, error: '`site` and `email` are required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ logs, error: '`site` and `email` are required' }, { status: 400 })
     }
     const { site: rawSite, email } = body as ScanRequest
     logs.push(`🔍 payload site=${rawSite}, email=${email}`)
@@ -124,10 +114,7 @@ export async function POST(req: NextRequest) {
           (prev.results as any).audits
         ) {
           logs.push('ℹ️ returning valid cached scan')
-          return NextResponse.json(
-            { logs, result: prev.results as PSIResult },
-            { status: 200 }
-          )
+          return NextResponse.json({ logs, result: prev.results as PSIResult }, { status: 200 })
         } else {
           logs.push('⚠️ cached results invalid or missing → running fresh scan')
         }
@@ -173,12 +160,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ────────────────────────────────────────────────────────────────
-    // 3.6) Launch Puppeteer (with bundled Chromium)
-    // ────────────────────────────────────────────────────────────────
+    // ─── 3.6) Launch Puppeteer ─────────────────────────────────────
     let browser: any
     try {
-      const puppeteer = require('puppeteer')
+      const { default: puppeteer } = await import('puppeteer')
       browser = await puppeteer.launch({
         headless: true,
         args: [
@@ -194,13 +179,10 @@ export async function POST(req: NextRequest) {
       throw err
     }
 
-    // ────────────────────────────────────────────────────────────────
-    // 3.7) Run Lighthouse
-    // ────────────────────────────────────────────────────────────────
-    const lhMod: any = require('lighthouse')
-    const lhFn: any = typeof lhMod === 'function' ? lhMod : lhMod.default
-    const debugUrl = browser.wsEndpoint()
-    const port = parseInt(new URL(debugUrl).port + '', 10)
+    // ─── 3.7) Run Lighthouse ───────────────────────────────────────
+    const { default: lhMod } = await import('lighthouse')
+    const lhFn: any = typeof lhMod === 'function' ? lhMod : (lhMod as any).default
+    const port = parseInt(new URL(browser.wsEndpoint()).port + '', 10)
     const runner: any = await lhFn(site, {
       port,
       output: 'json',
@@ -209,13 +191,9 @@ export async function POST(req: NextRequest) {
       throttlingMethod: 'provided',
     })
     const lhr: PSIResult = runner.lhr
-    logs.push(
-      `📊 scores: perf=${Math.round((lhr.categories.performance.score || 0) * 100)}%`
-    )
+    logs.push(`📊 scores: perf=${Math.round((lhr.categories.performance.score || 0) * 100)}%`)
 
-    // ────────────────────────────────────────────────────────────────
-    // 3.8) Tear down & save
-    // ────────────────────────────────────────────────────────────────
+    // ─── 3.8) Tear down & save ────────────────────────────────────
     await browser.close()
     logs.push('🔒 browser closed')
 
@@ -232,9 +210,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ logs, result: lhr }, { status: 200 })
   } catch (err: any) {
     console.error('🔥 uncaught:', err)
-    return NextResponse.json(
-      { logs: [`❌ uncaught: ${err.message}`], error: 'Internal error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ logs: [`❌ uncaught: ${err.message}`], error: 'Internal error' }, { status: 500 })
   }
 }
