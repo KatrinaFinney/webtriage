@@ -77,10 +77,7 @@ export async function POST(req: NextRequest) {
       body = await req.json()
     } catch (e: any) {
       logs.push(`❌ JSON parse error: ${e.message}`)
-      return NextResponse.json(
-        { logs, error: 'Invalid JSON payload' },
-        { status: 400 }
-      )
+      return NextResponse.json({ logs, error: 'Invalid JSON payload' }, { status: 400 })
     }
     if (
       typeof body !== 'object' ||
@@ -101,17 +98,8 @@ export async function POST(req: NextRequest) {
     const site = normalizeSite(rawSite)
     logs.push(`🌐 normalized to ${site}`)
 
-    // 3.4) Rate-limit: one scan/day (unless forced)
-    if (forceOverride) {
-      const today = new Date()
-      today.setUTCHours(0, 0, 0, 0)
-      await supabase
-        .from('scans')
-        .delete()
-        .eq('site', site)
-        .gte('created_at', today.toISOString())
-      logs.push('🗑️ deleted today’s scans')
-    } else {
+    // 3.4) Rate-limit & cache check
+    if (!forceOverride) {
       const { data: existing } = await supabase
         .from('scans')
         .select('id')
@@ -129,88 +117,90 @@ export async function POST(req: NextRequest) {
           .limit(1)
           .single()
 
-        // If cached results are invalid or missing, fall through to fresh scan
         if (
-          !prev ||
-          !prev.results ||
-          typeof (prev.results as any).categories !== 'object' ||
-          !(prev.results as any).audits
+          prev &&
+          prev.results &&
+          typeof (prev.results as any).categories === 'object' &&
+          (prev.results as any).audits
         ) {
-          logs.push('⚠️ cached results invalid or missing → running fresh scan')
-        } else {
           logs.push('ℹ️ returning valid cached scan')
           return NextResponse.json(
             { logs, result: prev.results as PSIResult },
             { status: 200 }
           )
+        } else {
+          logs.push('⚠️ cached results invalid or missing → running fresh scan')
         }
       }
+    } else {
+      // forceOverride: delete today's scans
+      const today = new Date()
+      today.setUTCHours(0, 0, 0, 0)
+      await supabase
+        .from('scans')
+        .delete()
+        .eq('site', site)
+        .gte('created_at', today.toISOString())
+      logs.push('🗑️ deleted today’s scans')
     }
 
     // 3.5) Insert placeholder row (reserve scan slot)
     let scanId: number
     {
-         try {
-           const { data, error } = await supabase
-               .from('scans')
-               .insert([{ site, email, results: {} }])
-               .select('id')
-               .single()
-             if (error) throw error
-             scanId = data.id
-             logs.push(`✅ reserved scan id=${scanId}`)
-           } catch (e: any) {
-             if (e.message.includes('duplicate key value')) {
-               logs.push('⚠️ placeholder insert conflict → reusing existing row')
-               const { data: existing } = await supabase
-                 .from('scans')
-                 .select('id')
-                 .eq('site', site)
-                 .eq('created_day', new Date().toISOString().slice(0,10))
-                 .single()
-              scanId = existing!.id
-               } else {
-               logs.push(`❌ DB insert failed: ${e.message}`)
-                return NextResponse.json(
-                 { logs, error: 'Database error' },
-                 { status: 500 }
-               )
-             }
-           }
-         }
-    // 3.6) Dynamically require chrome + puppeteer
-    const reqFn: any = eval('require')
-    const chromeLambda: any = reqFn('chrome-aws-lambda')
-    const puppeteerCore: any = reqFn('puppeteer-core')
+      try {
+        const { data, error } = await supabase
+          .from('scans')
+          .insert([{ site, email, results: {} }])
+          .select('id')
+          .single()
+        if (error) throw error
+        scanId = data.id
+        logs.push(`✅ reserved scan id=${scanId}`)
+      } catch (e: any) {
+        if (e.message.includes('duplicate key value')) {
+          logs.push('⚠️ placeholder insert conflict → reusing existing row')
+          const { data: existing } = await supabase
+            .from('scans')
+            .select('id')
+            .eq('site', site)
+            .eq('created_day', new Date().toISOString().slice(0, 10))
+            .single()
+          scanId = existing!.id
+        } else {
+          logs.push(`❌ DB insert failed: ${e.message}`)
+          return NextResponse.json({ logs, error: 'Database error' }, { status: 500 })
+        }
+      }
+    }
 
-    // 3.7) Launch headless Chrome
+    // ────────────────────────────────────────────────────────────────
+    // 3.6) Launch Puppeteer (with bundled Chromium)
+    // ────────────────────────────────────────────────────────────────
     let browser: any
     try {
-      const exePath: string = await chromeLambda.executablePath
-      logs.push(`🔧 AWS chrome at ${exePath}`)
-      browser = await puppeteerCore.launch({
-        args: chromeLambda.args,
-        defaultViewport: chromeLambda.defaultViewport,
-        executablePath: exePath,
+      const puppeteer = require('puppeteer')
+      browser = await puppeteer.launch({
         headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-gpu',
+          '--disable-dev-shm-usage',
+        ],
       })
-      logs.push('🚀 AWS Chrome launched')
-    } catch (awsErr: any) {
-      logs.push(`⚠️ AWS Chrome failed: ${awsErr.message}`)
-      const puppeteer: any = reqFn('puppeteer')
-      browser = await puppeteer.launch({ headless: true })
-      logs.push('🚀 Local Puppeteer launched')
+      logs.push('🚀 Puppeteer Chrome launched')
+    } catch (err: any) {
+      logs.push(`❌ Puppeteer launch failed: ${err.message}`)
+      throw err
     }
 
-    // 3.8) Load Lighthouse
-    const lhMod: any = reqFn('lighthouse')
+    // ────────────────────────────────────────────────────────────────
+    // 3.7) Run Lighthouse
+    // ────────────────────────────────────────────────────────────────
+    const lhMod: any = require('lighthouse')
     const lhFn: any = typeof lhMod === 'function' ? lhMod : lhMod.default
-    if (typeof lhFn !== 'function') {
-      throw new Error('Cannot load Lighthouse')
-    }
-
-    // 3.9) Run audit
-    const port = parseInt(new URL(browser.wsEndpoint()).port, 10)
+    const debugUrl = browser.wsEndpoint()
+    const port = parseInt(new URL(debugUrl).port + '', 10)
     const runner: any = await lhFn(site, {
       port,
       output: 'json',
@@ -220,16 +210,15 @@ export async function POST(req: NextRequest) {
     })
     const lhr: PSIResult = runner.lhr
     logs.push(
-      `📊 scores: perf=${Math.round(
-        (lhr.categories.performance.score || 0) * 100
-      )}%`
+      `📊 scores: perf=${Math.round((lhr.categories.performance.score || 0) * 100)}%`
     )
 
-    // 3.10) Tear down
+    // ────────────────────────────────────────────────────────────────
+    // 3.8) Tear down & save
+    // ────────────────────────────────────────────────────────────────
     await browser.close()
     logs.push('🔒 browser closed')
 
-    // 3.11) Save results back into Supabase
     {
       const { error } = await supabase
         .from('scans')
