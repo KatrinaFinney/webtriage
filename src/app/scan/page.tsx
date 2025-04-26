@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 // src/app/scan/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import ScanLoader from '../components/ScanLoader';
 import styles from '../styles/ScanPage.module.css';
 
@@ -21,39 +21,25 @@ type PSIResult = {
   audits: Record<string, Audit>;
 };
 
-interface ScanResponse {
-  logs?: string[];
-  result?: PSIResult;
-  error?: string;
-}
+type ScanPhase = 'form' | 'pending' | 'results';
 
 //////////////////////////////////
 // — Component
 //////////////////////////////////
 
 export default function ScanPage() {
-  const router = useRouter();
-
-  // ─── Form state
+  // ─── Form fields
   const [domain, setDomain] = useState('');
   const [email, setEmail] = useState('');
-  const [phase, setPhase] = useState<'form' | 'scanning' | 'results'>('form');
+  const [phase, setPhase] = useState<ScanPhase>('form');
 
-  // ─── Scan results state
+  // ─── Scan tracking
+  const [scanId, setScanId] = useState<number | null>(null);
   const [result, setResult] = useState<PSIResult | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const [scanTime, setScanTime] = useState<Date | null>(null);
-  const [showDebug, setShowDebug] = useState(false);
 
-  // ─── Pull site=… from URL once on mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const s = params.get('site');
-    if (s) setDomain(s);
-  }, []);
-
-  // ─── Plain-English summaries
+  // ─── Metric summaries & advice
   const metricSummaries: Record<string, string> = {
     'first-contentful-paint': 'Time until the first text or image appears.',
     'largest-contentful-paint': 'Time until the main content image or text appears.',
@@ -61,7 +47,6 @@ export default function ScanPage() {
     'total-blocking-time': 'Total time the page was unresponsive after first paint.',
   };
 
-  // ─── Advice pools
   const metricAdvicePools: Record<string, string[]> = {
     'first-contentful-paint': [
       'Inline critical CSS to reduce render-blocking.',
@@ -85,75 +70,81 @@ export default function ScanPage() {
     ],
   };
 
-  // ─── Top-level labels & summaries
   const categoryLabels = {
     performance: 'Site Speed',
     accessibility: 'Usability',
     seo: 'Discoverability',
   } as const;
+
   const categorySummaries = {
     performance: 'How fast your pages load & respond.',
     accessibility: 'How easy it is for everyone to use.',
     seo: 'How well search engines can find you.',
   } as const;
 
+  // ─── Pre-fill domain from URL query
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('site');
+    if (q) setDomain(q);
+  }, []);
+
   // ─── Kick off scan
   const startScan = async () => {
-    console.log('⚡ startScan invoked with', { domain, email });
-
-    const endpoint =
-      '/api/scan' + (process.env.NODE_ENV !== 'production' ? '?force=1' : '');
-    console.log('→ Posting to:', endpoint);
-
-    setPhase('scanning');
+    setPhase('pending');
     setLogs([]);
-    setShowDebug(false);
+    setScanTime(new Date());
 
-    let res: Response;
     try {
-      res = await fetch(endpoint, {
+      const res = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ site: domain, email }),
       });
-    } catch (err) {
-      console.error('❌ fetch error:', err);
-      alert('Network error');
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || 'Scan request failed');
+        setPhase('form');
+        return;
+      }
+      const { scanId } = await res.json();
+      setScanId(scanId);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Network error';
+      console.error('Network error:', e);
+      alert(msg);
       setPhase('form');
-      return;
     }
-
-    const json = (await res.json()) as ScanResponse;
-    console.log('📡 Scan response:', json);
-
-    if (Array.isArray(json.logs)) setLogs(json.logs);
-    setScanTime(new Date());
-
-    if (res.status === 429) {
-      alert(json.error || 'One free scan per URL per day.');
-      setPhase('form');
-      return;
-    }
-    if (res.status !== 200 || json.error) {
-      alert(json.error || 'Scan failed. See console.');
-      setPhase('form');
-      return;
-    }
-
-    setResult(json.result!);
-    setPhase('results');
   };
 
-  // ─── Prepare category entries
-  let categoryEntries: Array<
-    [keyof typeof categoryLabels, { score: number }]
-  > = [];
+  // ─── Poll for status
+  useEffect(() => {
+    if (phase !== 'pending' || scanId == null) return;
+    const iv = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/scan/status/${scanId}`);
+        if (!res.ok) throw new Error('Status fetch failed');
+        const { status, result: resData, logs: newLogs } = (await res.json()) as {
+          status: string;
+          result?: PSIResult;
+          logs?: string[];
+        };
+        if (Array.isArray(newLogs)) setLogs(newLogs);
+        if (status === 'done' && resData) {
+          clearInterval(iv);
+          setResult(resData);
+          setPhase('results');
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    }, 3000);
+    return () => clearInterval(iv);
+  }, [phase, scanId]);
+
+  // ─── Prepare entries for results
+  let entries: Array<[keyof typeof categoryLabels, { score: number }]> = [];
   if (result?.categories) {
-    categoryEntries = Object.entries(
-      result.categories
-    ) as Array<[keyof typeof categoryLabels, { score: number }]>;
-  } else if (result) {
-    console.error('❌ Missing categories in result:', result);
+    entries = Object.entries(result.categories) as any;
   }
 
   return (
@@ -181,7 +172,9 @@ export default function ScanPage() {
                 type="url"
                 placeholder="https://example.com"
                 value={domain}
-                onChange={(e) => setDomain(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setDomain(e.target.value)
+                }
                 className={styles.input}
               />
             </div>
@@ -194,40 +187,48 @@ export default function ScanPage() {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setEmail(e.target.value)
+                }
                 className={styles.emailInput}
               />
               <p className={styles.emailNote}>
                 We’ll send you a copy of your scan results.
               </p>
             </div>
-            <motion.div
+            <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              className={styles.scanButton}
+              onClick={startScan}
+              disabled={!domain || !email}
             >
-              <button
-                type="button"
-                className={styles.scanButton}
-                onClick={startScan}
-                disabled={!domain || !email}
-              >
-                Run Scan
-              </button>
-            </motion.div>
+              Run Scan
+            </motion.button>
           </motion.div>
         )}
 
-        {/* ─── SCANNING */}
-        {phase === 'scanning' && (
+        {/* ─── PENDING */}
+        {phase === 'pending' && (
           <motion.div
-            key="scanning"
+            key="pending"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className={styles.scanningContainer}
           >
             <ScanLoader />
-            <p className={styles.runningText}>Running diagnostics…</p>
+            <p className={styles.runningText}>
+              Scan started{scanId && ` (ID: ${scanId})`}… please wait.
+            </p>
+            {scanTime && (
+              <div className={styles.scanMeta}>
+                Requested at <strong>{scanTime.toLocaleTimeString()}</strong>
+              </div>
+            )}
+            {logs.length > 0 && (
+              <pre className={styles.debug}>{logs.join('')}</pre>
+            )}
           </motion.div>
         )}
 
@@ -239,34 +240,33 @@ export default function ScanPage() {
             animate={{ opacity: 1, y: 0 }}
             className={styles.resultsContainer}
           >
-            {/* Timestamp & Re-run (dev only) */}
             {scanTime && (
               <div className={styles.scanMeta}>
                 Scanned on <strong>{scanTime.toLocaleString()}</strong>{' '}
-                {process.env.NODE_ENV !== 'production' && (
-                  <button className={styles.rerun} onClick={startScan}>
-                    Re-run
-                  </button>
-                )}
+                <button
+                  className={styles.rerun}
+                  onClick={() => {
+                    setResult(null);
+                    setPhase('form');
+                  }}
+                >
+                  New Scan
+                </button>
               </div>
             )}
 
-            {/* Dynamic title */}
             <h2 className={styles.resultTitle}>
               Vital Signs for{' '}
               <span className={styles.resultDomain}>{domain}</span>
             </h2>
             <p className={styles.overview}>A quick, one-page health check.</p>
 
-            {/* Top-level scores */}
             <div className={styles.grid}>
-              {categoryEntries.map(([key, { score }]) => {
+              {entries.map(([key, { score }]) => {
                 const pct = Math.round(score * 100);
                 return (
                   <div key={key} className={styles.card}>
-                    <div className={styles.cardLabel}>
-                      {categoryLabels[key]}
-                    </div>
+                    <div className={styles.cardLabel}>{categoryLabels[key]}</div>
                     <div className={styles.cardScore}>
                       <strong>{pct}/100</strong>
                     </div>
@@ -278,56 +278,55 @@ export default function ScanPage() {
               })}
             </div>
 
-            {/* Detailed mini-reports */}
             <h3 className={styles.subheading}>Key Checkups &amp; Advice</h3>
             <p className={styles.sectionIntro}>
-              Four critical checkups—each with a simple narrative and one clear tip.
+              Four critical checkups—each with a narrative and a tip.
             </p>
             <p className={styles.legend}>
-              Hover the ℹ️ to see the technical metric and why it matters.
+              Hover ℹ️ for technical detail.
             </p>
             <div className={styles.auditGrid}>
-              {(
-                [
-                  {
-                    id: 'first-contentful-paint',
-                    brand: 'First Visual Pulse',
-                    tech: 'First Contentful Paint (FCP)',
-                    narrative: (v: string) =>
-                      `Your site’s first visual element appears in ${v}, so visitors never stare at a blank screen.`,
-                    tipPool: metricAdvicePools['first-contentful-paint'],
-                  },
-                  {
-                    id: 'largest-contentful-paint',
-                    brand: 'Main Visual Pulse',
-                    tech: 'Largest Contentful Paint (LCP)',
-                    narrative: (v: string) =>
-                      `At ${v}, your main content is visible—keeping users engaged immediately.`,
-                    tipPool: metricAdvicePools['largest-contentful-paint'],
-                  },
-                  {
-                    id: 'cumulative-layout-shift',
-                    brand: 'Stability Score',
-                    tech: 'Cumulative Layout Shift (CLS)',
-                    narrative: (v: string) =>
-                      `A CLS of ${v} means your layout stays solid—no unexpected jumps.`,
-                    tipPool: metricAdvicePools['cumulative-layout-shift'],
-                  },
-                  {
-                    id: 'total-blocking-time',
-                    brand: 'Interaction Delay',
-                    tech: 'Total Blocking Time (TBT)',
-                    narrative: (v: string) =>
-                      `With ${v} blocked, your page becomes interactive smoothly and swiftly.`,
-                    tipPool: metricAdvicePools['total-blocking-time'],
-                  },
-                ] as const
-              ).map(({ id, brand, tech, narrative, tipPool }) => {
+              {[
+                {
+                  id: 'first-contentful-paint',
+                  brand: 'First Visual Pulse',
+                  tech: 'First Contentful Paint (FCP)',
+                  narrative: (v: string) =>
+                    `Your site’s first visual element appears in ${v}.`,
+                  tipPool: metricAdvicePools['first-contentful-paint'],
+                },
+                {
+                  id: 'largest-contentful-paint',
+                  brand: 'Main Visual Pulse',
+                  tech: 'Largest Contentful Paint (LCP)',
+                  narrative: (v: string) =>
+                    `At ${v}, your main content is visible quickly.`,
+                  tipPool: metricAdvicePools['largest-contentful-paint'],
+                },
+                {
+                  id: 'cumulative-layout-shift',
+                  brand: 'Stability Score',
+                  tech: 'Cumulative Layout Shift (CLS)',
+                  narrative: (v: string) =>
+                    `A CLS of ${v} means your layout is stable.`,
+                  tipPool: metricAdvicePools['cumulative-layout-shift'],
+                },
+                {
+                  id: 'total-blocking-time',
+                  brand: 'Interaction Delay',
+                  tech: 'Total Blocking Time (TBT)',
+                  narrative: (v: string) =>
+                    `With ${v} blocked, your page is responsive swiftly.`,
+                  tipPool: metricAdvicePools['total-blocking-time'],
+                },
+              ].map(({ id, brand, tech, narrative, tipPool }) => {
                 const audit = result.audits[id] ?? { displayValue: 'N/A' };
-                const valText = formatValue(id, audit.displayValue);
+                const raw = audit.displayValue;
+                const num = parseFloat(raw.replace(/[^\d.]/g, '')) || 0;
+                const valText =
+                  id === 'total-blocking-time' ? `${num} ms` : `${num} s`;
                 const tip =
                   tipPool[Math.floor(Math.random() * tipPool.length)];
-
                 return (
                   <div key={id} className={styles.auditCard}>
                     <header className={styles.auditHeader}>
@@ -355,82 +354,13 @@ export default function ScanPage() {
                 );
               })}
             </div>
-
-            {/* Debug Logs (dev only) */}
-            {process.env.NODE_ENV !== 'production' && (
-              <>
-                <button
-                  className={styles.debugToggle}
-                  onClick={() => setShowDebug((d) => !d)}
-                >
-                  {showDebug ? 'Hide Logs' : 'Show Debug Logs'}
-                </button>
-                {showDebug && <pre className={styles.debug}>{logs.join('\n')}</pre>}
-              </>
-            )}
-
-            {/* ── NEXT STEPS ── */}
-            <section className={styles.nextSteps}>
-              <h3 className={styles.nextStepsTitle}>Ready to Level Up?</h3>
-              <p className={styles.nextStepsIntro}>
-                One-off deep dives or ongoing care—pick the plan that matches your
-                goals, and let’s get your site into peak shape.
-              </p>
-              <div className={styles.servicesGrid}>
-                {[
-                  {
-                    name: 'Site Triage',
-                    price: '$99',
-                    desc: `In-depth performance, UX, SEO & accessibility audit with a
-                          clear action roadmap.`,
-                    cta: 'Start Triage',
-                    link: '/services?service=Site%20Triage',
-                  },
-                  {
-                    name: 'Emergency Fix',
-                    price: '$149',
-                    desc: `Fast, targeted repairs for critical issues so your site
-                          stays stable.`,
-                    cta: 'Request Fix',
-                    link: '/services?service=Emergency%20Fix',
-                  },
-                  {
-                    name: 'Continuous Care',
-                    price: '$499/mo',
-                    desc: `Monthly health checks, proactive updates & 24/7 monitoring—
-                          never worry again.`,
-                    cta: 'Subscribe',
-                    link: '/services?service=Continuous%20Care',
-                  },
-                  {
-                    name: 'Full Recovery Plan',
-                    price: 'From $999',
-                    desc: `Complete rebuild & optimization for top performance,
-                          design & accessibility.`,
-                    cta: 'Plan Recovery',
-                    link: '/services?service=Full%20Recovery%20Plan',
-                  },
-                ].map((svc) => (
-                  <div key={svc.name} className={styles.serviceCard}>
-                    <div className={styles.servicePriceBadge}>{svc.price}</div>
-                    <h4 className={styles.serviceTitle}>{svc.name}</h4>
-                    <p className={styles.serviceDesc}>{svc.desc}</p>
-                    <button
-                      className={styles.serviceButton}
-                      onClick={() => router.push(svc.link)}
-                    >
-                      {svc.cta}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </section>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 }
+
 
 // ─── Helpers
 function formatValue(id: string, raw: string): string {

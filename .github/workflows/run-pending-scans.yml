@@ -1,0 +1,35 @@
+name: Run Pending Scans
+
+# 5-minute cron schedule (UTC)
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 2.1) Check out your code
+      - uses: actions/checkout@v4
+
+      # 2.2) Set up Node.js
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      # 2.3) Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 2.4) Run the scan worker script
+      - name: Execute pending-scans worker
+        run: |
+          # if you're using a TS script, install ts-node
+          npm install -g ts-node typescript
+          # run your script (adjust path if needed)
+          ts-node scripts/run-pending-scans.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
