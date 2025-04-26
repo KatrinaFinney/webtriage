@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 // src/app/scan/page.tsx
 'use client';
 
@@ -321,10 +320,7 @@ export default function ScanPage() {
                 },
               ].map(({ id, brand, tech, narrative, tipPool }) => {
                 const audit = result.audits[id] ?? { displayValue: 'N/A' };
-                const raw = audit.displayValue;
-                const num = parseFloat(raw.replace(/[^\d.]/g, '')) || 0;
-                const valText =
-                  id === 'total-blocking-time' ? `${num} ms` : `${num} s`;
+                const valText = formatValue(id, audit.displayValue);
                 const tip =
                   tipPool[Math.floor(Math.random() * tipPool.length)];
                 return (
