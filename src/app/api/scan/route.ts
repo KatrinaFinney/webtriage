@@ -150,22 +150,34 @@ export async function POST(req: NextRequest) {
     // 3.5) Insert placeholder row (reserve scan slot)
     let scanId: number
     {
-      const { data, error } = await supabase
-        .from('scans')
-        .insert([{ site, email, results: {} }])
-        .select('id')
-        .single()
-      if (error || !data) {
-        logs.push(`❌ DB insert failed: ${error?.message}`)
-        return NextResponse.json(
-          { logs, error: 'Database error' },
-          { status: 500 }
-        )
-      }
-      scanId = data.id
-      logs.push(`✅ reserved scan id=${scanId}`)
-    }
-
+         try {
+           const { data, error } = await supabase
+               .from('scans')
+               .insert([{ site, email, results: {} }])
+               .select('id')
+               .single()
+             if (error) throw error
+             scanId = data.id
+             logs.push(`✅ reserved scan id=${scanId}`)
+           } catch (e: any) {
+             if (e.message.includes('duplicate key value')) {
+               logs.push('⚠️ placeholder insert conflict → reusing existing row')
+               const { data: existing } = await supabase
+                 .from('scans')
+                 .select('id')
+                 .eq('site', site)
+                 .eq('created_day', new Date().toISOString().slice(0,10))
+                 .single()
+              scanId = existing!.id
+               } else {
+               logs.push(`❌ DB insert failed: ${e.message}`)
+                return NextResponse.json(
+                 { logs, error: 'Database error' },
+                 { status: 500 }
+               )
+             }
+           }
+         }
     // 3.6) Dynamically require chrome + puppeteer
     const reqFn: any = eval('require')
     const chromeLambda: any = reqFn('chrome-aws-lambda')
