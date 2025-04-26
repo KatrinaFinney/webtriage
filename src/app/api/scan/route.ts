@@ -152,34 +152,27 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ─── 3.6) Launch Chrome via chrome-aws-lambda + chrome-launcher ───────────────
-    let chromeLauncher: any, chromeLambda: any
-    try {
-      ;({ default: chromeLambda } = await import('chrome-aws-lambda'))
-      ;({ launch: chromeLauncher } = await import('chrome-launcher'))
-    } catch (e: any) {
-      logs.push(`❌ import error: ${e.message}`)
-      throw e
-    }
+        // ─── 3.6) Launch Chrome via chrome-aws-lambda + chrome-launcher ───────────────
+        const { default: chromeLambda } = await import('chrome-aws-lambda')
+        const chromeLauncher = await import('chrome-launcher')
+    
+        const chrome = await chromeLauncher.launch({
+          chromePath: await chromeLambda.executablePath,
+          chromeFlags: chromeLambda.args,
+        })
+        logs.push(`🚀 AWS Chrome launched on port ${chrome.port}`)
+    
+        // ─── 3.7) Run Lighthouse ────────────────────────────────────────────────────
+        const { default: lighthouse } = await import('lighthouse')
+  const runner = (await lighthouse(site, {
+    port: chrome.port,
+    output: 'json',
+    logLevel: 'error',
+    onlyCategories: ['performance', 'accessibility', 'seo'],
+    throttlingMethod: 'provided',
+  })) as unknown as { lhr: PSIResult }
 
-    const chrome = await chromeLauncher.launch({
-      executablePath: await chromeLambda.executablePath,
-      chromeFlags: chromeLambda.args,
-    })
-    logs.push(`🚀 AWS Chrome launched on port ${chrome.port}`)
-
-    // ─── 3.7) Run Lighthouse ────────────────────────────────────────────────────
-    const { default: lighthouse } = await import('lighthouse')
-    const runnerResult: any = await lighthouse(site, {
-      port: chrome.port,
-      output: 'json',
-      logLevel: 'error',
-      onlyCategories: ['performance', 'accessibility', 'seo'],
-      throttlingMethod: 'provided',
-    })
-    const lhr: PSIResult = runnerResult.lhr
-    logs.push(`📊 scores: perf=${Math.round((lhr.categories.performance.score || 0) * 100)}%`)
-
+const lhr: PSIResult = runner.lhr
     // ─── 3.8) Tear down & save ─────────────────────────────────────────────────
     await chrome.kill()
     logs.push('🔒 Chrome killed')
