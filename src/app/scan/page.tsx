@@ -143,7 +143,7 @@ export default function ScanPage() {
   // ─── Prepare entries for results
   let entries: Array<[keyof typeof categoryLabels, { score: number }]> = [];
   if (result?.categories) {
-    entries = Object.entries(result.categories) as any;
+    entries = Object.entries(result.categories) as Array<[keyof typeof categoryLabels, { score: number }]>;
   }
 
   return (
