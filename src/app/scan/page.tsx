@@ -350,6 +350,63 @@ export default function ScanPage() {
                 );
               })}
             </div>
+            {/* ── NEXT STEPS ── */}
+<section className={styles.nextSteps}>
+  <h3 className={styles.nextStepsTitle}>Ready to Level Up?</h3>
+  <p className={styles.nextStepsIntro}>
+    One-off deep dives or ongoing care—pick the plan that matches your goals,
+    and let’s get your site into peak shape.
+  </p>
+
+  <div className={styles.servicesGrid}>
+    {[
+      {
+        name: 'Site Triage',
+        price: '$99',
+        desc: `In-depth performance, UX, SEO & accessibility audit with a
+               clear action roadmap.`,
+        cta: 'Start Triage',
+        link: '/services?service=Site%20Triage',
+      },
+      {
+        name: 'Emergency Fix',
+        price: '$149',
+        desc: `Fast, targeted repairs for critical issues so your site
+               stays stable.`,
+        cta: 'Request Fix',
+        link: '/services?service=Emergency%20Fix',
+      },
+      {
+        name: 'Continuous Care',
+        price: '$499/mo',
+        desc: `Monthly health checks, proactive updates & 24/7 monitoring—
+               never worry again.`,
+        cta: 'Subscribe',
+        link: '/services?service=Continuous%20Care',
+      },
+      {
+        name: 'Full Recovery Plan',
+        price: 'From $999',
+        desc: `Complete rebuild & optimization for top performance,
+               design & accessibility.`,
+        cta: 'Plan Recovery',
+        link: '/services?service=Full%20Recovery%20Plan',
+      },
+    ].map((svc) => (
+      <div key={svc.name} className={styles.serviceCard}>
+        <div className={styles.servicePriceBadge}>{svc.price}</div>
+        <h4 className={styles.serviceTitle}>{svc.name}</h4>
+        <p className={styles.serviceDesc}>{svc.desc}</p>
+        <button
+          className={styles.serviceButton}
+          onClick={() => (window.location.href = svc.link)}
+        >
+          {svc.cta}
+        </button>
+      </div>
+    ))}
+  </div>
+</section>
           </motion.div>
         )}
       </AnimatePresence>
