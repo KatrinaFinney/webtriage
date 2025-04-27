@@ -1,83 +1,63 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+/* eslint-disable no-console */
 // src/app/api/workers/run-scans.ts
 const supabase_js_1 = require("@supabase/supabase-js");
 const lighthouse_1 = __importDefault(require("lighthouse"));
-const chromeLauncher = __importStar(require("chrome-launcher"));
+const puppeteer_1 = __importDefault(require("puppeteer"));
 const chrome_aws_lambda_1 = __importDefault(require("chrome-aws-lambda"));
 const resend_1 = require("resend");
-/* ─── Config -------------------------------------------------- */
+/* ─── Runtime configuration ---------------------------------- */
 if (!process.env.SUPABASE_URL ||
     !process.env.SUPABASE_SERVICE_ROLE_KEY ||
     !process.env.RESEND_API_KEY) {
-    throw new Error('SUPABASE_URL / SERVICE_ROLE_KEY / RESEND_API_KEY missing');
+    throw new Error('SUPABASE_URL / SERVICE_ROLE_KEY / RESEND_API_KEY missing in env');
 }
 const BATCH_SIZE = parseInt(process.argv[2] || process.env.SCAN_BATCH_SIZE || '3', 10);
 const supabase = (0, supabase_js_1.createClient)(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const resend = new resend_1.Resend(process.env.RESEND_API_KEY);
-function buildEmailHTML(url, lhr, publicLink) {
-    const perf = Math.round((lhr.categories.performance.score || 0) * 100);
-    const seo = Math.round((lhr.categories.seo.score || 0) * 100);
-    const a11y = Math.round((lhr.categories.accessibility.score || 0) * 100);
+/* ─── Utility ------------------------------------------------- */
+function normalise(raw) {
+    try {
+        const u = new URL(raw.trim().startsWith('http') ? raw : `https://${raw}`);
+        u.hash = '';
+        u.search = '';
+        return u.href.endsWith('/') ? u.href : u.href + '/';
+    }
+    catch {
+        return raw;
+    }
+}
+async function genPdfBuffer() {
+    // TODO: real PDF generation
+    return Buffer.from('PDF coming soon');
+}
+function buildEmailHTML(url, lhr, link) {
+    const p = Math.round((lhr.categories.performance.score || 0) * 100);
+    const s = Math.round((lhr.categories.seo.score || 0) * 100);
+    const a = Math.round((lhr.categories.accessibility.score || 0) * 100);
     return /* html */ `
     <h2 style="margin:0 0 12px;font-family:system-ui">
       Your WebTriage report for ${url}
     </h2>
     <table style="font-family:system-ui;border-collapse:collapse">
-      <tr><th align="left">Performance</th><td>${perf}/100</td></tr>
-      <tr><th align="left">SEO</th><td>${seo}/100</td></tr>
-      <tr><th align="left">Accessibility</th><td>${a11y}/100</td></tr>
+      <tr><th align="left">Performance</th><td>${p}/100</td></tr>
+      <tr><th align="left">SEO</th><td>${s}/100</td></tr>
+      <tr><th align="left">Accessibility</th><td>${a}/100</td></tr>
     </table>
     <p style="font-family:system-ui;margin-top:12px">
       View the full interactive page:<br/>
-      <a href="${publicLink}">${publicLink}</a>
+      <a href="${link}">${link}</a>
     </p>
     <p style="font-family:system-ui;font-size:.9rem;color:#666">
       Need deeper fixes? Reply to this email any time.
     </p>
   `;
 }
-/* placeholder − replace with real generator */
-async function genPdfBuffer() {
-    return Buffer.from('PDF coming soon');
-}
-/* ─── Main worker --------------------------------------------- */
+/* ─── Main worker -------------------------------------------- */
 async function runPendingScans() {
     console.log(`▶ Fetching up to ${BATCH_SIZE} pending scans…`);
     const { data: pending, error } = await supabase
@@ -94,84 +74,68 @@ async function runPendingScans() {
         console.log('✅  No pending scans.');
         return;
     }
-    for (const scan of pending) {
-        const { id, site, email } = scan;
-        const normUrl = normalise(site);
-        console.log(`\n🔎  #${id} – raw "${site}"\n    normalized → ${normUrl}`);
+    for (const { id, site, email } of pending) {
+        const url = normalise(site);
+        console.log(`\n🔎  #${id} – raw "${site}"\n    normalized → ${url}`);
         try {
-            /* 1) Launch Chrome — fallback to system chrome when executablePath is null */
-            const lambdaPath = await chrome_aws_lambda_1.default.executablePath; // null on GitHub runner
-            const chrome = await chromeLauncher.launch({
-                chromePath: lambdaPath || undefined, // undefined → let launcher find system chrome
-                chromeFlags: chrome_aws_lambda_1.default.args,
-                logLevel: 'error',
+            /* 1) Launch Chrome via Puppeteer */
+            const exePath = await chrome_aws_lambda_1.default.executablePath; // null on GitHub runner
+            const browser = await puppeteer_1.default.launch({
+                headless: true,
+                executablePath: exePath || undefined,
+                args: chrome_aws_lambda_1.default.args,
             });
-            console.log(`🚀  Puppeteer (port ${chrome.port}) – using ${lambdaPath ? 'chrome-aws-lambda' : 'system Chrome'}`);
-            /* 2) Lighthouse run */
-            const { lhr } = (await (0, lighthouse_1.default)(normUrl, {
-                port: chrome.port,
+            const port = parseInt(new URL(browser.wsEndpoint()).port, 10);
+            console.log(`🚀  Puppeteer (port ${port}) – using ${exePath ? 'chrome-aws-lambda' : 'system Chrome'}`);
+            /* 2) Lighthouse */
+            const { lhr } = (await (0, lighthouse_1.default)(url, {
+                port,
                 output: 'json',
                 logLevel: 'error',
                 onlyCategories: ['performance', 'accessibility', 'seo'],
                 throttlingMethod: 'provided',
             }));
             const perf = Math.round((lhr.categories.performance.score || 0) * 100);
-            const seo = Math.round((lhr.categories.seo.score || 0) * 100);
+            const seoScore = Math.round((lhr.categories.seo.score || 0) * 100);
             const a11y = Math.round((lhr.categories.accessibility.score || 0) * 100);
-            console.log(`📊  perf ${perf} / seo ${seo} / a11y ${a11y}`);
+            console.log(`📊  perf ${perf} / seo ${seoScore} / a11y ${a11y}`);
             /* 3) Close browser */
-            await chrome.kill();
+            await browser.close();
             console.log('🔒  Browser closed');
-            /* 4) Save & mark done */
+            /* 4) Persist results */
             await supabase
                 .from('scans')
                 .update({ results: lhr, status: 'done', finished_at: new Date() })
                 .eq('id', id);
-            /* 5) Send e-mail with PDF */
-            const pdfBuffer = await genPdfBuffer();
-            const publicLink = `https://webtriage.pro/report/${id}`;
+            /* 5) E-mail user (non-fatal on failure) */
             try {
+                const pdf = await genPdfBuffer();
                 await resend.emails.send({
                     from: 'WebTriage <reports@webtriage.pro>',
                     to: email,
                     subject: 'Your 15-minute WebTriage report',
-                    html: buildEmailHTML(normUrl, lhr, publicLink),
-                    attachments: [
-                        { filename: 'WebTriage-report.pdf', content: pdfBuffer },
-                    ],
+                    html: buildEmailHTML(url, lhr, `https://webtriage.pro/report/${id}`),
+                    attachments: [{ filename: 'WebTriage-report.pdf', content: pdf }],
                 });
                 console.log(`📧  Email sent to ${email}`);
             }
             catch (mailErr) {
                 console.error('📧  Email failed:', mailErr);
-                // we don't fail the scan on mail error
             }
             console.log(`✅  Scan #${id} completed`);
         }
-        catch (e) {
-            console.error(`❌  Scan #${id} error:`, e);
+        catch (err) {
+            console.error(`❌  Scan #${id} error:`, err);
             await supabase
                 .from('scans')
-                .update({ status: 'error', error_message: e.message })
+                .update({ status: 'error', error_message: err.message })
                 .eq('id', id);
         }
     }
     console.log('🏁 All pending scans processed.');
 }
-/* ─── Utility -------------------------------------------------- */
-function normalise(raw) {
-    try {
-        const u = new URL(raw.trim().startsWith('http') ? raw : `https://${raw}`);
-        u.hash = '';
-        u.search = '';
-        return u.href.endsWith('/') ? u.href : u.href + '/';
-    }
-    catch {
-        return raw;
-    }
-}
-/* -------------------------------------------------------------- */
-runPendingScans().catch((err) => {
-    console.error('Fatal error:', err);
+/* ------------------------------------------------------------ */
+runPendingScans().catch((e) => {
+    console.error('Fatal worker error:', e);
     process.exit(1);
 });

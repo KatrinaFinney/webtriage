@@ -1,16 +1,21 @@
+/* eslint-disable no-console */
 // src/app/api/workers/run-scans.ts
 import { createClient } from '@supabase/supabase-js';
 import lighthouse from 'lighthouse';
-import * as chromeLauncher from 'chrome-launcher';
+import puppeteer from 'puppeteer';
 import chromeAws from 'chrome-aws-lambda';
 import { Resend } from 'resend';
 
-/* ─── Config -------------------------------------------------- */
+/* ─── Runtime configuration ---------------------------------- */
 
-if (!process.env.SUPABASE_URL ||
-    !process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    !process.env.RESEND_API_KEY) {
-  throw new Error('SUPABASE_URL / SERVICE_ROLE_KEY / RESEND_API_KEY missing');
+if (
+  !process.env.SUPABASE_URL ||
+  !process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  !process.env.RESEND_API_KEY
+) {
+  throw new Error(
+    'SUPABASE_URL / SERVICE_ROLE_KEY / RESEND_API_KEY missing in env'
+  );
 }
 
 const BATCH_SIZE = parseInt(
@@ -25,7 +30,7 @@ const supabase = createClient(
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-/* ─── Helper: build email body -------------------------------- */
+/* ─── Types --------------------------------------------------- */
 
 interface PSIResult {
   categories: {
@@ -36,23 +41,41 @@ interface PSIResult {
   audits?: Record<string, unknown>;
 }
 
-function buildEmailHTML(url: string, lhr: PSIResult, publicLink: string) {
-  const perf = Math.round((lhr.categories.performance.score || 0) * 100);
-  const seo  = Math.round((lhr.categories.seo.score || 0) * 100);
-  const a11y = Math.round((lhr.categories.accessibility.score || 0) * 100);
+/* ─── Utility ------------------------------------------------- */
+
+function normalise(raw: string): string {
+  try {
+    const u = new URL(raw.trim().startsWith('http') ? raw : `https://${raw}`);
+    u.hash = '';
+    u.search = '';
+    return u.href.endsWith('/') ? u.href : u.href + '/';
+  } catch {
+    return raw;
+  }
+}
+
+async function genPdfBuffer(): Promise<Buffer> {
+  // TODO: real PDF generation
+  return Buffer.from('PDF coming soon');
+}
+
+function buildEmailHTML(url: string, lhr: PSIResult, link: string) {
+  const p = Math.round((lhr.categories.performance.score || 0) * 100);
+  const s = Math.round((lhr.categories.seo.score || 0) * 100);
+  const a = Math.round((lhr.categories.accessibility.score || 0) * 100);
 
   return /* html */ `
     <h2 style="margin:0 0 12px;font-family:system-ui">
       Your WebTriage report for ${url}
     </h2>
     <table style="font-family:system-ui;border-collapse:collapse">
-      <tr><th align="left">Performance</th><td>${perf}/100</td></tr>
-      <tr><th align="left">SEO</th><td>${seo}/100</td></tr>
-      <tr><th align="left">Accessibility</th><td>${a11y}/100</td></tr>
+      <tr><th align="left">Performance</th><td>${p}/100</td></tr>
+      <tr><th align="left">SEO</th><td>${s}/100</td></tr>
+      <tr><th align="left">Accessibility</th><td>${a}/100</td></tr>
     </table>
     <p style="font-family:system-ui;margin-top:12px">
       View the full interactive page:<br/>
-      <a href="${publicLink}">${publicLink}</a>
+      <a href="${link}">${link}</a>
     </p>
     <p style="font-family:system-ui;font-size:.9rem;color:#666">
       Need deeper fixes? Reply to this email any time.
@@ -60,12 +83,7 @@ function buildEmailHTML(url: string, lhr: PSIResult, publicLink: string) {
   `;
 }
 
-/* placeholder − replace with real generator */
-async function genPdfBuffer(): Promise<Buffer> {
-  return Buffer.from('PDF coming soon');
-}
-
-/* ─── Main worker --------------------------------------------- */
+/* ─── Main worker -------------------------------------------- */
 
 async function runPendingScans() {
   console.log(`▶ Fetching up to ${BATCH_SIZE} pending scans…`);
@@ -86,31 +104,32 @@ async function runPendingScans() {
     return;
   }
 
-  for (const scan of pending) {
-    const { id, site, email } = scan as {
-      id: number;
-      site: string;
-      email: string;
-    };
-
-    const normUrl = normalise(site);
-    console.log(`\n🔎  #${id} – raw "${site}"\n    normalized → ${normUrl}`);
+  for (const { id, site, email } of pending as Array<{
+    id: number;
+    site: string;
+    email: string;
+  }>) {
+    const url = normalise(site);
+    console.log(`\n🔎  #${id} – raw "${site}"\n    normalized → ${url}`);
 
     try {
-      /* 1) Launch Chrome — fallback to system chrome when executablePath is null */
-      const lambdaPath = await chromeAws.executablePath; // null on GitHub runner
-      const chrome = await chromeLauncher.launch({
-        chromePath: lambdaPath || undefined,   // undefined → let launcher find system chrome
-        chromeFlags: chromeAws.args,
-        logLevel: 'error',
+      /* 1) Launch Chrome via Puppeteer */
+      const exePath = await chromeAws.executablePath; // null on GitHub runner
+      const browser = await puppeteer.launch({
+        headless: true,
+        executablePath: exePath || undefined,
+        args: chromeAws.args,
       });
+      const port = parseInt(new URL(browser.wsEndpoint()).port, 10);
       console.log(
-        `🚀  Puppeteer (port ${chrome.port}) – using ${lambdaPath ? 'chrome-aws-lambda' : 'system Chrome'}`
+        `🚀  Puppeteer (port ${port}) – using ${
+          exePath ? 'chrome-aws-lambda' : 'system Chrome'
+        }`
       );
 
-      /* 2) Lighthouse run */
-      const { lhr } = (await lighthouse(normUrl, {
-        port: chrome.port,
+      /* 2) Lighthouse */
+      const { lhr } = (await lighthouse(url, {
+        port,
         output: 'json',
         logLevel: 'error',
         onlyCategories: ['performance', 'accessibility', 'seo'],
@@ -118,45 +137,43 @@ async function runPendingScans() {
       })) as unknown as { lhr: PSIResult };
 
       const perf = Math.round((lhr.categories.performance.score || 0) * 100);
-      const seo  = Math.round((lhr.categories.seo.score || 0) * 100);
-      const a11y = Math.round((lhr.categories.accessibility.score || 0) * 100);
-      console.log(`📊  perf ${perf} / seo ${seo} / a11y ${a11y}`);
+      const seoScore = Math.round((lhr.categories.seo.score || 0) * 100);
+      const a11y = Math.round(
+        (lhr.categories.accessibility.score || 0) * 100
+      );
+      console.log(`📊  perf ${perf} / seo ${seoScore} / a11y ${a11y}`);
 
       /* 3) Close browser */
-      await chrome.kill();
+      await browser.close();
       console.log('🔒  Browser closed');
 
-      /* 4) Save & mark done */
+      /* 4) Persist results */
       await supabase
         .from('scans')
         .update({ results: lhr, status: 'done', finished_at: new Date() })
         .eq('id', id);
 
-      /* 5) Send e-mail with PDF */
-      const pdfBuffer = await genPdfBuffer();
-      const publicLink = `https://webtriage.pro/report/${id}`;
+      /* 5) E-mail user (non-fatal on failure) */
       try {
+        const pdf = await genPdfBuffer();
         await resend.emails.send({
           from: 'WebTriage <reports@webtriage.pro>',
           to: email,
           subject: 'Your 15-minute WebTriage report',
-          html: buildEmailHTML(normUrl, lhr, publicLink),
-          attachments: [
-            { filename: 'WebTriage-report.pdf', content: pdfBuffer },
-          ],
+          html: buildEmailHTML(url, lhr, `https://webtriage.pro/report/${id}`),
+          attachments: [{ filename: 'WebTriage-report.pdf', content: pdf }],
         });
         console.log(`📧  Email sent to ${email}`);
       } catch (mailErr) {
         console.error('📧  Email failed:', mailErr);
-        // we don't fail the scan on mail error
       }
 
       console.log(`✅  Scan #${id} completed`);
-    } catch (e) {
-      console.error(`❌  Scan #${id} error:`, e);
+    } catch (err) {
+      console.error(`❌  Scan #${id} error:`, err);
       await supabase
         .from('scans')
-        .update({ status: 'error', error_message: (e as Error).message })
+        .update({ status: 'error', error_message: (err as Error).message })
         .eq('id', id);
     }
   }
@@ -164,20 +181,8 @@ async function runPendingScans() {
   console.log('🏁 All pending scans processed.');
 }
 
-/* ─── Utility -------------------------------------------------- */
-function normalise(raw: string): string {
-  try {
-    const u = new URL(raw.trim().startsWith('http') ? raw : `https://${raw}`);
-    u.hash = '';
-    u.search = '';
-    return u.href.endsWith('/') ? u.href : u.href + '/';
-  } catch {
-    return raw;
-  }
-}
-
-/* -------------------------------------------------------------- */
-runPendingScans().catch((err) => {
-  console.error('Fatal error:', err);
+/* ------------------------------------------------------------ */
+runPendingScans().catch((e) => {
+  console.error('Fatal worker error:', e);
   process.exit(1);
 });
