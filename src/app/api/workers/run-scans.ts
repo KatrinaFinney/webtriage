@@ -76,7 +76,7 @@ async function runPendingScans() {
     .from('scans')
     .select('id, site, email')
     .eq('status', 'pending')
-    .order('requested_at', { ascending: true })
+    .order('created_at', { ascending: true })
     .limit(BATCH_SIZE);
 
   if (error) {
