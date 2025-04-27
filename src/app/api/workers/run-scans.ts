@@ -55,7 +55,7 @@ function normalise(raw: string): string {
 }
 
 async function genPdfBuffer(): Promise<Buffer> {
-  // TODO: real PDF generation
+  // TODO implement a real PDF
   return Buffer.from('PDF coming soon');
 }
 
@@ -99,7 +99,7 @@ async function runPendingScans() {
     console.error('❌  DB fetch error:', error);
     return;
   }
-  if (!pending || pending.length === 0) {
+  if (!pending?.length) {
     console.log('✅  No pending scans.');
     return;
   }
@@ -113,62 +113,70 @@ async function runPendingScans() {
     console.log(`\n🔎  #${id} – raw "${site}"\n    normalized → ${url}`);
 
     try {
-      /* 1) Launch Chrome via Puppeteer */
-      const exePath = await chromeAws.executablePath; // null on GitHub runner
+      /* 1) Launch Chrome (Puppeteer) */
+      const exePath = await chromeAws.executablePath; // null on runner
       const browser = await puppeteer.launch({
         headless: true,
         executablePath: exePath || undefined,
-        args: chromeAws.args,
+        args: exePath
+          ? chromeAws.args                                   // Lambda binary
+          : ['--no-sandbox', '--disable-setuid-sandbox'],    // system Chrome
       });
       const port = parseInt(new URL(browser.wsEndpoint()).port, 10);
       console.log(
-        `🚀  Puppeteer (port ${port}) – using ${
-          exePath ? 'chrome-aws-lambda' : 'system Chrome'
-        }`
+        `🚀  Puppeteer (port ${port}) – ${exePath ? 'lambda' : 'system'} chrome`
       );
 
-      /* 2) Lighthouse */
-      const { lhr } = (await lighthouse(url, {
-        port,
-        output: 'json',
-        logLevel: 'error',
-        onlyCategories: ['performance', 'accessibility', 'seo'],
-        throttlingMethod: 'provided',
-      })) as unknown as { lhr: PSIResult };
-
-      const perf = Math.round((lhr.categories.performance.score || 0) * 100);
-      const seoScore = Math.round((lhr.categories.seo.score || 0) * 100);
-      const a11y = Math.round(
-        (lhr.categories.accessibility.score || 0) * 100
-      );
-      console.log(`📊  perf ${perf} / seo ${seoScore} / a11y ${a11y}`);
-
-      /* 3) Close browser */
-      await browser.close();
-      console.log('🔒  Browser closed');
-
-      /* 4) Persist results */
-      await supabase
-        .from('scans')
-        .update({ results: lhr, status: 'done', finished_at: new Date() })
-        .eq('id', id);
-
-      /* 5) E-mail user (non-fatal on failure) */
+      /* 2-4) Lighthouse, save, e-mail */
       try {
-        const pdf = await genPdfBuffer();
-        await resend.emails.send({
-          from: 'WebTriage <reports@webtriage.pro>',
-          to: email,
-          subject: 'Your 15-minute WebTriage report',
-          html: buildEmailHTML(url, lhr, `https://webtriage.pro/report/${id}`),
-          attachments: [{ filename: 'WebTriage-report.pdf', content: pdf }],
-        });
-        console.log(`📧  Email sent to ${email}`);
-      } catch (mailErr) {
-        console.error('📧  Email failed:', mailErr);
-      }
+        const runner = await lighthouse(url, {
+            port,
+            output: 'json',
+            logLevel: 'error',
+            onlyCategories: ['performance', 'accessibility', 'seo'],
+            throttlingMethod: 'provided',
+          }) as any;                    // ← relax the Lighthouse type
+          
+          const lhr = runner.lhr as PSIResult;   // ← tighten back to our shape
 
-      console.log(`✅  Scan #${id} completed`);
+        const perf = Math.round((lhr.categories.performance.score || 0) * 100);
+        const seoScore = Math.round((lhr.categories.seo.score || 0) * 100);
+        const a11y = Math.round(
+          (lhr.categories.accessibility.score || 0) * 100
+        );
+        console.log(`📊  perf ${perf} / seo ${seoScore} / a11y ${a11y}`);
+
+        /* 3) Persist */
+        const { error: updateErr } = await supabase
+          .from('scans')
+          .update({ results: lhr, status: 'done', finished_at: new Date() })
+          .eq('id', id);
+
+        if (updateErr) {
+          throw new Error(`DB update failed: ${updateErr.message}`);
+        }
+
+        /* 4) E-mail (best-effort) */
+        try {
+          const pdf = await genPdfBuffer();
+          await resend.emails.send({
+            from: 'WebTriage <reports@webtriage.pro>',
+            to: email,
+            subject: 'Your 15-minute WebTriage report',
+            html: buildEmailHTML(url, lhr, `https://webtriage.pro/report/${id}`),
+            attachments: [{ filename: 'WebTriage-report.pdf', content: pdf }],
+          });
+          console.log(`📧  Email sent to ${email}`);
+        } catch (mailErr) {
+          console.error('📧  Email failed:', mailErr);
+        }
+
+        console.log(`✅  Scan #${id} completed`);
+      } finally {
+        /* NEW: always close Chrome */
+        await browser.close().catch(() => {});
+        console.log('🔒  Browser closed');
+      }
     } catch (err) {
       console.error(`❌  Scan #${id} error:`, err);
       await supabase
