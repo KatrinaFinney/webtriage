@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "build-worker": "npx tsc --project tsconfig.worker.json",
-    "run-worker": "node dist-worker/app/api/workers/run-scans.js"
+    "run-worker": "npx dotenv -e .env.worker -- node dist-worker/app/api/workers/run-scans.js"
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.787.0",
@@ -36,6 +36,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.175.0",
+    "dotenv-cli": "^8.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "ts-node": "^10.9.2",

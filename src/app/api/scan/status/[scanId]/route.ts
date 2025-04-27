@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/api/scan/status/[scanId]/route.ts
 
 export const runtime = 'nodejs'
@@ -6,32 +7,48 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// ─── Init Supabase client ───────────────────────────────────────────────
+// 🧮 Minimal shape of what we store in `scans.results`
+type PSIResult = {
+  categories: {
+    performance: { score: number | null }
+    accessibility: { score: number | null }
+    seo: { score: number | null }
+  }
+  audits?: Record<string, any>
+}
+
+// Pull your Supabase creds from env
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
 }
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-// ─── GET handler ─────────────────────────────────────────────────────────
+interface StatusResponse {
+  status: string
+  result?: PSIResult
+}
+
+// GET /api/scan/status/:scanId
 export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ scanId: string }> }
+  _req: Request,
+  { params }: { params: { scanId: string } }
 ) {
-  // Await the promise to pull out your dynamic segment
-  const { scanId } = await params
-  const id = parseInt(scanId, 10)
-  if (Number.isNaN(id)) {
-    return NextResponse.json({ error: 'Invalid scanId' }, { status: 400 })
+  const scanId = parseInt(params.scanId, 10)
+  if (Number.isNaN(scanId)) {
+    return NextResponse.json(
+      { error: 'Invalid scanId' },
+      { status: 400 }
+    )
   }
 
-  // Fetch status, results, and optional logs
   const { data, error } = await supabase
     .from('scans')
     .select('status, results')
-    .eq('id', id)
+    .eq('id', scanId)
     .single()
 
   if (error) {
@@ -41,11 +58,10 @@ export async function GET(
     )
   }
 
-  return NextResponse.json(
-    {
-      status: data.status,
-      result: data.results ?? null,
-    },
-    { status: 200 }
-  )
+  const resp: StatusResponse = { status: data.status }
+  if (data.status === 'done' && data.results) {
+    resp.result = data.results as PSIResult
+  }
+
+  return NextResponse.json(resp, { status: 200 })
 }
