@@ -1,5 +1,4 @@
 // src/app/api/workers/run-scans.ts
-
 import { createClient } from '@supabase/supabase-js';
 import lighthouse from 'lighthouse';
 import * as chromeLauncher from 'chrome-launcher';
@@ -63,8 +62,7 @@ function buildEmailHTML(url: string, lhr: PSIResult, publicLink: string) {
 
 /* placeholder − replace with real generator */
 async function genPdfBuffer(): Promise<Buffer> {
-    /* TODO: generate real PDF from Lighthouse result */
-    return Buffer.from('PDF coming soon');
+  return Buffer.from('PDF coming soon');
 }
 
 /* ─── Main worker --------------------------------------------- */
@@ -99,18 +97,16 @@ async function runPendingScans() {
     console.log(`\n🔎  #${id} – raw "${site}"\n    normalized → ${normUrl}`);
 
     try {
-      /* 1) Launch Chrome */
-      let chrome = null;
-      try {
-        chrome = await chromeLauncher.launch({
-          chromePath: await chromeAws.executablePath, // null on local
-          chromeFlags: chromeAws.args,
-          logLevel: 'error',
-        });
-        console.log(`🚀  Puppeteer (port ${chrome.port})`);
-      } catch (e) {
-        throw new Error('Failed to launch Chrome: ' + (e as Error).message);
-      }
+      /* 1) Launch Chrome — fallback to system chrome when executablePath is null */
+      const lambdaPath = await chromeAws.executablePath; // null on GitHub runner
+      const chrome = await chromeLauncher.launch({
+        chromePath: lambdaPath || undefined,   // undefined → let launcher find system chrome
+        chromeFlags: chromeAws.args,
+        logLevel: 'error',
+      });
+      console.log(
+        `🚀  Puppeteer (port ${chrome.port}) – using ${lambdaPath ? 'chrome-aws-lambda' : 'system Chrome'}`
+      );
 
       /* 2) Lighthouse run */
       const { lhr } = (await lighthouse(normUrl, {
@@ -127,7 +123,7 @@ async function runPendingScans() {
       console.log(`📊  perf ${perf} / seo ${seo} / a11y ${a11y}`);
 
       /* 3) Close browser */
-      await chrome?.kill();
+      await chrome.kill();
       console.log('🔒  Browser closed');
 
       /* 4) Save & mark done */
@@ -139,22 +135,23 @@ async function runPendingScans() {
       /* 5) Send e-mail with PDF */
       const pdfBuffer = await genPdfBuffer();
       const publicLink = `https://webtriage.pro/report/${id}`;
-      await resend.emails.send({
-        from: 'WebTriage <reports@webtriage.pro>',
-        to: email,
-        subject: `Your 15-minute WebTriage report`,
-        html: buildEmailHTML(normUrl, lhr, publicLink),
-        attachments: [
-          {
-            filename: 'WebTriage-report.pdf',
-            content: pdfBuffer,
-            
-          },
-        ],
-      });
-      console.log(`📧  Email sent to ${email}`);
-      console.log(`✅  Scan #${id} completed`);
+      try {
+        await resend.emails.send({
+          from: 'WebTriage <reports@webtriage.pro>',
+          to: email,
+          subject: 'Your 15-minute WebTriage report',
+          html: buildEmailHTML(normUrl, lhr, publicLink),
+          attachments: [
+            { filename: 'WebTriage-report.pdf', content: pdfBuffer },
+          ],
+        });
+        console.log(`📧  Email sent to ${email}`);
+      } catch (mailErr) {
+        console.error('📧  Email failed:', mailErr);
+        // we don't fail the scan on mail error
+      }
 
+      console.log(`✅  Scan #${id} completed`);
     } catch (e) {
       console.error(`❌  Scan #${id} error:`, e);
       await supabase
@@ -171,7 +168,8 @@ async function runPendingScans() {
 function normalise(raw: string): string {
   try {
     const u = new URL(raw.trim().startsWith('http') ? raw : `https://${raw}`);
-    u.hash = ''; u.search = '';
+    u.hash = '';
+    u.search = '';
     return u.href.endsWith('/') ? u.href : u.href + '/';
   } catch {
     return raw;

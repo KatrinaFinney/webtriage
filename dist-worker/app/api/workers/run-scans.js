@@ -1,5 +1,4 @@
 "use strict";
-// src/app/api/workers/run-scans.ts
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -37,6 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// src/app/api/workers/run-scans.ts
 const supabase_js_1 = require("@supabase/supabase-js");
 const lighthouse_1 = __importDefault(require("lighthouse"));
 const chromeLauncher = __importStar(require("chrome-launcher"));
@@ -75,7 +75,6 @@ function buildEmailHTML(url, lhr, publicLink) {
 }
 /* placeholder − replace with real generator */
 async function genPdfBuffer() {
-    /* TODO: generate real PDF from Lighthouse result */
     return Buffer.from('PDF coming soon');
 }
 /* ─── Main worker --------------------------------------------- */
@@ -100,19 +99,14 @@ async function runPendingScans() {
         const normUrl = normalise(site);
         console.log(`\n🔎  #${id} – raw "${site}"\n    normalized → ${normUrl}`);
         try {
-            /* 1) Launch Chrome */
-            let chrome = null;
-            try {
-                chrome = await chromeLauncher.launch({
-                    chromePath: await chrome_aws_lambda_1.default.executablePath, // null on local
-                    chromeFlags: chrome_aws_lambda_1.default.args,
-                    logLevel: 'error',
-                });
-                console.log(`🚀  Puppeteer (port ${chrome.port})`);
-            }
-            catch (e) {
-                throw new Error('Failed to launch Chrome: ' + e.message);
-            }
+            /* 1) Launch Chrome — fallback to system chrome when executablePath is null */
+            const lambdaPath = await chrome_aws_lambda_1.default.executablePath; // null on GitHub runner
+            const chrome = await chromeLauncher.launch({
+                chromePath: lambdaPath || undefined, // undefined → let launcher find system chrome
+                chromeFlags: chrome_aws_lambda_1.default.args,
+                logLevel: 'error',
+            });
+            console.log(`🚀  Puppeteer (port ${chrome.port}) – using ${lambdaPath ? 'chrome-aws-lambda' : 'system Chrome'}`);
             /* 2) Lighthouse run */
             const { lhr } = (await (0, lighthouse_1.default)(normUrl, {
                 port: chrome.port,
@@ -126,7 +120,7 @@ async function runPendingScans() {
             const a11y = Math.round((lhr.categories.accessibility.score || 0) * 100);
             console.log(`📊  perf ${perf} / seo ${seo} / a11y ${a11y}`);
             /* 3) Close browser */
-            await chrome?.kill();
+            await chrome.kill();
             console.log('🔒  Browser closed');
             /* 4) Save & mark done */
             await supabase
@@ -136,19 +130,22 @@ async function runPendingScans() {
             /* 5) Send e-mail with PDF */
             const pdfBuffer = await genPdfBuffer();
             const publicLink = `https://webtriage.pro/report/${id}`;
-            await resend.emails.send({
-                from: 'WebTriage <reports@webtriage.pro>',
-                to: email,
-                subject: `Your 15-minute WebTriage report`,
-                html: buildEmailHTML(normUrl, lhr, publicLink),
-                attachments: [
-                    {
-                        filename: 'WebTriage-report.pdf',
-                        content: pdfBuffer,
-                    },
-                ],
-            });
-            console.log(`📧  Email sent to ${email}`);
+            try {
+                await resend.emails.send({
+                    from: 'WebTriage <reports@webtriage.pro>',
+                    to: email,
+                    subject: 'Your 15-minute WebTriage report',
+                    html: buildEmailHTML(normUrl, lhr, publicLink),
+                    attachments: [
+                        { filename: 'WebTriage-report.pdf', content: pdfBuffer },
+                    ],
+                });
+                console.log(`📧  Email sent to ${email}`);
+            }
+            catch (mailErr) {
+                console.error('📧  Email failed:', mailErr);
+                // we don't fail the scan on mail error
+            }
             console.log(`✅  Scan #${id} completed`);
         }
         catch (e) {
