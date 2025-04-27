@@ -3,7 +3,7 @@ name: Run Pending Scans
 # ── triggers ──────────────────────────────────────────────────────
 on:
   schedule:
-    - cron: '*/5 * * * *'        # every 5 min UTC
+    - cron: '*/2 * * * *'       # every 5 min UTC
   push:
     branches: [ main ]
   workflow_dispatch: {}          # manual “Run workflow” button
@@ -11,8 +11,10 @@ on:
 # ── single job ────────────────────────────────────────────────────
 jobs:
   scan:
+    concurrency:
+      group: scan-cron           
+      cancel-in-progress: true
     runs-on: ubuntu-latest
-
     steps:
       # 1) pull repo
       - uses: actions/checkout@v4

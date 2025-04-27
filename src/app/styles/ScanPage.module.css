@@ -667,4 +667,30 @@
   font-weight: 700;
   color: #4fd1c5; /* teal accent */
 }
+.progressOuter{
+  width:100%;height:8px;background:#eee;border-radius:4px;margin-top:12px;
+}
+.progressInner{
+  height:100%;background:#00b37e;border-radius:4px 0 0 4px;transition:width .8s;
+}
+.delayNote{margin-top:8px;color:#b45309;font-size:.9rem;}
+/* 15-min progress bar */
+.progressOuter{
+  width:100%;
+  height:8px;
+  background:#eee;
+  border-radius:4px;
+  margin-top:12px;
+}
+.progressInner{
+  height:100%;
+  background:#00b37e;           /* green */
+  border-radius:4px 0 0 4px;
+  transition:width .8s;
+}
+.delayNote{
+  margin-top:8px;
+  color:#b45309;                /* amber */
+  font-size:.9rem;
+}
 

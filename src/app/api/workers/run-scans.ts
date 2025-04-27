@@ -3,6 +3,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 
+
 /*---------- basic LHR + row types ----------*/
 interface PSIResult {
   categories: {
@@ -38,7 +39,7 @@ async function runPendingScans() {
     .from('scans')
     .select('id, site, email')
     .eq('status', 'pending')
-    .limit(5)
+    .limit(3);
 
   if (!rows?.length) { console.log('✓ none'); return }
 

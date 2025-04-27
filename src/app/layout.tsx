@@ -3,6 +3,7 @@ import './globals.css';
 import { spaceGrotesk, plexMono } from './fonts';
 import Head from 'next/head';
 import { ModalProvider } from './components/ModalContext';
+import { Toaster } from 'react-hot-toast';
 
 export const metadata = {
   title: 'WebTriage.pro',
@@ -43,6 +44,7 @@ export default function RootLayout({
         <ModalProvider>
           {children}
         </ModalProvider>
+        <Toaster position="top-right" /> 
       </body>
     </html>
   );
