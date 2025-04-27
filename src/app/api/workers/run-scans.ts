@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/api/workers/run-scans.ts
 import { createClient } from '@supabase/supabase-js';
 import lighthouse from 'lighthouse';
