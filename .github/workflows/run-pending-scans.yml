@@ -23,6 +23,16 @@ jobs:
       # 2.3) Install dependencies
       - name: Install dependencies
         run: npm ci
+    
+      - name: Build worker
+        run: npm run build-worker
+
+      - name: Execute worker
+        run: npm run run-worker
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
 
       # 2.4) Run the scan worker script
       - name: Execute pending-scans worker

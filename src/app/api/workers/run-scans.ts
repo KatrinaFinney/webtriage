@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// src/app/api/workers/run-scans.ts
-import { createClient } from '@supabase/supabase-js'
-import lighthouse from 'lighthouse'
-import * as chromeLauncher from 'chrome-launcher'
-import chromeAws from 'chrome-aws-lambda'
 
-/** Minimal Lighthouse result shape */
+// ──────────────────────────────────────────────────────────────
+//  run-scans.ts   –  background worker
+//  compile: npm run build-worker   (tsconfig.worker.json)
+//  run:     npm run run-worker     (needs SUPABASE_ env vars)
+// ──────────────────────────────────────────────────────────────
+
+import { createClient } from '@supabase/supabase-js'
+
+/** Minimal slice of Lighthouse we store */
 interface PSIResult {
   categories: {
     performance: { score: number | null }
@@ -14,101 +17,141 @@ interface PSIResult {
   }
   audits?: Record<string, unknown>
 }
-
 interface ScanRow {
   id: number
   site: string
 }
 
-// ─── Supabase client ─────────────────────────────────────────────────────
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
-  process.exit(1)
+/* ─── 0)  Env guard ─────────────────────────────────────────── */
+const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
 }
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
 
-// Narrowed chrome-aws-lambda type
-type ChromeAwsType = { executablePath: string; args: string[] }
-const chromeLambda = (chromeAws as unknown) as ChromeAwsType
+/* ─── 1)  Supabase client ───────────────────────────────────── */
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-// ─── Worker to pick up pending scans ─────────────────────────────────────
+/* helper – ensure https:// and strip hash/query */
+function normalizeUrl(raw: string): string {
+  const candidate = raw.startsWith('http') ? raw : `https://${raw}`
+  const u = new URL(candidate)
+  u.hash = ''
+  u.search = ''
+  return u.toString()
+}
+
+/* ─── 2)  Main runner ───────────────────────────────────────── */
 async function runPendingScans() {
-  console.log('▶️  Fetching up to 5 pending scans')
-  const { data, error: fetchErr } = await supabase
+  console.log('▶ Fetching up to 5 pending scans…')
+
+  const { data: pending, error } = await supabase
     .from('scans')
     .select('id, site')
     .eq('status', 'pending')
-    .order('created_at', { ascending: true })
     .limit(5)
 
-  if (fetchErr) {
-    console.error('❌ Error fetching pending scans:', fetchErr)
+  if (error) {
+    console.error('❌ DB fetch error:', error.message)
     return
   }
-  const pending = (data ?? []) as ScanRow[]
-  if (pending.length === 0) {
+  if (!pending?.length) {
     console.log('✅ No pending scans.')
     return
   }
 
-  for (const scan of pending) {
+  /* dynamic ESM imports (so this works from CommonJS) */
+  const { default: chromeAws }  = await import('chrome-aws-lambda')
+  const chromeLauncher          = await import('chrome-launcher')
+  const puppeteer               = await import('puppeteer')
+  const { default: lighthouse } = await import('lighthouse')
+
+  for (const scan of pending as ScanRow[]) {
     const { id, site } = scan
-    console.log(`\n🔎 Processing scan #${id} for site ${site}`)
+    console.log(`\n🔎  #${id} – raw "${site}"`)
+    let url: string
 
-    let chrome: chromeLauncher.LaunchedChrome | null = null
+    /* 2.0) Normalise URL */
     try {
-      // 1) Launch Chrome
-      chrome = await chromeLauncher.launch({
-        chromePath: await chromeLambda.executablePath,
-        chromeFlags: chromeLambda.args,
-      })
-      console.log(`🚀 Chrome launched on port ${chrome.port}`)
-
-      // 2) Run Lighthouse
-      const raw = await lighthouse(site, {
-        port: chrome.port,
-        output: 'json',
-        logLevel: 'error',
-        onlyCategories: ['performance', 'accessibility', 'seo'],
-        throttlingMethod: 'provided',
-      })
-      const lhr = (raw as any).lhr as PSIResult
-      if (!lhr) throw new Error('Lighthouse returned no LHR')
-      console.log(`📊 perf=${Math.round((lhr.categories.performance.score || 0) * 100)}%`)
-
-      // 3) Save & mark done
-      const { error: updateErr } = await supabase
-        .from('scans')
-        .update({ results: lhr, status: 'done' })
-        .eq('id', id)
-      if (updateErr) throw updateErr
-      console.log(`✅ Scan #${id} done`)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      console.error(`❌ Scan #${scan.id} failed:`, msg)
+      url = normalizeUrl(site)
+      console.log(`    normalized → ${url}`)
+    } catch {
+      console.error(`❌ INVALID_URL for #${id}`)
       await supabase
         .from('scans')
-        .update({ status: 'error', error_message: msg })
-        .eq('id', scan.id)
-    } finally {
-      if (chrome) {
-        try {
-          await chrome.kill()
-          console.log(`🔒 Chrome killed for scan #${scan.id}`)
-        } catch (killErr) {
-          console.warn(`⚠️ Failed to kill Chrome #${scan.id}:`, killErr)
-        }
+        .update({ status: 'error', error_message: 'INVALID_URL' })
+        .eq('id', id)
+      continue
+    }
+
+    // mark as running
+    await supabase.from('scans').update({ status: 'running' }).eq('id', id)
+
+    try {
+      /* 2.1) Launch Chromium */
+      let browser: any
+      let port: number
+
+      try {
+        // works in Vercel / AWS Lambda
+        browser = await chromeLauncher.launch({
+          chromePath: await chromeAws.executablePath, // null locally
+          chromeFlags: chromeAws.args,
+        })
+        port = browser.port
+        console.log(`🚀 chrome-aws-lambda (port ${port})`)
+      } catch {
+        // local fallback – unique port each launch
+        const debugPort = 9222 + Math.floor(Math.random() * 1000)
+        browser = await puppeteer.launch({
+          headless: true,
+          args: [`--remote-debugging-port=${debugPort}`, '--no-sandbox'],
+        })
+        port = new URL(browser.wsEndpoint()).port as unknown as number
+        console.log(`🚀 Puppeteer (port ${port})`)
       }
+
+      /* 2.2) Run Lighthouse */
+      const { lhr } = (await lighthouse(url, {
+          port,
+          output: 'json',
+          logLevel: 'error',
+          onlyCategories: ['performance', 'accessibility', 'seo'],
+          throttlingMethod: 'provided',
+      })) as unknown as { lhr: PSIResult }
+
+      console.log(
+        `📊  perf ${Math.round((lhr.categories.performance.score ?? 0) * 100)} /` +
+          ` seo ${Math.round((lhr.categories.seo.score ?? 0) * 100)} /` +
+          ` a11y ${Math.round((lhr.categories.accessibility.score ?? 0) * 100)}`
+      )
+
+      /* 2.3) Close browser & short grace delay */
+      if (browser.kill) await browser.kill()
+      else if (browser.close) await browser.close()
+      await new Promise((r) => setTimeout(r, 1000)) // free port
+      console.log('🔒 Browser closed')
+
+      /* 2.4) Save results */
+      const { error: saveErr } = await supabase
+        .from('scans')
+        .update({ status: 'done', results: lhr })
+        .eq('id', id)
+
+      if (saveErr) throw new Error(`Save failed: ${saveErr.message}`)
+      console.log(`✅ Scan #${id} saved`)
+    } catch (err: any) {
+      console.error(`❌ Scan #${id} error:`, err.message)
+      await supabase
+        .from('scans')
+        .update({ status: 'error', error_message: err.message })
+        .eq('id', id)
     }
   }
 
   console.log('\n🏁 All pending scans processed.')
 }
 
-runPendingScans().catch((err) => {
-  console.error('🔥 Fatal worker error:', err)
-  process.exit(1)
-})
+/* ─── 3) Kick off when invoked directly ────────────────────── */
+runPendingScans().catch((e) =>
+  console.error('🔥 Fatal error in run-scans worker:', e)
+)
