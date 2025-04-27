@@ -1,126 +1,112 @@
 "use strict";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 Object.defineProperty(exports, "__esModule", { value: true });
-// ──────────────────────────────────────────────────────────────
-//  run-scans.ts   –  background worker
-//  compile: npm run build-worker   (tsconfig.worker.json)
-//  run:     npm run run-worker     (needs SUPABASE_ env vars)
-// ──────────────────────────────────────────────────────────────
 const supabase_js_1 = require("@supabase/supabase-js");
-/* ─── 0)  Env guard ─────────────────────────────────────────── */
-const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+const resend_1 = require("resend");
+/*---------- env guards ----------*/
+const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY } = process.env;
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !RESEND_API_KEY) {
+    throw new Error('SUPABASE_URL / SERVICE_ROLE_KEY / RESEND_API_KEY missing');
 }
-/* ─── 1)  Supabase client ───────────────────────────────────── */
 const supabase = (0, supabase_js_1.createClient)(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-/* helper – ensure https:// and strip hash/query */
+const resend = new resend_1.Resend(RESEND_API_KEY);
+/*---------- helpers ----------*/
 function normalizeUrl(raw) {
-    const candidate = raw.startsWith('http') ? raw : `https://${raw}`;
-    const u = new URL(candidate);
+    const u = new URL(raw.startsWith('http') ? raw : `https://${raw}`);
     u.hash = '';
     u.search = '';
     return u.toString();
 }
-/* ─── 2)  Main runner ───────────────────────────────────────── */
+/*────────── main runner ──────────*/
 async function runPendingScans() {
-    console.log('▶ Fetching up to 5 pending scans…');
-    const { data: pending, error } = await supabase
+    console.log('▶ Fetching pending scans…');
+    const { data: rows } = await supabase
         .from('scans')
-        .select('id, site')
+        .select('id, site, email')
         .eq('status', 'pending')
         .limit(5);
-    if (error) {
-        console.error('❌ DB fetch error:', error.message);
+    if (!rows?.length) {
+        console.log('✓ none');
         return;
     }
-    if (!pending?.length) {
-        console.log('✅ No pending scans.');
-        return;
-    }
-    /* dynamic ESM imports (so this works from CommonJS) */
     const { default: chromeAws } = await import('chrome-aws-lambda');
     const chromeLauncher = await import('chrome-launcher');
     const puppeteer = await import('puppeteer');
     const { default: lighthouse } = await import('lighthouse');
-    for (const scan of pending) {
-        const { id, site } = scan;
-        console.log(`\n🔎  #${id} – raw "${site}"`);
+    for (const scan of rows) {
+        const { id, site, email } = scan;
+        console.log(`\n🚧 #${id} ${site}`);
         let url;
-        /* 2.0) Normalise URL */
         try {
             url = normalizeUrl(site);
-            console.log(`    normalized → ${url}`);
         }
         catch {
-            console.error(`❌ INVALID_URL for #${id}`);
-            await supabase
-                .from('scans')
-                .update({ status: 'error', error_message: 'INVALID_URL' })
-                .eq('id', id);
+            await supabase.from('scans')
+                .update({ status: 'error', error_message: 'INVALID_URL' }).eq('id', id);
+            console.error('INVALID_URL');
             continue;
         }
-        // mark as running
         await supabase.from('scans').update({ status: 'running' }).eq('id', id);
         try {
-            /* 2.1) Launch Chromium */
-            let browser;
-            let port;
+            /* launch browser */
+            let browser, port;
             try {
-                // works in Vercel / AWS Lambda
                 browser = await chromeLauncher.launch({
-                    chromePath: await chromeAws.executablePath, // null locally
+                    chromePath: await chromeAws.executablePath,
                     chromeFlags: chromeAws.args,
                 });
                 port = browser.port;
-                console.log(`🚀 chrome-aws-lambda (port ${port})`);
             }
             catch {
-                // local fallback – unique port each launch
                 const debugPort = 9222 + Math.floor(Math.random() * 1000);
                 browser = await puppeteer.launch({
                     headless: true,
                     args: [`--remote-debugging-port=${debugPort}`, '--no-sandbox'],
                 });
                 port = new URL(browser.wsEndpoint()).port;
-                console.log(`🚀 Puppeteer (port ${port})`);
             }
-            /* 2.2) Run Lighthouse */
+            /* run lighthouse */
             const { lhr } = (await lighthouse(url, {
-                port,
-                output: 'json',
-                logLevel: 'error',
+                port, output: 'json', logLevel: 'error',
                 onlyCategories: ['performance', 'accessibility', 'seo'],
                 throttlingMethod: 'provided',
             }));
-            console.log(`📊  perf ${Math.round((lhr.categories.performance.score ?? 0) * 100)} /` +
-                ` seo ${Math.round((lhr.categories.seo.score ?? 0) * 100)} /` +
-                ` a11y ${Math.round((lhr.categories.accessibility.score ?? 0) * 100)}`);
-            /* 2.3) Close browser & short grace delay */
+            /* close */
             if (browser.kill)
                 await browser.kill();
-            else if (browser.close)
+            else
                 await browser.close();
-            await new Promise((r) => setTimeout(r, 1000)); // free port
-            console.log('🔒 Browser closed');
-            /* 2.4) Save results */
-            const { error: saveErr } = await supabase
-                .from('scans')
-                .update({ status: 'done', results: lhr })
-                .eq('id', id);
-            if (saveErr)
-                throw new Error(`Save failed: ${saveErr.message}`);
-            console.log(`✅ Scan #${id} saved`);
+            await new Promise(r => setTimeout(r, 1000));
+            /* save result */
+            await supabase.from('scans')
+                .update({ status: 'done', results: lhr }).eq('id', id);
+            /* optional: email PDF */
+            if (email) {
+                const page = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
+                    .then(b => b.newPage());
+                await page.goto(`https://www.webtriage.pro/scan?scanId=${id}`, { waitUntil: 'networkidle0' });
+                const pdfUint8 = await page.pdf({ format: 'A4' }); // Uint8Array
+                const pdfBuffer = Buffer.from(pdfUint8);
+                await page.browser().close();
+                await resend.emails.send({
+                    from: 'WebTriage <reports@webtriage.pro>',
+                    to: email,
+                    subject: `Your WebTriage report (${url})`,
+                    html: `<p>Your full PDF report is attached.</p>`,
+                    attachments: [{
+                            filename: `WebTriage-${new URL(url).hostname}.pdf`,
+                            content: pdfBuffer,
+                        }]
+                });
+                console.log(`✉️  emailed → ${email}`);
+            }
+            console.log(`✓ #${id} done`);
         }
-        catch (err) {
-            console.error(`❌ Scan #${id} error:`, err.message);
-            await supabase
-                .from('scans')
-                .update({ status: 'error', error_message: err.message })
-                .eq('id', id);
+        catch (e) {
+            await supabase.from('scans')
+                .update({ status: 'error', error_message: e.message }).eq('id', id);
+            console.error(`✗ #${id}`, e.message);
         }
     }
-    console.log('\n🏁 All pending scans processed.');
 }
-/* ─── 3) Kick off when invoked directly ────────────────────── */
-runPendingScans().catch((e) => console.error('🔥 Fatal error in run-scans worker:', e));
+runPendingScans().catch(e => console.error('fatal', e));

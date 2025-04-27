@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "build-worker": "npx tsc --project tsconfig.worker.json",
-    "run-worker":   "node dist-worker/app/api/workers/run-scans.js"
+    "run-worker": "node dist-worker/app/api/workers/run-scans.js"
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.787.0",
@@ -25,7 +25,7 @@
     "puppeteer-core": "^24.7.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "resend": "^4.3.0",
+    "resend": "^4.4.1",
     "three": "^0.175.0"
   },
   "devDependencies": {
