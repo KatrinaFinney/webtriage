@@ -32,10 +32,10 @@ jobs:
       - name: Build worker
         run: npm run build-worker           # tsc --project tsconfig.worker.json
 
-      # 5) execute compiled JS
+       # 5) execute compiled JS directly (so it picks up GH secrets)
       - name: Execute worker
-        run: npm run run-worker             # node dist-worker/app/api/workers/run-scans.js
+        run: node dist-worker/app/api/workers/run-scans.js
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_URL:       ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_API_KEY:     ${{ secrets.RESEND_API_KEY }}
