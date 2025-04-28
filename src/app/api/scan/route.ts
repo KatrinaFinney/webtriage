@@ -1,5 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/api/scan/route.ts
+// debug env loading
+console.log(
+  '🔍 raw SUPABASE_SERVICE_ROLE_KEY:',
+  JSON.stringify(process.env.SUPABASE_SERVICE_ROLE_KEY)
+);
+console.log(
+  '🔍 raw SUPABASE_URL:',
+  JSON.stringify(process.env.SUPABASE_URL)
+);
+
+
+
+
+
+
+
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
@@ -15,6 +31,21 @@ interface ScanRequest {
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
 }
+// ─── Debug env-vars ───────────────────────────────────────
+const url = process.env.SUPABASE_URL
+const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+console.log('🐞 SUPABASE_URL:', url)
+console.log('🐞 SUPABASE_SERVICE_ROLE_KEY (full):', key)
+console.log('🐞 SUPABASE_SERVICE_ROLE_KEY looks like a JWT?', key?.startsWith('eyJ'))
+console.log('🐞 SUPABASE_SERVICE_ROLE_KEY length:', key?.length)
+
+console.log(
+  '🔧 Using SUPABASE_SERVICE_ROLE_KEY prefix:',
+  process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 10),
+  '…',
+  process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(-10)
+)
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -37,6 +68,17 @@ function normalizeSite(raw: string): string {
 
 // ─── Kickoff POST (insert pending scan) ──────────────────────────────────
 export async function POST(req: NextRequest) {
+  // ─── DEBUG: environment variables
+  console.log('🔧 SUPABASE_URL:', process.env.SUPABASE_URL)
+  console.log(
+    '🔧 SUPABASE_SERVICE_ROLE_KEY defined?',
+    !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    'length=',
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.length
+  )
+
+  console.log('⬇️  /api/scan POST body:', await req.clone().json())
+
   // 1) Parse + validate body
   let body: unknown
   try {
@@ -82,6 +124,7 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error || !data) {
+    console.error('❌ Supabase insert error:', error)
     return NextResponse.json(
       { error: error?.message || 'Database error' },
       { status: 500 }

@@ -98,6 +98,7 @@ export default function ScanPage() {
 
   // ─── Kick off scan
   const startScan = async () => {
+    console.log('▶️ startScan()', { domain, email });
     setPhase('pending');
     setLogs([]);
     setScanTime(new Date());
@@ -131,7 +132,11 @@ export default function ScanPage() {
     const iv = setInterval(async () => {
       try {
         const res = await fetch(`/api/scan/status/${scanId}`);
-        if (!res.ok) throw new Error('Status fetch failed');
+        console.log('⏱️  Polling:', res.status, res.statusText, await res.clone().text())
+        if (!res.ok) {
+          console.warn(`Status fetch failed: ${res.status} ${res.statusText}`);
+          return;
+        }
         const { status, result: resData, logs: newLogs } = (await res.json()) as {
           status: string;
           result?: PSIResult;
@@ -139,6 +144,7 @@ export default function ScanPage() {
         };
         if (Array.isArray(newLogs)) setLogs(newLogs);
         if (status === 'done' && resData) {
+          console.log('✅  Scan is done – about to switch phase to results');
           clearInterval(iv);
           setResult(resData);
           setPhase('results');
@@ -151,6 +157,10 @@ export default function ScanPage() {
     return () => clearInterval(iv);
   }, [phase, scanId]);
 
+  useEffect(() => {
+    console.log('🔄 phase is now', phase);
+  }, [phase]);
+  
   // ─── Progress-bar timer
   useEffect(() => {
       if (phase !== 'pending') return;
