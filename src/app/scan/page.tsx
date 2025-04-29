@@ -175,6 +175,86 @@ export default function ScanPage() {
   if (result?.categories) {
     entries = Object.entries(result.categories) as Array<[keyof typeof categoryLabels, { score: number }]>;
   }
+/** Build a punchy headline based on scores */
+function buildHeroSummary(categories: PSIResult['categories']): string {
+  const p = Math.round(categories.performance.score * 100);
+  const a = Math.round(categories.accessibility.score * 100);
+  const s = Math.round(categories.seo.score * 100);
+
+  const lines: string[] = [];
+
+  if (p < 70) {
+    lines.push(`⚡️ Your load speed (${p}/100) is costing you visitors—let’s fix that.`);
+  } else if (p < 90) {
+    lines.push(`🚀 Solid load speed at ${p}/100, but we can push you into the top 10%.`);
+  } else {
+    lines.push(`🚀 Lightning-fast at ${p}/100—your users will love the speed.`);
+  }
+
+  if (a < 70) {
+    lines.push(`♿️ Accessibility at ${a}/100 leaves real users behind.`);
+  } else {
+    lines.push(`♿️ Great accessibility at ${a}/100—ensure every visitor can engage.`);
+  }
+
+  if (s < 70) {
+    lines.push(`🔍 SEO at ${s}/100 means you’re invisible to new traffic.`);
+  } else {
+    lines.push(`🔍 With ${s}/100 SEO, you’re ranking—but we can help you dominate.`);
+  }
+
+  return lines.join(' ');
+}
+
+/** Pick which extra services to show */
+function buildServiceRecs(categories: PSIResult['categories']) {
+  const recs: Array<{
+    name: string;
+    price: string;
+    desc: string;
+    cta: string;
+    link: string;
+  }> = [];
+
+  if (categories.performance.score < 0.8) {
+    recs.push({
+      name: 'Emergency Fix',
+      price: '$149',
+      desc: 'Fast, targeted repairs for critical issues.',
+      cta: 'Request Fix',
+      link: '/services?service=Emergency%20Fix',
+    });
+  }
+  if (categories.accessibility.score < 0.75 || categories.seo.score < 0.75) {
+    recs.push({
+      name: 'Continuous Care',
+      price: '$499/mo',
+      desc: 'Monthly health checks & 24/7 monitoring.',
+      cta: 'Subscribe',
+      link: '/services?service=Continuous%20Care',
+    });
+  }
+
+  // Always include these two
+  recs.push(
+    {
+      name: 'Site Triage',
+      price: '$99',
+      desc: 'In-depth audit with action roadmap.',
+      cta: 'Start Triage',
+      link: '/services?service=Site%20Triage',
+    },
+    {
+      name: 'Full Recovery Plan',
+      price: 'From $999',
+      desc: 'Complete rebuild & optimization.',
+      cta: 'Plan Recovery',
+      link: '/services?service=Full%20Recovery%20Plan',
+    }
+  );
+
+  return recs;
+}
 
   return (
     <div className={styles.page}>
@@ -278,6 +358,9 @@ export default function ScanPage() {
             animate={{ opacity: 1, y: 0 }}
             className={styles.resultsContainer}
           >
+            <p className={styles.heroSummary}>
+  {buildHeroSummary(result.categories)}
+</p>
             {/* header metadata */}
             {scanTime && (
               <div className={styles.scanMeta}>
@@ -355,35 +438,29 @@ export default function ScanPage() {
               })}
             </div>
 
-            {/* ── NEXT STEPS (services) ── */}
-            <section className={styles.nextSteps}>
-              <h3 className={styles.nextStepsTitle}>Ready to Level Up?</h3>
-              <p className={styles.nextStepsIntro}>
-                One-off deep dives or ongoing care—pick the plan that matches your goals,
-                and let’s get your site into peak shape.
-              </p>
+          {/* ── NEXT STEPS (dynamic) ── */}
+<section className={styles.nextSteps}>
+  <h3 className={styles.nextStepsTitle}>Ready to Level Up?</h3>
+  <p className={styles.nextStepsIntro}>
+    Based on your report, we’ve hand-picked the perfect next steps.
+  </p>
 
-              <div className={styles.servicesGrid}>
-                {[
-                  { name:'Site Triage', price:'$99',       desc:'In-depth audit with action roadmap.',             cta:'Start Triage',   link:'/services?service=Site%20Triage' },
-                  { name:'Emergency Fix', price:'$149',    desc:'Fast, targeted repairs for critical issues.',    cta:'Request Fix',    link:'/services?service=Emergency%20Fix' },
-                  { name:'Continuous Care', price:'$499/mo', desc:'Monthly health checks & 24/7 monitoring.',    cta:'Subscribe',      link:'/services?service=Continuous%20Care' },
-                  { name:'Full Recovery Plan', price:'From $999', desc:'Complete rebuild & optimization.',       cta:'Plan Recovery',  link:'/services?service=Full%20Recovery%20Plan' },
-                ].map((svc) => (
-                  <div key={svc.name} className={styles.serviceCard}>
-                    <div className={styles.servicePriceBadge}>{svc.price}</div>
-                    <h4 className={styles.serviceTitle}>{svc.name}</h4>
-                    <p className={styles.serviceDesc}>{svc.desc}</p>
-                    <button
-                      className={styles.serviceButton}
-                      onClick={() => (window.location.href = svc.link)}
-                    >
-                      {svc.cta}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </section>
+  <div className={styles.servicesGrid}>
+    {buildServiceRecs(result.categories).map((svc) => (
+      <div key={svc.name} className={styles.serviceCard}>
+        <div className={styles.servicePriceBadge}>{svc.price}</div>
+        <h4 className={styles.serviceTitle}>{svc.name}</h4>
+        <p className={styles.serviceDesc}>{svc.desc}</p>
+        <button
+          className={styles.serviceButton}
+          onClick={() => (window.location.href = svc.link)}
+        >
+          {svc.cta}
+        </button>
+      </div>
+    ))}
+  </div>
+</section>
           </motion.div>
         )}
       </AnimatePresence>
