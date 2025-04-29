@@ -1,196 +1,202 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/api/workers/run-scans.ts
-import { createClient } from '@supabase/supabase-js';
-import lighthouse from 'lighthouse';
-import puppeteer from 'puppeteer';
-import chromeAws from 'chrome-aws-lambda';
-import { Resend } from 'resend';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import Redis from 'ioredis'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import lighthouse from 'lighthouse'
+import puppeteer from 'puppeteer'
+import chromeAws from 'chrome-aws-lambda'
+import { Resend } from 'resend'
 
-/* ─── Runtime configuration ---------------------------------- */
+/** ─── CONFIG & CLIENTS ────────────────────────────────────────── */
+const {
+  SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY,
+  RESEND_API_KEY,
+  REDIS_URL,
+  REDIS_TOKEN,
+  SCAN_BATCH_SIZE = '3',
+} = process.env
 
 if (
-  !process.env.SUPABASE_URL ||
-  !process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  !process.env.RESEND_API_KEY
+  !SUPABASE_URL ||
+  !SUPABASE_SERVICE_ROLE_KEY ||
+  !RESEND_API_KEY ||
+  !REDIS_URL ||
+  !REDIS_TOKEN
 ) {
   throw new Error(
-    'SUPABASE_URL / SERVICE_ROLE_KEY / RESEND_API_KEY missing in env'
-  );
+    'Missing one of: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY, REDIS_URL, REDIS_TOKEN'
+  )
 }
 
-const BATCH_SIZE = parseInt(
-  process.argv[2] || process.env.SCAN_BATCH_SIZE || '3',
-  10
-);
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+const resend    = new Resend(RESEND_API_KEY)
+const redis     = new Redis(REDIS_URL, { password: REDIS_TOKEN })
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const GROUP       = 'scan-workers'
+const CONSUMER    = 'consumer-1'
+const STREAM_NAME = 'scan:queue'
+const BATCH_SIZE  = parseInt(SCAN_BATCH_SIZE, 10)
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-/* ─── Types --------------------------------------------------- */
-
+/** ─── TYPES ───────────────────────────────────────────────────── */
 interface PSIResult {
   categories: {
-    performance: { score: number | null };
-    accessibility: { score: number | null };
-    seo: { score: number | null };
-  };
-  audits?: Record<string, unknown>;
+    performance: { score: number | null }
+    accessibility: { score: number | null }
+    seo:           { score: number | null }
+  }
+  audits?: Record<string, unknown>
 }
 
-/* ─── Utility ------------------------------------------------- */
+interface ScanDetails {
+  site:  string
+  email: string
+}
 
+/** ─── HELPERS ─────────────────────────────────────────────────── */
+
+// Ensure our XGROUP exists
+async function ensureGroup() {
+  try {
+    await redis.xgroup('CREATE', STREAM_NAME, GROUP, '0', 'MKSTREAM')
+    console.log(`✅ Created consumer group "${GROUP}"`)
+  } catch (err: any) {
+    if (!/BUSYGROUP/.test(err.message)) throw err
+    console.log(`✅ Consumer group "${GROUP}" already exists`)
+  }
+}
+
+// Normalize a raw user URL
 function normalise(raw: string): string {
   try {
-    const u = new URL(raw.trim().startsWith('http') ? raw : `https://${raw}`);
-    u.hash = '';
-    u.search = '';
-    return u.href.endsWith('/') ? u.href : u.href + '/';
+    const u = new URL(raw.trim().startsWith('http') ? raw : `https://${raw}`)
+    u.hash = ''
+    u.search = ''
+    return u.href.endsWith('/') ? u.href : u.href + '/'
   } catch {
-    return raw;
+    return raw
   }
 }
 
-async function genPdfBuffer(): Promise<Buffer> {
-  // TODO implement a real PDF
-  return Buffer.from('PDF coming soon');
-}
-
-function buildEmailHTML(url: string, lhr: PSIResult, link: string) {
-  const p = Math.round((lhr.categories.performance.score || 0) * 100);
-  const s = Math.round((lhr.categories.seo.score || 0) * 100);
-  const a = Math.round((lhr.categories.accessibility.score || 0) * 100);
-
-  return /* html */ `
-    <h2 style="margin:0 0 12px;font-family:system-ui">
-      Your WebTriage report for ${url}
-    </h2>
-    <table style="font-family:system-ui;border-collapse:collapse">
-      <tr><th align="left">Performance</th><td>${p}/100</td></tr>
-      <tr><th align="left">SEO</th><td>${s}/100</td></tr>
-      <tr><th align="left">Accessibility</th><td>${a}/100</td></tr>
-    </table>
-    <p style="font-family:system-ui;margin-top:12px">
-      View the full interactive page:<br/>
-      <a href="${link}">${link}</a>
-    </p>
-    <p style="font-family:system-ui;font-size:.9rem;color:#666">
-      Need deeper fixes? Reply to this email any time.
-    </p>
-  `;
-}
-
-/* ─── Main worker -------------------------------------------- */
-
-async function runPendingScans() {
-  console.log(`▶ Fetching up to ${BATCH_SIZE} pending scans…`);
-
-  const { data: pending, error } = await supabase
+// Fetch site + email from Supabase
+async function fetchScanDetails(client: SupabaseClient, scanId: number): Promise<ScanDetails> {
+  const { data, error } = await client
     .from('scans')
-    .select('id, site, email')
-    .eq('status', 'pending')
-    .order('created_at', { ascending: true })
-    .limit(BATCH_SIZE);
+    .select('site,email')
+    .eq('id', scanId)
+    .single()
+  if (error || !data) throw new Error(`DB lookup failed: ${error?.message}`)
+  return { site: data.site, email: data.email }
+}
 
-  if (error) {
-    console.error('❌  DB fetch error:', error);
-    return;
-  }
-  if (!pending?.length) {
-    console.log('✅  No pending scans.');
-    return;
-  }
+// TODO: swap in your real PDF generator here
+async function genPdfBuffer(): Promise<Buffer> {
+  return Buffer.from('PDF coming soon')
+}
 
-  for (const { id, site, email } of pending as Array<{
-    id: number;
-    site: string;
-    email: string;
-  }>) {
-    const url = normalise(site);
-    console.log(`\n🔎  #${id} – raw "${site}"\n    normalized → ${url}`);
+// Build the email body
+function buildEmailHTML(url: string, lhr: PSIResult, link: string): string {
+  const p = Math.round((lhr.categories.performance.score || 0) * 100)
+  const s = Math.round((lhr.categories.seo.score        || 0) * 100)
+  const a = Math.round((lhr.categories.accessibility.score || 0) * 100)
 
-    try {
-      /* 1) Launch Chrome (Puppeteer) */
-      const exePath = await chromeAws.executablePath; // null on runner
-      const browser = await puppeteer.launch({
-        headless: true,
-        executablePath: exePath || undefined,
-        args: exePath
-          ? chromeAws.args                                   // Lambda binary
-          : ['--no-sandbox', '--disable-setuid-sandbox'],    // system Chrome
-      });
-      const port = parseInt(new URL(browser.wsEndpoint()).port, 10);
-      console.log(
-        `🚀  Puppeteer (port ${port}) – ${exePath ? 'lambda' : 'system'} chrome`
-      );
+  return `
+    <h2>Your WebTriage report for ${url}</h2>
+    <table>
+      <tr><th>Performance</th><td>${p}/100</td></tr>
+      <tr><th>SEO</th><td>${s}/100</td></tr>
+      <tr><th>Accessibility</th><td>${a}/100</td></tr>
+    </table>
+    <p>View the full page: <a href="${link}">${link}</a></p>
+  `
+}
 
-      /* 2-4) Lighthouse, save, e-mail */
-      try {
-        const runner = await lighthouse(url, {
-            port,
-            output: 'json',
-            logLevel: 'error',
-            onlyCategories: ['performance', 'accessibility', 'seo'],
-            throttlingMethod: 'provided',
-          }) as any;                    // ← relax the Lighthouse type
-          
-          const lhr = runner.lhr as PSIResult;   // ← tighten back to our shape
+/** ─── MAIN LOOP ──────────────────────────────────────────────── */
+async function consumeScans(): Promise<void> {
+  console.log(`▶️ Starting Redis consumer (batch=${BATCH_SIZE})…`)
+  await ensureGroup()
 
-        const perf = Math.round((lhr.categories.performance.score || 0) * 100);
-        const seoScore = Math.round((lhr.categories.seo.score || 0) * 100);
-        const a11y = Math.round(
-          (lhr.categories.accessibility.score || 0) * 100
-        );
-        console.log(`📊  perf ${perf} / seo ${seoScore} / a11y ${a11y}`);
+  while (true) {
+    // BLOCK 5s waiting for up to BATCH_SIZE jobs
+    const streams = (await redis.xreadgroup(
+    'GROUP', GROUP, CONSUMER,
+    'COUNT', BATCH_SIZE,
+    'BLOCK', 5000,
+    'STREAMS', STREAM_NAME, '>')) as [string, [string, string[]][]][] | null
+    
+    if (!streams) continue
 
-        /* 3) Persist */
-        const { error: updateErr } = await supabase
-          .from('scans')
-          .update({ results: lhr, status: 'done', finished_at: new Date() })
-          .eq('id', id);
+    const [, entries] = streams[0]  // [ streamName, [ [id, [field,val,...]] ] ]
 
-        if (updateErr) {
-          throw new Error(`DB update failed: ${updateErr.message}`);
-        }
-
-        /* 4) E-mail (best-effort) */
-        try {
-          const pdf = await genPdfBuffer();
-          await resend.emails.send({
-            from: 'WebTriage <reports@webtriage.pro>',
-            to: email,
-            subject: 'Your 15-minute WebTriage report',
-            html: buildEmailHTML(url, lhr, `https://webtriage.pro/report/${id}`),
-            attachments: [{ filename: 'WebTriage-report.pdf', content: pdf }],
-          });
-          console.log(`📧  Email sent to ${email}`);
-        } catch (mailErr) {
-          console.error('📧  Email failed:', mailErr);
-        }
-
-        console.log(`✅  Scan #${id} completed`);
-      } finally {
-        /* NEW: always close Chrome */
-        await browser.close().catch(() => {});
-        console.log('🔒  Browser closed');
+    for (const [entryId, fields] of entries) {
+      const fieldMap: Record<string,string> = {}
+      for (let i=0; i<fields.length; i+=2) {
+        fieldMap[fields[i]] = fields[i+1]
       }
-    } catch (err) {
-      console.error(`❌  Scan #${id} error:`, err);
-      await supabase
-        .from('scans')
-        .update({ status: 'error', error_message: (err as Error).message })
-        .eq('id', id);
+      const scanId = parseInt(fieldMap.scanId, 10)
+      console.log(`🔔 Got job ${entryId} → scanId=${scanId}`)
+
+      try {
+        // 1) Grab site + email
+        const { site, email } = await fetchScanDetails(supabase, scanId)
+
+        // 2) Mark "processing"
+        await supabase
+          .from('scans')
+          .update({ status: 'processing' })
+          .eq('id', scanId)
+
+        // 3) Launch Chrome
+        const exePath = await chromeAws.executablePath
+        const browser = await puppeteer.launch({
+          headless: true,
+          executablePath: exePath || undefined,
+          args: exePath
+            ? chromeAws.args
+            : ['--no-sandbox','--disable-setuid-sandbox'],
+        })
+        const port = parseInt(new URL(browser.wsEndpoint()).port, 10)
+
+        // 4) Run Lighthouse
+        const runner = (await lighthouse(normalise(site), {
+          port, output:'json', logLevel:'error',
+          onlyCategories:['performance','accessibility','seo'],
+          throttlingMethod:'provided',
+        })) as any
+        const lhr = runner.lhr as PSIResult
+
+        // 5) Persist results
+        await supabase
+          .from('scans')
+          .update({ results: lhr, status:'done', finished_at: new Date() })
+          .eq('id', scanId)
+
+        // 6) Send email
+        const link = `https://webtriage.pro/report/${scanId}`
+        const pdfBuffer = await genPdfBuffer()
+        await resend.emails.send({
+          from:    'WebTriage <reports@webtriage.pro>',
+          to:      email,
+          subject: 'Your WebTriage report',
+          html:    buildEmailHTML(normalise(site), lhr, link),
+          attachments: [{ filename:'report.pdf', content:pdfBuffer }],
+        })
+        console.log(`✅ Scan ${scanId} complete & emailed to ${email}`)
+
+        // 7) Acknowledge the job
+        await redis.xack(STREAM_NAME, GROUP, entryId)
+        console.log(`✅ Acked ${entryId}`)
+        await browser.close()
+      } catch (err) {
+        console.error(`❌ Scan ${scanId} failed:`, err)
+        // no xack → will retry
+      }
     }
   }
-
-  console.log('🏁 All pending scans processed.');
 }
 
-/* ------------------------------------------------------------ */
-runPendingScans().catch((e) => {
-  console.error('Fatal worker error:', e);
-  process.exit(1);
-});
+/* ─── KICK IT OFF ────────────────────────────────────────────── */
+consumeScans().catch((err) => {
+  console.error('💥 Fatal consumer error:', err)
+  process.exit(1)
+})

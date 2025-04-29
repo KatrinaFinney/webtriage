@@ -1,57 +1,42 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/api/scan/route.ts
-// debug env loading
-console.log(
-  '🔍 raw SUPABASE_SERVICE_ROLE_KEY:',
-  JSON.stringify(process.env.SUPABASE_SERVICE_ROLE_KEY)
-);
-console.log(
-  '🔍 raw SUPABASE_URL:',
-  JSON.stringify(process.env.SUPABASE_URL)
-);
-
-
-
-
-
-
-
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import Redis from 'ioredis'
 
 interface ScanRequest {
   site: string
   email: string
 }
 
-// ─── Setup Supabase ──────────────────────────────────────────────────────
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+// ─── Environment validation ────────────────────────────────────
+const {
+  SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY,
+  REDIS_URL,
+  REDIS_TOKEN,
+} = process.env
+
+if (
+  !SUPABASE_URL ||
+  !SUPABASE_SERVICE_ROLE_KEY ||
+  !REDIS_URL ||
+  !REDIS_TOKEN
+) {
+  throw new Error(
+    'Missing one of SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, REDIS_URL or REDIS_TOKEN'
+  )
 }
-// ─── Debug env-vars ───────────────────────────────────────
-const url = process.env.SUPABASE_URL
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-console.log('🐞 SUPABASE_URL:', url)
-console.log('🐞 SUPABASE_SERVICE_ROLE_KEY (full):', key)
-console.log('🐞 SUPABASE_SERVICE_ROLE_KEY looks like a JWT?', key?.startsWith('eyJ'))
-console.log('🐞 SUPABASE_SERVICE_ROLE_KEY length:', key?.length)
 
-console.log(
-  '🔧 Using SUPABASE_SERVICE_ROLE_KEY prefix:',
-  process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 10),
-  '…',
-  process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(-10)
-)
+// ─── Clients ───────────────────────────────────────────────────
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+const redis    = new Redis(REDIS_URL, { password: REDIS_TOKEN })
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+// ─── Helpers ────────────────────────────────────────────────────
 
-// ─── Normalize URL ───────────────────────────────────────────────────────
+// Normalize the incoming URL string
 function normalizeSite(raw: string): string {
   try {
     const u = new URL(raw.trim())
@@ -66,60 +51,48 @@ function normalizeSite(raw: string): string {
   }
 }
 
-// ─── Kickoff POST (insert pending scan) ──────────────────────────────────
-export async function POST(req: NextRequest) {
-  // ─── DEBUG: environment variables
-  console.log('🔧 SUPABASE_URL:', process.env.SUPABASE_URL)
-  console.log(
-    '🔧 SUPABASE_SERVICE_ROLE_KEY defined?',
-    !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-    'length=',
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.length
+// Type‐guard for our expected POST body shape
+function isScanRequest(body: unknown): body is ScanRequest {
+  return (
+    typeof body === 'object' &&
+    body !== null &&
+    'site' in body &&
+    typeof (body as Record<string, unknown>).site === 'string' &&
+    'email' in body &&
+    typeof (body as Record<string, unknown>).email === 'string'
   )
+}
 
-  console.log('⬇️  /api/scan POST body:', await req.clone().json())
-
-  // 1) Parse + validate body
+// ─── POST /api/scan ────────────────────────────────────────────
+export async function POST(req: NextRequest) {
+  // 1) Parse raw JSON
   let body: unknown
   try {
     body = await req.json()
-  } catch (err: unknown) {
-    console.error('❌ JSON parse error:', err)
+  } catch {
     return NextResponse.json(
       { error: 'Invalid JSON payload' },
       { status: 400 }
     )
   }
 
-  if (
-    typeof body !== 'object' ||
-    body === null ||
-    typeof (body as any).site !== 'string' ||
-    typeof (body as any).email !== 'string'
-  ) {
+  // 2) Validate with our type‐guard
+  if (!isScanRequest(body)) {
     return NextResponse.json(
       { error: '`site` and `email` are required' },
       { status: 400 }
     )
   }
+  const { site: rawSite, email } = body
 
-  const { site: rawSite, email } = body as ScanRequest
-
-  // 2) Normalize & prepare
-  const site = normalizeSite(rawSite)
+  // 3) Normalize + prepare
+  const site  = normalizeSite(rawSite)
   const today = new Date().toISOString().slice(0, 10)
 
-  // 3) Insert row as pending
+  // 4) Insert row as pending
   const { data, error } = await supabase
     .from('scans')
-    .insert([
-      {
-        site,
-        email,
-        status: 'pending',
-        created_day: today,
-      },
-    ])
+    .insert([{ site, email, status: 'pending', created_day: today }])
     .select('id')
     .single()
 
@@ -131,6 +104,21 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // 4) Return scanId immediately
+  // ←— **DEBUG LOG**: confirm insertion
+  console.log(`✅ Inserted scan ID ${data.id}`)
+
+  // 4) Enqueue the new scan (don’t fail the request if Redis is down)
+  try {
+    await redis.xadd('scan:queue', '*', 'scanId', String(data.id))
+    // ←— **DEBUG LOG**: confirm enqueue
+    console.log(`✅ Enqueued scan ID ${data.id}`)
+  } catch (e) {
+    // if it's an Error, print its message, otherwise the whole thing
+    console.error('⚠️ Could not enqueue scan:',
+      e instanceof Error ? e.message : e
+   )
+  }
+
+  // 5) Return immediately with 202
   return NextResponse.json({ scanId: data.id }, { status: 202 })
 }
