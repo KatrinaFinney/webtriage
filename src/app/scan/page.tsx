@@ -175,47 +175,30 @@ export default function ScanPage() {
   if (result?.categories) {
     entries = Object.entries(result.categories) as Array<[keyof typeof categoryLabels, { score: number }]>;
   }
-/** Build a punchy headline based on scores */
-function buildHeroSummary(categories: PSIResult['categories']): string {
+
+  /** Build a punchy headline based on scores */
+const buildHeroSummary = (categories: PSIResult['categories']): string => {
   const p = Math.round(categories.performance.score * 100);
   const a = Math.round(categories.accessibility.score * 100);
   const s = Math.round(categories.seo.score * 100);
-
   const lines: string[] = [];
 
-  if (p < 70) {
-    lines.push(`⚡️ Your load speed (${p}/100) is costing you visitors—let’s fix that.`);
-  } else if (p < 90) {
-    lines.push(`🚀 Solid load speed at ${p}/100, but we can push you into the top 10%.`);
-  } else {
-    lines.push(`🚀 Lightning-fast at ${p}/100—your users will love the speed.`);
-  }
+  if (p < 70) lines.push(`⚡️ Your load speed (${p}/100) is costing you visitors—let’s fix that.`);
+  else if (p < 90) lines.push(`🚀 Solid load speed at ${p}/100, but we can push you into the top 10%.`);
+  else lines.push(`🚀 Lightning-fast at ${p}/100—your users will love the speed.`);
 
-  if (a < 70) {
-    lines.push(`♿️ Accessibility at ${a}/100 leaves real users behind.`);
-  } else {
-    lines.push(`♿️ Great accessibility at ${a}/100—ensure every visitor can engage.`);
-  }
+  if (a < 70) lines.push(`♿️ Accessibility at ${a}/100 leaves real users behind.`);
+  else lines.push(`♿️ Great accessibility at ${a}/100—ensure every visitor can engage.`);
 
-  if (s < 70) {
-    lines.push(`🔍 SEO at ${s}/100 means you’re invisible to new traffic.`);
-  } else {
-    lines.push(`🔍 With ${s}/100 SEO, you’re ranking—but we can help you dominate.`);
-  }
+  if (s < 70) lines.push(`🔍 SEO at ${s}/100 means you’re invisible to new traffic.`);
+  else lines.push(`🔍 With ${s}/100 SEO, you’re ranking—but we can help you dominate.`);
 
   return lines.join(' ');
-}
+};
 
 /** Pick which extra services to show */
-function buildServiceRecs(categories: PSIResult['categories']) {
-  const recs: Array<{
-    name: string;
-    price: string;
-    desc: string;
-    cta: string;
-    link: string;
-  }> = [];
-
+const buildServiceRecs = (categories: PSIResult['categories']) => {
+  const recs = [];
   if (categories.performance.score < 0.8) {
     recs.push({
       name: 'Emergency Fix',
@@ -234,8 +217,7 @@ function buildServiceRecs(categories: PSIResult['categories']) {
       link: '/services?service=Continuous%20Care',
     });
   }
-
-  // Always include these two
+  // Always include:
   recs.push(
     {
       name: 'Site Triage',
@@ -252,9 +234,8 @@ function buildServiceRecs(categories: PSIResult['categories']) {
       link: '/services?service=Full%20Recovery%20Plan',
     }
   );
-
   return recs;
-}
+};
 
   return (
     <div className={styles.page}>
@@ -319,7 +300,14 @@ function buildServiceRecs(categories: PSIResult['categories']) {
             exit={{ opacity: 0 }}
             className={styles.scanningContainer}
           >
-            <ScanLoader />
+              <motion.div
+        className={styles.loaderRadar}
+        initial={{ rotate: 0, opacity: 0.5, scale: 1 }}
+        animate={{ rotate: 360, opacity: [0.5, 0.2, 0.5], scale: [1, 1.2, 1] }}
+        transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
+      >
+        <ScanLoader />
+      </motion.div>
             <p className={styles.runningText}>
               Scan started{scanId && ` (ID: ${scanId})`}… please wait.<br/>
               Expected&nbsp;≤&nbsp;15&nbsp;min&nbsp;⏱
@@ -386,6 +374,7 @@ function buildServiceRecs(categories: PSIResult['categories']) {
             <div className={styles.grid}>
               {entries.map(([key, { score }]) => {
                 const pct = Math.round(score * 100);
+
                 return (
                   <div key={key} className={styles.card}>
                     <div className={styles.cardLabel}>{categoryLabels[key]}</div>

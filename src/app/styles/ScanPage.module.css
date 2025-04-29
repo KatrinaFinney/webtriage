@@ -693,4 +693,12 @@
   color:#b45309;                /* amber */
   font-size:.9rem;
 }
+/* a pulsing, rotating ring around your loader */
+.loaderRadar {
+  display: inline-block;
+  position: relative;
+  padding: 1rem;              /* space for the ring */
+  border: 3px solid rgba(255,255,255,0.2);
+  border-radius: 50%;
+}
 
