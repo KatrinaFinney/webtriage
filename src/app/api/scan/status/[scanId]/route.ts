@@ -1,86 +1,61 @@
 // src/app/api/scan/status/[scanId]/route.ts
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { Redis }        from '@upstash/redis'
 
+// ─── CONFIG ────────────────────────────────────────────────
+const supabaseUrl   = process.env.SUPABASE_URL!
+const supabaseKey   = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const redis         = new Redis({
+  url:   process.env.UPSTASH_REDIS_URL!,
+  token: process.env.UPSTASH_REDIS_TOKEN!
+})
+
+// ─── STATUS HANDLER ───────────────────────────────────────
 export async function GET(request: Request) {
-  // ─── Debug Logging: entry point ─────────────────────────
-  console.log('🚦 statusHandler start @', new Date().toISOString())
-  console.log('⬇️ Request URL:', request.url)
-
-  // ─── Environment Variables Check ─────────────────────────
-  const SUPABASE_URL = process.env.SUPABASE_URL
-  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-  console.log('🔑 SUPABASE_URL set?', !!SUPABASE_URL)
-  console.log('🔑 SERVICE_KEY set?', !!SERVICE_KEY)
-  if (!SUPABASE_URL || !SERVICE_KEY) {
-    console.error('❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
-    return NextResponse.json(
-      { error: 'Missing Supabase env vars' },
-      { status: 500 }
-    )
-  }
-
-  // ─── Supabase Client Initialization ────────────────────
-  console.log('✨ Initializing Supabase client')
-  const supabase = createClient(SUPABASE_URL, SERVICE_KEY)
-
-  // ─── Parse scanId from URL ─────────────────────────────
-  console.log('🔍 Parsing scanId from URL')
-  const { pathname } = new URL(request.url)
-  const rawId = pathname.split('/').pop()
-  console.log('📝 Raw ID segment:', rawId)
-  const scanId = rawId ? parseInt(rawId, 10) : NaN
-  console.log('✅ Parsed scanId =', scanId)
+  console.log('🚦 status start @', Date.now())
+  
+  // Parse scanId
+  const parts  = new URL(request.url).pathname.split('/')
+  const scanId = parseInt(parts.pop() || '', 10)
   if (Number.isNaN(scanId)) {
-    console.warn('⚠️ Invalid scanId, returning 400')
     return NextResponse.json({ error: 'Invalid scanId' }, { status: 400 })
   }
 
-  // ─── Fetch status + results from Supabase ──────────────
-  console.log('⏱️ Before Supabase fetch @', Date.now())
-  let resp
-  try {
-    resp = await supabase
-      .from('scans')
-      .select('status, results')
-      .eq('id', scanId)
-      .single()
-  } catch (e) {
-    console.error('❌ Supabase fetch threw error:', e)
-    return NextResponse.json({ status: 'error', error: 'DB fetch threw' }, { status: 500 })
-  }
-  console.log('⏱️ After Supabase fetch @', Date.now())
+  const cacheKey = `scan:${scanId}:status`
 
-  const { data, error } = resp
-  if (error) {
-    console.error('❌ Supabase status-fetch error:', error)
-    return NextResponse.json(
-      { status: 'error', error: error.message },
-      { status: 500 }
-    )
+  // 1) Try Redis cache (sub-10 ms) :contentReference[oaicite:4]{index=4}
+  console.log('🔍 Redis GET @', Date.now())
+  const cached = await redis.get<string>(cacheKey)
+  if (cached) {
+    console.log('⚡️ Cache HIT @', Date.now())
+    return NextResponse.json(JSON.parse(cached))
   }
 
-  if (!data) {
-    console.error('❌ Supabase returned null data for scanId', scanId)
-    return NextResponse.json(
-      { status: 'error', error: 'Scan not found' },
-      { status: 404 }
-    )
+  // 2) Cache-miss → fetch Supabase (1–2 s) :contentReference[oaicite:5]{index=5}
+  console.log('⏱️ Supabase fetch start @', Date.now())
+  const supabase = createClient(supabaseUrl, supabaseKey)
+  const { data, error } = await supabase
+    .from('scans')
+    .select('status,results')
+    .eq('id', scanId)
+    .single()
+  console.log('⏱️ Supabase fetch end @', Date.now())
+
+  if (error || !data) {
+    console.error('❌ Supabase error or no data:', error)
+    return NextResponse.json({ status: 'error', error: error?.message ?? 'Not found' }, { status: error ? 500 : 404 })
   }
 
-  console.log('🔖 Fetched data:', data)
-
-  // ─── Shape payload ───────────────────────────────────
-  console.log('📦 Shaping response payload')
-  const payload: { status: string; result?: unknown; logs: string[] } = {
+  // 3) Build payload & populate Redis (TTL = 60 s)
+  const payload = {
     status: data.status,
-    logs: [], // TODO: fetch logs from your logs column or Redis
+    result: data.status === 'done' ? data.results : undefined,
+    logs:   [], // wire in real logs later
   }
-  if (data.status === 'done' && data.results != null) {
-    console.log('🏁 Scan done, including results in payload')
-    payload.result = data.results
-  }
+  console.log('📝 Redis SET @', Date.now())
+  await redis.set(cacheKey, JSON.stringify(payload), { ex: 60 })
 
-  console.log('✅ Returning payload @', new Date().toISOString(), payload)
+  console.log('✅ Returning payload @', Date.now())
   return NextResponse.json(payload)
 }
