@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     try {
       fromCache = JSON.parse(cachedRaw)
       console.log('⚡️ Cache HIT @', Date.now())
-    } catch (e) {
+    } catch {
       console.warn('⚠️ Invalid JSON in cache, treating as MISS:', cachedRaw)
       fromCache = null
     }
