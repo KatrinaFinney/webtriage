@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "build-worker": "npx tsc --project tsconfig.worker.json",
-    "run-worker": "npx dotenv -e .env.worker -- node dist-worker/app/api/workers/run-scans.js"
+    "run-worker": "npx dotenv -e .env.local -- node dist-worker/app/api/workers/run-scans.js"
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.787.0",

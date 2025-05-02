@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import VantaBackground from './components/VantaBackground';
 import HeroSection from './components/HeroSection';
-import ServiceSelector from './components/ServiceSelector';
 import PricingSection from './components/PricingSection';
 import ServicesSection from './components/ServicesSection';
 import TrustSection from './components/TrustSection';
@@ -26,14 +26,14 @@ export default function HomePage() {
     }
   }, []);
 
-  const handleSelectService = (service: string) => {
+  /*const handleSelectService = (service: string) => {
     if (service === 'Free Scan') {
       router.push(`/scan?site=${encodeURIComponent(domain)}`);
     } else {
       setSelectedService(service);
       setModalOpen(true);
     }
-  };
+  }; */
 
   const handleCloseModal = () => {
     setModalOpen(false);
@@ -56,13 +56,6 @@ export default function HomePage() {
       <div className="travelingLine" />
 
       <main style={{ backgroundColor: '#0a1128' }}>
-        {/* <-- Service selector inserted here --> */}
-        <div style={{ padding: '2rem 1rem', maxWidth: '900px', margin: '0 auto' }}>
-          <ServiceSelector
-            domain={domain}
-            onSelectService={handleSelectService}
-          />
-        </div>
 
         <PricingSection />
 

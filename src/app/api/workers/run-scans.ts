@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/api/workers/run-scans.ts
 
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
+
 import { Redis }                  from '@upstash/redis'
 import { createClient }           from '@supabase/supabase-js'
 import lighthouse                  from 'lighthouse'

@@ -701,4 +701,51 @@
   border: 3px solid rgba(255,255,255,0.2);
   border-radius: 50%;
 }
+.filmstripContainer {
+  text-align: center;
+  margin: 2rem 0;
+}
+.filmstripThumb {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+.deepLink {
+  margin-top: 0.5rem;
+  background: none;
+  border: none;
+  color: #5a8dee;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.upsellButton {
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  background-color: #4fd1c5;
+  color: #000;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform .2s;
+}
+.upsellButton:hover { transform: translateY(-2px); }
+.fullTriageBanner {
+  margin-top: 3rem;
+  padding: 1.5rem;
+  background: #112c56;
+  border-radius: 1rem;
+  text-align: center;
+}
+.fullTriageButton {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #38a169;
+  color: #fff;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
 
