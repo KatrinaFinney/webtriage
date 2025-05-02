@@ -1,4 +1,4 @@
-// src/app/api/scan/status/[scanId]/route.ts
+// File: src/app/api/scan/status/[scanId]/route.ts
 
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -23,7 +23,7 @@ const redis        = new Redis({
 export async function GET(request: Request) {
   console.log('🚦 status start @', Date.now())
 
-  // 1) Parse scanId from URL
+  // 1) Parse scanId
   const parts  = new URL(request.url).pathname.split('/')
   const scanId = parseInt(parts.at(-1) || '', 10)
   if (Number.isNaN(scanId)) {
@@ -32,20 +32,17 @@ export async function GET(request: Request) {
 
   const cacheKey = `scan:${scanId}:status`
 
-  // 2) Try Redis GET
+  // 2) Try cache
   console.log('🔍 Redis GET @', Date.now())
-  // tell TS this may be either our CachePayload or a raw JSON string
   const cachedRaw = await redis.get<CachePayload | string>(cacheKey)
 
   if (cachedRaw != null) {
     let fromCache: CachePayload | null = null
 
     if (typeof cachedRaw === 'object') {
-      // Upstash SDK parsed it for us already
       fromCache = cachedRaw
       console.log('⚡️ Cache HIT (object) @', Date.now())
     } else {
-      // it's a string → try JSON.parse
       try {
         fromCache = JSON.parse(cachedRaw) as CachePayload
         console.log('⚡️ Cache HIT (string) @', Date.now())
@@ -56,7 +53,9 @@ export async function GET(request: Request) {
 
     if (fromCache) {
       const res = NextResponse.json(fromCache)
+      // Mark as HIT and cache at the CDN edge
       res.headers.set('x-cache', 'HIT')
+      res.headers.set('Cache-Control', 'public, s-maxage=3, stale-while-revalidate=2')
       return res
     }
   }
@@ -87,13 +86,14 @@ export async function GET(request: Request) {
     ...(data.status === 'done' ? { result: data.results } : {}),
   }
 
-  // 5) Cache it as a JSON string
+  // 5) Cache it in Redis
   console.log('📝 Redis SET value →', JSON.stringify(payload))
   await redis.set(cacheKey, JSON.stringify(payload), { ex: 3600 })
 
-  // 6) Return payload, marking MISS
+  // 6) Return as MISS and set CDN cache header
   const res = NextResponse.json(payload)
   res.headers.set('x-cache', 'MISS')
+  res.headers.set('Cache-Control', 'public, s-maxage=3, stale-while-revalidate=2')
   console.log('✅ Returning payload @', Date.now())
   return res
 }
