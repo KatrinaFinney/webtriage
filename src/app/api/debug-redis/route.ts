@@ -1,4 +1,3 @@
-// src/app/api/debug-redis/route.ts
 import { NextResponse } from 'next/server'
 import { Redis }        from '@upstash/redis'
 
