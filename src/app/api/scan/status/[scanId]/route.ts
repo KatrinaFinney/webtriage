@@ -67,17 +67,20 @@ export async function GET(request: Request) {
   }
 
   // 3) Build payload
-  const payload: { status: string; result?: unknown; logs: string[] } = {
+  const payload = {
     status: data.status,
-    logs:   [],  // hook up real logs later
-  }
-  if (data.status === 'done') {
-    payload.result = data.results
+    logs:   [],
+    ...(data.status === 'done' ? { result: data.results } : {})
   }
 
+
   // 4) Cache the fresh payload in Redis (stringified JSON)
+  
   console.log('📝 Redis SET @', Date.now())
+  console.log('📝 Redis SET value →', JSON.stringify(payload))
   await redis.set(cacheKey, JSON.stringify(payload), { ex: 3600 })
+
+  
 
   // 5) Return the payload, marking MISS
   const res = NextResponse.json(payload)
