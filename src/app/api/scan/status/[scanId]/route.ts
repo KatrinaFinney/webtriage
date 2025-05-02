@@ -1,4 +1,5 @@
 // src/app/api/scan/status/[scanId]/route.ts
+
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Redis }        from '@upstash/redis'
@@ -15,7 +16,7 @@ const redis        = new Redis({
 export async function GET(request: Request) {
   console.log('🚦 status start @', Date.now())
 
-  // 1) Parse scanId from the URL
+  // 1) Parse the scanId
   const parts  = new URL(request.url).pathname.split('/')
   const scanId = parseInt(parts.at(-1) || '', 10)
   if (Number.isNaN(scanId)) {
@@ -24,23 +25,35 @@ export async function GET(request: Request) {
 
   const cacheKey = `scan:${scanId}:status`
 
-  // 2) Try to read from Redis
+  // 2) Try redis.get()
   console.log('🔍 Redis GET @', Date.now())
-  const cachedRaw = await redis.get<string>(cacheKey)
+  const cachedRaw = await redis.get(cacheKey)
 
-  if (cachedRaw) {
-    try {
-      const fromCache = JSON.parse(cachedRaw)
-      console.log('⚡️ Cache HIT @', Date.now())
+  // 3) Handle hits for both string and object
+  if (cachedRaw != null) {
+    let fromCache: { status: string; result?: unknown; logs: string[] } | null = null
+
+    if (typeof cachedRaw === 'object') {
+      // SDK already parsed JSON → use directly
+      fromCache = cachedRaw as any
+      console.log('⚡️ Cache HIT (object) @', Date.now())
+    } else if (typeof cachedRaw === 'string') {
+      try {
+        fromCache = JSON.parse(cachedRaw)
+        console.log('⚡️ Cache HIT (string) @', Date.now())
+      } catch {
+        console.warn('⚠️ Invalid JSON in cache, treating as MISS:', cachedRaw)
+      }
+    }
+
+    if (fromCache) {
       const res = NextResponse.json(fromCache)
       res.headers.set('x-cache', 'HIT')
       return res
-    } catch {
-      console.warn('⚠️ Invalid JSON in cache, treating as MISS:', cachedRaw)
     }
   }
 
-  // 3) Cache miss → fetch from Supabase
+  // 4) Cache‐miss → fetch from Supabase
   console.log('⚡️ Cache MISS @', Date.now())
   console.log('⏱️ Supabase fetch start @', Date.now())
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY)
@@ -59,16 +72,18 @@ export async function GET(request: Request) {
     )
   }
 
-  // 4) Build payload and cache it
+  // 5) Build the payload
   const payload: { status: string; result?: unknown; logs: string[] } = {
     status: data.status,
     logs:   [],
     ...(data.status === 'done' ? { result: data.results } : {}),
   }
+
+  // 6) Cache it as a JSON string
   console.log('📝 Redis SET value →', JSON.stringify(payload))
   await redis.set(cacheKey, JSON.stringify(payload), { ex: 3600 })
 
-  // 5) Return payload with MISS header
+  // 7) Return as a MISS
   const res = NextResponse.json(payload)
   res.headers.set('x-cache', 'MISS')
   console.log('✅ Returning payload @', Date.now())
