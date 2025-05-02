@@ -1,554 +1,221 @@
+/* ──────────────────────────
+   Base Page & Form
+────────────────────────── */
 .page {
-    min-height: 100vh;
-    background-color: #071a2f;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-  }
-  
-  .formContainer {
-    width: 100%;
-    max-width: 28rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    background-color: #0f2344;
-    padding: 1.5rem;
-    border-radius: 1.25rem;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  }
-  
-  .title {
-    font-size: 1.875rem;
-    font-weight: 700;
-  }
-  
-  .subtext {
-    color: #94a3b8;
-    font-size: 1rem;
-  }
-  
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .label {
-    color: #94a3b8;
-    font-size: 0.9rem;
-    font-weight: 500;
-  }
-  
-  .input,
-  .emailInput {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    background-color: #112c56;
-    color: #ffffff;
-    border: none;
-    border-radius: 0.75rem;
-    font-family: system-ui, sans-serif;
-    font-size: 1rem;
-  }
-  
-  .input::placeholder,
-  .emailInput::placeholder {
-    color: #94a3b8;
-  }
-  
-  .input:focus,
-  .emailInput:focus {
-    outline: none;
-    box-shadow: 0 0 0 0.5rem rgba(90, 141, 238, 0.5);
-  }
-  
-  .emailNote {
-    color: #94a3b8;
-    font-size: 0.8rem;
-    margin-top: 0.25rem;
-  }
-  
-  .scanButton {
-    width: 100%;
-    padding: 0.75rem;
-    background-color: #5a8dee;
-    color: #ffffff;
-    font-weight: 600;
-    border: none;
-    border-radius: 0.75rem;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
-    margin-top: 0.5rem;
-  }
-  
-  .scanButton:hover {
-    background-color: #4e7bd8;
-  }
-  
-  .scanButton:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .scanningContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-  
-  .runningText {
-    color: #94a3b8;
-  }
-  
-  .resultsContainer {
-    width: 100%;
-    max-width: 36rem;
-    background-color: #0f2344;
-    padding: 1.5rem;
-    border-radius: 1.25rem;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-  
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-  
-  .card {
-    background-color: #112c56;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    text-align: center;
-  }
-  
-  .cardLabel {
-    font-weight: 600;
-  }
-  
-  .cardScore {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0.25rem 0;
-  }
-  
-  .progressBar {
-    width: 100%;
-    height: 0.25rem;
-    background-color: #374151;
-    border-radius: 9999px;
-    overflow: hidden;
-  }
-  
-  .progressFill {
-    height: 100%;
-    background-color: #5a8dee;
-    transition: width 0.8s ease;
-  }
-  
-  .auditList {
-    display: grid;
-    gap: 0.75rem;
-  }
-  
-  .auditItem {
-    background-color: #112c56;
-    padding: 0.75rem;
-    border-radius: 0.75rem;
-  }
-  
-  .auditLabel {
-    font-weight: 600;
-  }
-  
-  .auditValue {
-    font-family: monospace;
-    margin: 0.25rem 0;
-  }
-  
-  .auditDescription {
-    color: #94a3b8;
-    font-size: 0.9rem;
-  }
-  
-  .auditSuggestion {
-    margin-top: 0.5rem;
-    color: #d6bcfa;
-    font-size: 0.9rem;
-    font-weight: 500;
-  }
-  
-  .servicesGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-    gap: 1rem;
-  }
-  
-  .serviceCard {
-    background-color: #112c56;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .serviceTitle {
-    font-size: 1.125rem;
-    font-weight: 700;
-  }
-  
-  .servicePrice {
-    color: #94a3b8;
-    font-weight: 600;
-  }
-  
-  .serviceDesc {
-    font-size: 0.9rem;
-    color: #dbeafe;
-  }
-  
-  .serviceButton {
-    margin-top: auto;
-    padding: 0.5rem;
-    background-color: #5a8dee;
-    color: #ffffff;
-    font-weight: 600;
-    border: none;
-    border-radius: 0.75rem;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .serviceButton:hover {
-    background-color: #4e7bd8;
-  }
-  /* above your .auditGrid */
-.legend {
-  font-size: 0.875rem;
-  color: #94a3b8;
-  margin-bottom: 0.75rem;
-  line-height: 1.4;
-}
-.legendBadge {
-  background-color: #4fd1c5;
-  color: #000;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.25rem;
-  font-weight: 600;
-  margin-right: 0.5rem;
-}
-
-/* tweak for the badges themselves */
-.statusBadge {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.375rem;
-  margin-bottom: 0.5rem;
-}
-.statusExcellent { background-color: #38a169; color: #fff; }
-.statusGood      { background-color: #4299e1; color: #fff; }
-.statusFair      { background-color: #ed8936; color: #fff; }
-.statusPoor      { background-color: #e53e3e; color: #fff; }
-
-/* Subtitle under title */
-.auditSubtitle {
-  font-size: 0.8rem;
-  color: #94a3b8;
-  margin-top: 0.25rem;
-}
-
-/* Tweak header layout so title + subtitle stack nicely */
-.auditHeader > div {
+  min-height: 100vh;
+  background-color: #071a2f;
+  color: #ffffff;
   display: flex;
-  flex-direction: column;
-}
-
-/* Slightly smaller ℹ️ icon */
-.learnLink {
-  font-size: 1.1rem;
-  color: #4fd1c5;
-}
-/* Legend above the grid */
-.legend {
-  font-size: 0.875rem;
-  color: #94a3b8;
-  margin-bottom: 0.75rem;
-  line-height: 1.4;
-}
-
-/* Tooltip wrapper */
-.tooltip {
-  position: relative;
-  display: inline-block;
-  margin-left: 0.5rem;
-  cursor: help;
-  font-size: 0.9rem;
-}
-
-/* Hidden until hover */
-.tooltipText {
-  visibility: hidden;
-  position: absolute;
-  bottom: 125%; /* show above */
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(17, 44, 86, 0.95);
-  color: #fff;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  font-size: 0.75rem;
-  line-height: 1.3;
-  text-align: left;
-  width: 200px;
-  z-index: 10;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-/* Reveal on hover */
-.tooltip:hover .tooltipText {
-  visibility: visible;
-  opacity: 1;
-}
-
-/* Paragraph narrative */
-.reportParagraph {
-  font-size: 0.9rem;
-  color: #dbeafe;
-  margin: 0.5rem 0;
-  line-height: 1.4;
-}
-
-/* Suggestion tip */
-.suggestionText {
-  font-size: 0.9rem;
-  color: #e2e8f0;
-  margin: 0.25rem 0 0 0.5rem;
-}
-
-/* Badge prefix styling */
-.statusBadge {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.375rem;
-  margin-bottom: 0.5rem;
-}
-
-/* Rating background colors */
-.statusExcellent { background-color: #38a169; color: #fff; }
-.statusGood      { background-color: #4299e1; color: #fff; }
-.statusFair      { background-color: #ed8936; color: #fff; }
-.statusPoor      { background-color: #e53e3e; color: #fff; }
-/* ── Card Container ─────────────────────────────────────── */
-.auditCard {
-  background-color: #0f2344;               /* slightly lighter navy */
-  border: 1px solid #112c56;               /* deep navy border */
-  border-radius: 0.75rem;
+  align-items: center;
+  justify-content: center;
   padding: 1rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.formContainer {
+  width: 100%;
+  max-width: 28rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-.auditCard:hover {
-  transform: translateY(-4px);
+  gap: 1.25rem;
+  background-color: #0f2344;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 }
 
-/* ── Header ────────────────────────────────────────────── */
-.auditHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.auditTitle {
-  font-size: 1.25rem;
+.title {
+  font-size: 2rem;
   font-weight: 700;
-  color: #4fd1c5;    /* brand teal */
 }
-.tooltip {
-  position: relative;
+
+.subtext {
+  color: #94a3b8;
   font-size: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.input,
+.emailInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: #112c56;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.75rem;
+  font-family: system-ui, sans-serif;
+  font-size: 1rem;
+}
+
+.input::placeholder,
+.emailInput::placeholder {
   color: #94a3b8;
 }
-.tooltipText {
+
+.input:focus,
+.emailInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.5rem rgba(90, 141, 238, 0.5);
+}
+
+.emailNote {
+  color: #94a3b8;
   font-size: 0.8rem;
-  background-color: rgba(15, 35, 68, 0.95);
-  color: #ffffff;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  width: 220px;
-  text-align: left;
+  margin-top: 0.25rem;
 }
 
-/* ── Value ─────────────────────────────────────────────── */
-.auditValue {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #ffffff;
-  margin: 0.5rem 0;
-}
-
-/* ── Narrative ────────────────────────────────────────── */
-.reportParagraph {
-  font-size: 0.9rem;
-  color: #dbeafe;
-  line-height: 1.5;
-  margin-bottom: 0.75rem;
-}
-
-/* ── Badge & Tip ───────────────────────────────────────── */
-.statusBadge {
-  display: inline-block;
-  font-size: 0.75rem;
+/* ──────────────────────────
+   Primary Scan Button
+────────────────────────── */
+.scanButton {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #4fd1c5;
+  color: #000;
   font-weight: 600;
-  padding: 0.25rem 0.6rem;
-  border-radius: 0.375rem;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-}
-.statusExcellent { background-color: #38a169; color: #fff; }
-.statusGood      { background-color: #4299e1; color: #fff; }
-.statusFair      { background-color: #ed8936; color: #fff; }
-.statusPoor      { background-color: #e53e3e; color: #fff; }
-
-.suggestionText {
-  font-size: 0.9rem;
-  color: #e2e8f0;
-  margin-left: 0.5rem;
-  line-height: 1.4;
-}
-
-/* ── Tooltip Hover ────────────────────────────────────── */
-.tooltip:hover .tooltipText {
-  visibility: visible;
-  opacity: 1;
-}
-
-/* ── Grid & Legend ────────────────────────────────────── */
-.auditGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
   margin-top: 0.5rem;
 }
 
-/* Legend text above cards */
-.legend {
-  font-size: 0.9rem;
-  color: #94a3b8;
-  margin-bottom: 1rem;
-  line-height: 1.4;
-}
-/* center card contents */
-.auditCard {
-  display: flex;
-  flex-direction: column;
-  align-items: center;      /* center everything */
-  text-align: center;
+.scanButton:hover {
+  background-color: #38a169;
 }
 
-/* grid: 1 col on mobile, 2 on tablet, 3+ on wide */
-.auditGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-  justify-items: center;    /* center cards in their columns */
+.scanButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-/* Tip label */
-.suggestionLabel {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #4fd1c5;
-  margin-bottom: 0.25rem;
-}
-
-/* narrative paragraph tweak (already present) */
-.reportParagraph {
-  margin: 0.5rem 0 1rem;
-}
-
-/* ensure the value stays big */
-.auditValue {
-  margin: 0.5rem 0;
-  /* existing size/color… */
-}
-
-/* at very wide screens, allow 3 columns */
-@media (min-width: 1280px) {
-  .auditGrid {
-    grid-template-columns: repeat(3, minmax(260px, 1fr));
-  }
-}
-/* Intro paragraph under Key Checkups & Advice */
-.sectionIntro {
-  font-size: 0.95rem;
-  color: #cbd5e1;
-  margin: 0.5rem 0 1rem;
-  line-height: 1.5;
-  text-align: center;
-  max-width: 720px;
-  margin-left: auto;
-  margin-right: auto;
-}
-/* src/styles/ScanPage.module.css */
-
-/* ── Center the whole results section ───────────────────────── */
-.resultsContainer {
+/* ──────────────────────────
+   Scanning Loader
+────────────────────────── */
+.scanningContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  /* keep your existing padding, bg, etc. */
+  gap: 1rem;
 }
 
-/* ── Heading & subtext ─────────────────────────────────────── */
+.loaderRadar {
+  display: inline-block;
+  position: relative;
+  padding: 1rem; /* space for the ring */
+  border: 3px solid rgba(255,255,255,0.2);
+  border-radius: 50%;
+}
+
+.runningText {
+  color: #94a3b8;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.progressOuter {
+  width: 100%;
+  height: 8px;
+  background: #374151;
+  border-radius: 4px;
+  margin-top: 12px;
+}
+
+.progressInner {
+  height: 100%;
+  background: #4fd1c5;
+  border-radius: 4px 0 0 4px;
+  transition: width 0.8s ease;
+}
+
+.delayNote {
+  margin-top: 8px;
+  color: #b45309; /* amber */
+  font-size: 0.9rem;
+  text-align: center;
+}
+/* ──────────────────────────
+   Results Container
+────────────────────────── */
+.resultsContainer {
+  width: 100%;
+  max-width: 36rem;
+  background-color: #0f2344;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  text-align: center;
+}
+
+/* ──────────────────────────
+   “Scan Another Site” Button Only
+────────────────────────── */
+.scanMeta {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.scanMeta .rerun {
+  padding: 0.5rem 1rem;
+  background-color: #4fd1c5;
+  color: #000;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.scanMeta .rerun:hover {
+  background-color: #38a169;
+  transform: translateY(-2px);
+}
+
+/* ──────────────────────────
+   Header & Overview
+────────────────────────── */
 .resultTitle {
-  font-size: 2.25rem;
+  font-size: 2rem;
   font-weight: 800;
-  color: #ffffff;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .overview {
   font-size: 1.125rem;
-  font-weight: 500;
   color: #cbd5e1;
-  margin-bottom: 1.5rem;
-  max-width: 600px;
+  margin-bottom: 1rem;
 }
 
-/* ── Top-level score grid ──────────────────────────────────── */
+/* ──────────────────────────
+   Top-Level Score Grid
+────────────────────────── */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.25rem;
+  gap: 1rem;
   width: 100%;
   max-width: 800px;
   justify-items: center;
 }
 
-/* ── Individual score cards ───────────────────────────────── */
 .card {
   background-color: #112c56;
   padding: 1rem;
   border-radius: 0.75rem;
-  width: 100%;
-  max-width: 260px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -558,30 +225,147 @@
 .cardLabel {
   font-size: 1rem;
   font-weight: 600;
-  color: #4fd1c5;    /* teal accent */
+  color: #4fd1c5;
 }
 
 .cardScore {
   font-size: 1.75rem;
   font-weight: 800;
-  color: #ffffff;
 }
 
-.cardSummary {
-  font-size: 0.875rem;
-  color: #94a3b8;
-  line-height: 1.4;
+/* ──────────────────────────
+   Filmstrip Preview
+────────────────────────── */
+.filmstripContainer {
+  text-align: center;
+  margin: 2rem 0;
 }
 
-/* ── Section intro & legend ───────────────────────────────── */
+.filmstripThumb {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.deepLink {
+  margin-top: 0.5rem;
+  background: none;
+  border: none;
+  color: #4fd1c5;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ──────────────────────────
+   Key Checkups & Advice Cards
+────────────────────────── */
 .subheading,
 .sectionIntro,
 .legend {
   text-align: center;
 }
 
-/* (keep your existing styles for detailed cards below) */
-/* ── NEXT STEPS SECTION ─────────────────────────────────── */
+.sectionIntro {
+  font-size: 0.95rem;
+  color: #cbd5e1;
+  margin: 0.5rem 0 1rem;
+  line-height: 1.5;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.auditGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+  justify-items: center;
+}
+
+.auditCard {
+  background-color: #0f2344;
+  border: 1px solid #112c56;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.auditCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.auditHeader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.auditTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #4fd1c5;
+}
+
+.tooltip {
+  position: relative;
+  cursor: help;
+}
+
+.tooltipText {
+  visibility: hidden;
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(15,35,68,0.95);
+  color: #fff;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  width: 220px;
+  text-align: left;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.tooltip:hover .tooltipText {
+  visibility: visible;
+  opacity: 1;
+}
+
+.auditValue {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.reportParagraph {
+  font-size: 0.9rem;
+  color: #dbeafe;
+  line-height: 1.5;
+}
+
+.suggestionLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4fd1c5;
+}
+
+.suggestionText {
+  font-size: 0.9rem;
+  color: #e2e8f0;
+  margin-left: 0.5rem;
+}
+/* ──────────────────────────
+   Next Steps / Services
+────────────────────────── */
 .nextSteps {
   margin-top: 3rem;
   width: 100%;
@@ -590,12 +374,14 @@
   margin-right: auto;
   text-align: center;
 }
+
 .nextStepsTitle {
   font-size: 1.75rem;
   font-weight: 800;
   color: #ffffff;
   margin-bottom: 0.5rem;
 }
+
 .nextStepsIntro {
   font-size: 1rem;
   color: #cbd5e1;
@@ -603,7 +389,6 @@
   line-height: 1.5;
 }
 
-/* Reuse your existing .servicesGrid but center */
 .servicesGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -611,125 +396,62 @@
   justify-items: center;
 }
 
-/* Individual service card tweaks */
 .serviceCard {
-  background-color: #0f2344;
-  border: 1px solid #112c56;
+  background-color: #112c56;
   border-radius: 0.75rem;
   padding: 1.25rem;
-  width: 100%;
-  max-width: 260px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
   transition: transform 0.2s, box-shadow 0.2s;
 }
+
 .serviceCard:hover {
   transform: translateY(-4px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
+
 .servicePriceBadge {
   background-color: #4fd1c5;
-  color: #000000;
+  color: #000;
   font-weight: 700;
   padding: 0.3rem 0.6rem;
   border-radius: 0.5rem;
   font-size: 0.9rem;
 }
+
 .serviceTitle {
   font-size: 1.2rem;
   font-weight: 700;
   color: #ffffff;
 }
+
 .serviceDesc {
   font-size: 0.9rem;
   color: #dbeafe;
-  line-height: 1.4;
   text-align: center;
 }
+
 .serviceButton {
   margin-top: auto;
-  background-color: #4299e1;
-  color: #ffffff;
+  background-color: #4fd1c5;
+  color: #000;
   font-weight: 600;
   padding: 0.6rem 1.2rem;
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.2s;
+  transition: transform 0.2s;
 }
+
 .serviceButton:hover {
-  background-color: #3182ce;
   transform: translateY(-2px);
 }
-.resultDomain {
-  font-weight: 700;
-  color: #4fd1c5; /* teal accent */
-}
-.progressOuter{
-  width:100%;height:8px;background:#eee;border-radius:4px;margin-top:12px;
-}
-.progressInner{
-  height:100%;background:#00b37e;border-radius:4px 0 0 4px;transition:width .8s;
-}
-.delayNote{margin-top:8px;color:#b45309;font-size:.9rem;}
-/* 15-min progress bar */
-.progressOuter{
-  width:100%;
-  height:8px;
-  background:#eee;
-  border-radius:4px;
-  margin-top:12px;
-}
-.progressInner{
-  height:100%;
-  background:#00b37e;           /* green */
-  border-radius:4px 0 0 4px;
-  transition:width .8s;
-}
-.delayNote{
-  margin-top:8px;
-  color:#b45309;                /* amber */
-  font-size:.9rem;
-}
-/* a pulsing, rotating ring around your loader */
-.loaderRadar {
-  display: inline-block;
-  position: relative;
-  padding: 1rem;              /* space for the ring */
-  border: 3px solid rgba(255,255,255,0.2);
-  border-radius: 50%;
-}
-.filmstripContainer {
-  text-align: center;
-  margin: 2rem 0;
-}
-.filmstripThumb {
-  max-width: 100%;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-}
-.deepLink {
-  margin-top: 0.5rem;
-  background: none;
-  border: none;
-  color: #5a8dee;
-  text-decoration: underline;
-  cursor: pointer;
-}
-.upsellButton {
-  margin-top: 0.75rem;
-  padding: 0.5rem 1rem;
-  background-color: #4fd1c5;
-  color: #000;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-weight: 600;
-  transition: transform .2s;
-}
-.upsellButton:hover { transform: translateY(-2px); }
+
+/* ──────────────────────────
+   Full-Site Triage Banner
+────────────────────────── */
 .fullTriageBanner {
   margin-top: 3rem;
   padding: 1.5rem;
@@ -737,15 +459,20 @@
   border-radius: 1rem;
   text-align: center;
 }
+
 .fullTriageButton {
   margin-top: 1rem;
   padding: 0.75rem 1.5rem;
-  background-color: #38a169;
-  color: #fff;
+  background-color: #4fd1c5;
+  color: #000;
   border: none;
   border-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-
+.fullTriageButton:hover {
+  background-color: #38a169;
+}
