@@ -360,11 +360,11 @@ const startScan = async () => {
 
   return (
     <div className={styles.page}>
-      <AnimatePresence mode="wait">
-        {phase === 'form' && <ScanForm/>}
-        {phase === 'pending' && <ScanPending/>}
-        {phase === 'results' && result && <ScanResults/>}
-      </AnimatePresence>
+      <AnimatePresence initial={false} mode="wait">
+  {phase === 'form'    && <ScanForm    key="form"    />}
+  {phase === 'pending' && <ScanPending key="pending" />}
+  {phase === 'results' && result && <ScanResults key="results" />}
+</AnimatePresence>
     </div>
   );
 }
