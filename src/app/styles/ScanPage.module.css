@@ -1,10 +1,7 @@
-/* ──────────────────────────
-   Base Page & Form
-────────────────────────── */
 .page {
   min-height: 100vh;
-  background-color: #071a2f;
-  color: #ffffff;
+  background: #071a2f;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,15 +9,15 @@
 }
 
 .formContainer {
-  width: 100%;
   max-width: 28rem;
+  width: 100%;
+  background: #0f2344;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  background-color: #0f2344;
-  padding: 1.5rem;
-  border-radius: 1.25rem;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  gap: 1rem;
 }
 
 .title {
@@ -40,68 +37,33 @@
 }
 
 .label {
-  color: #94a3b8;
   font-size: 0.9rem;
-  font-weight: 500;
+  color: #94a3b8;
 }
 
-.input,
-.emailInput {
-  width: 100%;
+.input {
   padding: 0.75rem 1rem;
-  background-color: #112c56;
-  color: #ffffff;
+  background: #112c56;
   border: none;
   border-radius: 0.75rem;
-  font-family: system-ui, sans-serif;
+  color: white;
   font-size: 1rem;
 }
 
-.input::placeholder,
-.emailInput::placeholder {
-  color: #94a3b8;
-}
-
-.input:focus,
-.emailInput:focus {
-  outline: none;
-  box-shadow: 0 0 0 0.5rem rgba(90, 141, 238, 0.5);
-}
-
-.emailNote {
-  color: #94a3b8;
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
-}
-
-/* ──────────────────────────
-   Primary Scan Button
-────────────────────────── */
-.scanButton {
-  width: 100%;
+.primaryButton {
+  margin-top: 1rem;
   padding: 0.75rem;
-  background-color: #4fd1c5;
-  color: #000;
-  font-weight: 600;
+  background: #38a169;
+  color: white;
   border: none;
   border-radius: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-  margin-top: 0.5rem;
+  transition: transform .2s;
 }
-
-.scanButton:hover {
-  background-color: #38a169;
+.primaryButton:hover {
+  transform: scale(1.02);
 }
-
-.scanButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ──────────────────────────
-   Scanning Loader
-────────────────────────── */
 .scanningContainer {
   display: flex;
   flex-direction: column;
@@ -109,370 +71,159 @@
   gap: 1rem;
 }
 
-.loaderRadar {
+.runningText {
+  font-size: 1.1rem;
+  color: #cbd5e1;
+  text-align: center;
+}
+
+.loaderRadar { 
   display: inline-block;
   position: relative;
-  padding: 1rem; /* space for the ring */
+  padding: 1rem;                      /* space for the ring */
   border: 3px solid rgba(255,255,255,0.2);
-  border-radius: 50%;
-}
-
-.runningText {
-  color: #94a3b8;
-  font-size: 1rem;
-  text-align: center;
-}
+  border-radius: 50%; }
 
 .progressOuter {
-  width: 100%;
-  height: 8px;
-  background: #374151;
-  border-radius: 4px;
-  margin-top: 12px;
+  width: 100%; height: 8px;
+  background: #eee; border-radius: 4px;
+  margin-top: 1rem;
 }
-
 .progressInner {
   height: 100%;
-  background: #4fd1c5;
-  border-radius: 4px 0 0 4px;
-  transition: width 0.8s ease;
+  background: #38a169;
+  transition: width .8s;
 }
 
-.delayNote {
-  margin-top: 8px;
-  color: #b45309; /* amber */
-  font-size: 0.9rem;
-  text-align: center;
-}
-/* ──────────────────────────
-   Results Container
-────────────────────────── */
-.resultsContainer {
+.debug {
   width: 100%;
-  max-width: 36rem;
-  background-color: #0f2344;
+  background: #112c56;
+  color: #94a3b8;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.resultsContainer {
+  max-width: 40rem;
+  width: 100%;
+  background: #0f2344;
   padding: 1.5rem;
-  border-radius: 1.25rem;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  border-radius: 1rem;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
   text-align: center;
 }
 
-/* ──────────────────────────
-   “Scan Another Site” Button Only
-────────────────────────── */
-.scanMeta {
-  margin-top: 1rem;
+.actionsRow {
   display: flex;
   justify-content: center;
+  gap: 1rem;
 }
 
-.scanMeta .rerun {
-  padding: 0.5rem 1rem;
-  background-color: #4fd1c5;
-  color: #000;
-  font-weight: 600;
+.secondaryButton {
+  padding: 0.6rem 1.2rem;
+  background: #4299e1;
+  color: white;
   border: none;
   border-radius: 0.75rem;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.2s;
+  transition: transform .2s;
+}
+.secondaryButton:hover {
+  transform: scale(1.02);
 }
 
-.scanMeta .rerun:hover {
-  background-color: #38a169;
-  transform: translateY(-2px);
-}
-
-/* ──────────────────────────
-   Header & Overview
-────────────────────────── */
 .resultTitle {
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: 800;
-  margin-bottom: 0.25rem;
+  color: white;
 }
-
 .overview {
-  font-size: 1.125rem;
   color: #cbd5e1;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+}
+.heroSummary {
+  font-size: 1rem;
+  color: #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+.screenshotsContainer {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+.screenshotBox {
+  flex: 1;
+  background: #112c56;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+}
+.screenshot {
+  width: 100%;
+  border-radius: 0.5rem;
+}
+.screenshotLabel {
+  margin-top: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.85rem;
 }
 
-/* ──────────────────────────
-   Top-Level Score Grid
-────────────────────────── */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
-  width: 100%;
-  max-width: 800px;
-  justify-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
 }
 
 .card {
-  background-color: #112c56;
+  background: #112c56;
   padding: 1rem;
   border-radius: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
 }
-
 .cardLabel {
-  font-size: 1rem;
   font-weight: 600;
-  color: #4fd1c5;
+  color: #38a169;
 }
-
 .cardScore {
+  font-size: 1.5rem;
+  margin: 0.25rem 0;
+}
+.cardSummary {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.auditGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+}
+.auditCard {
+  background: #0f2344;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  text-align: center;
+}
+.auditTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #38a169;
+}
+.auditValue {
   font-size: 1.75rem;
-  font-weight: 800;
+  margin: 0.5rem 0;
 }
-
-/* ──────────────────────────
-   Filmstrip Preview
-────────────────────────── */
-.filmstripContainer {
-  text-align: center;
-  margin: 2rem 0;
-}
-
-.filmstripThumb {
-  max-width: 100%;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-}
-
-.deepLink {
-  margin-top: 0.5rem;
-  background: none;
-  border: none;
-  color: #4fd1c5;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-/* ──────────────────────────
-   Key Checkups & Advice Cards
-────────────────────────── */
-.subheading,
-.sectionIntro,
-.legend {
-  text-align: center;
+.reportParagraph {
+  color: #dbeafe;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
 }
 
 .sectionIntro {
   font-size: 0.95rem;
   color: #cbd5e1;
-  margin: 0.5rem 0 1rem;
-  line-height: 1.5;
-  max-width: 720px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.auditGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-  margin-top: 0.5rem;
-  justify-items: center;
-}
-
-.auditCard {
-  background-color: #0f2344;
-  border: 1px solid #112c56;
-  border-radius: 0.75rem;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.auditCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-}
-
-.auditHeader {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.auditTitle {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #4fd1c5;
-}
-
-.tooltip {
-  position: relative;
-  cursor: help;
-}
-
-.tooltipText {
-  visibility: hidden;
-  position: absolute;
-  bottom: 125%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(15,35,68,0.95);
-  color: #fff;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  width: 220px;
-  text-align: left;
-  font-size: 0.8rem;
-  line-height: 1.2;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.tooltip:hover .tooltipText {
-  visibility: visible;
-  opacity: 1;
-}
-
-.auditValue {
-  font-size: 2rem;
-  font-weight: 800;
-}
-
-.reportParagraph {
-  font-size: 0.9rem;
-  color: #dbeafe;
-  line-height: 1.5;
-}
-
-.suggestionLabel {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #4fd1c5;
-}
-
-.suggestionText {
-  font-size: 0.9rem;
-  color: #e2e8f0;
-  margin-left: 0.5rem;
-}
-/* ──────────────────────────
-   Next Steps / Services
-────────────────────────── */
-.nextSteps {
-  margin-top: 3rem;
-  width: 100%;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-}
-
-.nextStepsTitle {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: #ffffff;
-  margin-bottom: 0.5rem;
-}
-
-.nextStepsIntro {
-  font-size: 1rem;
-  color: #cbd5e1;
-  margin-bottom: 1.5rem;
-  line-height: 1.5;
-}
-
-.servicesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-  justify-items: center;
-}
-
-.serviceCard {
-  background-color: #112c56;
-  border-radius: 0.75rem;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.serviceCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-}
-
-.servicePriceBadge {
-  background-color: #4fd1c5;
-  color: #000;
-  font-weight: 700;
-  padding: 0.3rem 0.6rem;
-  border-radius: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.serviceTitle {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.serviceDesc {
-  font-size: 0.9rem;
-  color: #dbeafe;
-  text-align: center;
-}
-
-.serviceButton {
-  margin-top: auto;
-  background-color: #4fd1c5;
-  color: #000;
-  font-weight: 600;
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.serviceButton:hover {
-  transform: translateY(-2px);
-}
-
-/* ──────────────────────────
-   Full-Site Triage Banner
-────────────────────────── */
-.fullTriageBanner {
-  margin-top: 3rem;
-  padding: 1.5rem;
-  background: #112c56;
-  border-radius: 1rem;
-  text-align: center;
-}
-
-.fullTriageButton {
-  margin-top: 1rem;
-  padding: 0.75rem 1.5rem;
-  background-color: #4fd1c5;
-  color: #000;
-  border: none;
-  border-radius: 0.75rem;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.fullTriageButton:hover {
-  background-color: #38a169;
+  margin-bottom: 1rem;
 }
