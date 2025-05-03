@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -11,41 +10,45 @@ import ReportPdf from '../components/ReportPdf';
 import styles from '../styles/ScanPage.module.css';
 
 import {
+  metricSummaries,
   metricAdvicePools,
   categoryLabels,
   categorySummaries,
   formatValue,
 } from '../lib/scanMetrics';
+import { buildServiceRecs, Service } from '../lib/services';
 
-
+// ─── Types ─────────────────────────────────────────────────────────
 type CategoryKey = keyof typeof categoryLabels;
 type MetricKey   = keyof typeof metricAdvicePools;
-
-type PSIResult = {
+type PSIResult   = {
   categories: Record<CategoryKey, { score: number }>;
-  audits:     Record<MetricKey, { displayValue: string; details?: { data: string } }>;
+  audits:     Record<string, { displayValue: string; details?: { data: string } }>;
 };
 
 type ScanPhase = 'form' | 'pending' | 'results';
-const ETA_MS = 60 * 1000;
+const ETA_MS    = 60 * 1_000;
 
-// — Branded labels for each metric
-const auditLabels: Record<MetricKey, string> = {
-  'first-contentful-paint':   'First Impression',
-  'largest-contentful-paint': 'Hero Load',
-  'total-blocking-time':      'Smooth Interaction',
-  'cumulative-layout-shift':  'Visual Stability',
-};
+// ─── Hero summary helper ─────────────────────────────────────────
+function buildHeroSummary(categories: PSIResult['categories']): string {
+  const p = Math.round((categories.performance.score || 0) * 100);
+  const a = Math.round((categories.accessibility.score || 0) * 100);
+  const s = Math.round((categories.seo.score || 0) * 100);
+  const lines: string[] = [];
+  if (p < 70) lines.push(`Your site feels sluggish at ${p}/100—let’s give it a boost.`);
+  else if (p < 90) lines.push(`Good pace at ${p}/100—push for the top tier.`);
+  else lines.push(`🏃 Lightning-fast at ${p}/100.`);
 
-// — More medical, reassuring hero summary
-function buildHeroSummary(categories: PSIResult['categories']): React.ReactNode {
-  const p = Math.round(categories.performance.score * 100);
-  if (p < 70)   return `Patient is weak at ${p}/100—time for treatment.`;
-  if (p < 90)   return `Stable at ${p}/100—let’s boost vitality further.`;
-  return          `Peak health at ${p}/100—exceptional performance.`;
+  if (a < 70) lines.push(`Accessibility ${a}/100—open it up for everyone.`);
+  else lines.push(`♿️ Accessibility ${a}/100 is welcoming.`);
+
+  if (s < 70) lines.push(`SEO ${s}/100—time to get discovered.`);
+  else lines.push(`🔍 SEO ${s}/100 is already strong.`);
+
+  return lines.join(' ');
 }
 
-// ─── Scan Form ─────────────────────────────────────────────────
+// ─── ScanForm ──────────────────────────────────────────────────────
 interface ScanFormProps {
   domain: string;
   email:  string;
@@ -53,38 +56,50 @@ interface ScanFormProps {
   setEmail:  React.Dispatch<React.SetStateAction<string>>;
   onStart:   () => Promise<void>;
 }
-const ScanForm: React.FC<ScanFormProps> = ({
+export const ScanForm: React.FC<ScanFormProps> = ({
   domain, email, setDomain, setEmail, onStart
 }) => (
   <motion.div
+    key="form"
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
     className={styles.formContainer}
   >
     <h1 className={styles.title}>Let’s Scan Your Site</h1>
     <p className={styles.subtext}>
-      Enter your URL & email below. We’ll email you a detailed health report.
+      Enter your URL and email below—your detailed health check is on the way.
     </p>
+
     <div className={styles.field}>
       <label htmlFor="site" className={styles.label}>Website URL</label>
       <input
-        id="site" type="url" placeholder="https://example.com"
-        value={domain} onChange={e => setDomain(e.target.value)}
+        id="site"
+        type="url"
+        placeholder="https://example.com"
+        value={domain}
+        onChange={e => setDomain(e.target.value)}
         className={styles.input}
       />
     </div>
+
     <div className={styles.field}>
       <label htmlFor="email" className={styles.label}>Email Address</label>
       <input
-        id="email" type="email" placeholder="you@example.com"
-        value={email} onChange={e => setEmail(e.target.value)}
-        className={styles.input}
+        id="email"
+        type="email"
+        placeholder="you@example.com"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        className={styles.emailInput}
       />
+      <p className={styles.emailNote}>We’ll email you the full report once it’s ready.</p>
     </div>
+
     <motion.button
       whileHover={{ scale: 1.02 }}
-      whileTap  ={{ scale: 0.98 }}
-      className={styles.primaryButton}
+      whileTap={{ scale: 0.98 }}
+      className={styles.scanButton}
       onClick={onStart}
       disabled={!domain || !email}
     >
@@ -93,208 +108,283 @@ const ScanForm: React.FC<ScanFormProps> = ({
   </motion.div>
 );
 
-// ─── Scan Pending ──────────────────────────────────────────────
+// ─── ScanPending ───────────────────────────────────────────────────
 interface ScanPendingProps {
   elapsed: number;
   logs:    string[];
 }
-const ScanPending: React.FC<ScanPendingProps> = ({ elapsed, logs }) => (
+export const ScanPending: React.FC<ScanPendingProps> = ({ elapsed, logs }) => (
   <motion.div
     key="pending"
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    exit   ={ { opacity: 0 } }
+    exit={{ opacity: 0 }}
     className={styles.scanningContainer}
   >
     <motion.div
       className={styles.loaderRadar}
-      initial ={{ rotate: 0, opacity: 0.5, scale: 1 }}
-      animate ={{ rotate: 360, opacity: [0.5,0.2,0.5], scale: [1,1.2,1] }}
+      initial={{ rotate: 0, opacity: 0.5, scale: 1 }}
+      animate={{ rotate: 360, opacity: [0.5, 0.2, 0.5], scale: [1,1.2,1] }}
       transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
     >
-      <ScanLoader/>
+      <ScanLoader />
     </motion.div>
-    <p className={styles.runningText}>
-      Hang tight—your site’s wellness check is in progress…
-    </p>
+
+    <p className={styles.runningText}>Running your site health check…</p>
+
     <div className={styles.progressOuter}>
       <div
         className={styles.progressInner}
         style={{ width: `${Math.min((elapsed/ETA_MS)*100,100)}%` }}
       />
     </div>
-    {elapsed > ETA_MS && (
-      <p className={styles.delayNote}>
-        Taking a bit longer? No worries—we’ll email you once it’s ready.
-      </p>
+
+    {logs.length > 0 && (
+      <pre className={styles.debug}>{logs.join('')}</pre>
     )}
-    {logs.length > 0 && <pre className={styles.debug}>{logs.join('')}</pre>}
   </motion.div>
 );
-interface ScanResultsProps {
-  domain:   string;
-  result:   PSIResult;
-  onRerun:  () => void;
+// ─── Type-guards ────────────────────────────────────────────────
+function isErrorPayload(obj: unknown): obj is { error: string } {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'error' in obj &&
+    typeof (obj as any).error === 'string'
+  );
 }
-const ScanResults: React.FC<ScanResultsProps> = ({ domain, result, onRerun }) => {
- 
+
+function isScanResponse(obj: unknown): obj is { scanId: number } {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'scanId' in obj &&
+    typeof (obj as any).scanId === 'number'
+  );
+}
+
+// ─── ScanResults ───────────────────────────────────────────────
+interface ScanResultsProps {
+  domain:          string;
+  result:          PSIResult;
+  onRerun:         () => void;
+  onSelectService: (name: string) => void;
+}
+
+export const ScanResults: React.FC<ScanResultsProps> = ({
+  domain,
+  result,
+  onRerun,
+  onSelectService,
+}) => {
+  const services: Service[] = buildServiceRecs(result.categories);
 
   return (
     <motion.div
       key="results"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
       className={styles.resultsContainer}
     >
-      {/* — Top Actions */}
-      <div className={styles.actionsRow}>
-        <button className={styles.secondaryButton} onClick={onRerun}>
+      {/* Rerun button */}
+      <div className={styles.scanMeta}>
+        <button className={styles.rerun} onClick={onRerun}>
           Scan Another Site
         </button>
-        <PDFDownloadLink
-          document={<ReportPdf site={domain} result={result} />}
-          fileName={`WebTriage-report-${domain}.pdf`}
-        >
-          {({ loading }) =>
-            loading
-              ? <button className={styles.secondaryButton} disabled>Preparing…</button>
-              : <button className={styles.secondaryButton}>Download Full Report</button>
-          }
-        </PDFDownloadLink>
       </div>
 
-      {/* — Hero Summary */}
+      {/* Hero */}
       <h2 className={styles.resultTitle}>
         Vital Signs for <span className={styles.resultDomain}>{domain}</span>
       </h2>
       <p className={styles.overview}>A quick, one-page health check.</p>
-      <div className={styles.heroSummary}>
+      <p className={styles.heroSummary}>
         {buildHeroSummary(result.categories)}
+      </p>
+
+      {/* Instant preview */}
+      <div className={styles.filmstripContainer}>
+        {result.audits['final-screenshot']?.details?.data && (
+          <>
+            <h3 className={styles.subheading}>Instant Preview</h3>
+            <img
+              src={result.audits['final-screenshot'].details.data}
+              alt="Final render"
+              className={styles.filmstripThumb}
+            />
+          </>
+        )}
       </div>
 
-      {/* — Always-Two Screenshots */}
-      <div className={styles.screenshotsContainer}>
-        {(['initial-screenshot','final-screenshot'] as const).map((key) => {
-          const data = (result.audits as any)[key]?.details?.data;
-          if (!data) return null;
+      {/* Top-level score cards */}
+      <div className={styles.grid}>
+        {(Object.entries(result.categories) as [CategoryKey, { score: number }][])
+          .map(([key, { score }]) => {
+            const pct = Math.round(score * 100);
+            return (
+              <div key={key} className={styles.card}>
+                <div className={styles.cardLabel}>{categoryLabels[key]}</div>
+                <div className={styles.cardScore}>{pct}/100</div>
+                <p className={styles.cardSummary}>{categorySummaries[key]}</p>
+                {pct < 90 && (
+                  <button
+                    className={styles.upsellButton}
+                    onClick={() => onSelectService(`${categoryLabels[key]} Boost`)}
+                  >
+                    Boost {categoryLabels[key]}
+                  </button>
+                )}
+              </div>
+            );
+        })}
+      </div>
+
+      {/* Detailed checkups */}
+      <h3 className={styles.subheading}>Key Checkups & Advice</h3>
+      <p className={styles.sectionIntro}>
+        Four detailed audits—each with an actionable tip.
+      </p>
+      <p className={styles.legend}>Hover for details.</p>
+      <div className={styles.auditGrid}>
+        {(Object.keys(metricAdvicePools) as MetricKey[]).map(id => {
+          const raw   = result.audits[id]?.displayValue ?? 'N/A';
+          const val   = formatValue(id, raw);
+          const tips  = metricAdvicePools[id];
+          const tip   = tips[Math.floor(Math.random() * tips.length)];
           return (
-            <div key={key} className={styles.screenshotBox}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={data} alt={key} className={styles.screenshot} />
-              <p className={styles.screenshotLabel}>
-                { key === 'initial-screenshot' ? 'Before Treatment' : 'After Treatment' }
-              </p>
+            <div key={id} className={styles.auditCard}>
+              <header className={styles.auditHeader}>
+                <h4 className={styles.auditTitle}>{metricSummaries[id]}</h4>
+              </header>
+              <div className={styles.auditValue}>{val}</div>
+              <div className={styles.auditSuggestion}>
+                <span className={styles.suggestionLabel}>Tip:</span> {tip}
+              </div>
             </div>
           );
         })}
       </div>
 
-      {/* — Category Scores */}
-      <div className={styles.grid}>
-        {Object.entries(result.categories).map(
-          ([key,{score}]) => {
-            const pct = Math.round(score*100);
-            return (
-              <div key={key} className={styles.card}>
-                <div className={styles.cardLabel}>
-                  {categoryLabels[key as CategoryKey]}
-                </div>
-                <div className={styles.cardScore}><strong>{pct}/100</strong></div>
-                <p className={styles.cardSummary}>
-                  {categorySummaries[key as CategoryKey]}
-                </p>
-              </div>
-            );
-          }
-        )}
-      </div>
+      {/* PDF export */}
+      <PDFDownloadLink
+        document={
+          <ReportPdf
+            site={domain}
+            result={result}
+            scannedAt={new Date().toISOString()}
+          />
+        }
+        fileName={`WebTriage-report-${domain}.pdf`}
+      >
+        {({ loading }) =>
+          loading
+            ? <span>Preparing…</span>
+            : <button className={styles.serviceButton}>Download Full Report</button>
+        }
+      </PDFDownloadLink>
 
-      {/* — Deep Dive Checkups */}
-      <h3 className={styles.subheading}>Key Checkups & Advice</h3>
-      <p className={styles.sectionIntro}>
-        Four critical diagnostics—each with a tip.
-      </p>
-      <div className={styles.auditGrid}>
-      { (Object.keys(result.audits) as MetricKey[]).map(id => {
-      const raw   = result.audits[id]?.displayValue ?? 'N/A';
-      const val   = formatValue(id, raw);
-      const badge = auditLabels[id] || id;
-      const tip   = metricAdvicePools[id][0];
-     return (
-       <div key={id} className={styles.auditCard}>
-         <h4 className={styles.auditTitle}>{badge}</h4>
-         <div className={styles.auditValue}><strong>{val}</strong></div>
-         <p className={styles.reportParagraph}>{tip}</p>
-       </div>
-     );
-   })
- }
-      </div>
+      {/* Services */}
+      <section className={styles.nextSteps}>
+        <h3 className={styles.nextStepsTitle}>Our Services</h3>
+        <p className={styles.nextStepsIntro}>
+          Choose the service that fits your goals:
+        </p>
+        <div className={styles.servicesGrid}>
+          {services.map(svc => (
+            <div key={svc.name} className={styles.serviceCard}>
+              <div className={styles.servicePriceBadge}>{svc.price}</div>
+              <h4 className={styles.serviceTitle}>{svc.name}</h4>
+              <p className={styles.serviceDesc}>{svc.desc}</p>
+              <button
+                className={styles.serviceButton}
+                onClick={() => onSelectService(svc.name)}
+              >
+                {svc.cta}
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
     </motion.div>
   );
 };
 export default function ScanPage() {
-  const [domain, setDomain]           = useState('');
-  const [email, setEmail]             = useState('');
-  const [phase, setPhase]             = useState<ScanPhase>('form');
-  const [scanId, setScanId]           = useState<number|null>(null);
-  const [result, setResult]           = useState<PSIResult|null>(null);
-  const [logs, setLogs]               = useState<string[]>([]);
-  const [elapsed, setElapsed]         = useState(0);
-  const [selectedService, setSelected]= useState<string|null>(null);
+  const [domain, setDomain]       = useState('');
+  const [email, setEmail]         = useState('');
+  const [phase, setPhase]         = useState<ScanPhase>('form');
+  const [scanId, setScanId]       = useState<number | null>(null);
+  const [result, setResult]       = useState<PSIResult | null>(null);
+  const [logs, setLogs]           = useState<string[]>([]);
+  const [elapsed, setElapsed]     = useState(0);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
 
-  // ─── Kick off scan ───────────────────────────────────────────
-  async function startScan() {
+  // ─── startScan ───────────────────────────────────────────────
+  const startScan = async () => {
     setPhase('pending');
     setLogs([]);
     setElapsed(0);
-    const res = await fetch('/api/scan', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify({ site: domain, email }),
-    });
-    if (!res.ok) {
-      const e = await res.json().catch(()=>({error:'Unknown'}));
-      alert((e as any).error || 'Scan request failed');
-      return setPhase('form');
-    }
-    const { scanId: id } = await res.json() as { scanId:number };
-    setScanId(id);
-  }
 
-  // ─── Polling ─────────────────────────────────────────────────
+    try {
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ site: domain, email }),
+      });
+      if (!res.ok) {
+        const payload = await res.json();
+        alert(isErrorPayload(payload) ? payload.error : 'Scan request failed');
+        setPhase('form');
+        return;
+      }
+      const data = await res.json();
+      if (isScanResponse(data)) setScanId(data.scanId);
+      else {
+        alert('Unexpected response from server');
+        setPhase('form');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Network error');
+      setPhase('form');
+    }
+  };
+
+  // ─── Polling ────────────────────────────────────────────────
   useEffect(() => {
     if (phase !== 'pending' || scanId == null) return;
     const iv = setInterval(async () => {
       try {
-        const res = await fetch(
-          `/api/scan/status/${scanId}?t=${Date.now()}`,
-          { cache: 'no-store' }
-        );
-        if (!res.ok) return;
-        const { status, result: r, logs: newLogs } = await res.json();
-        setLogs(newLogs);
-        if (status === 'done' && r) {
+        const payload = (await fetch(`/api/scan/status/${scanId}`)
+          .then(r => r.json())) as {
+            status: string;
+            result?: PSIResult;
+            logs: string[];
+          };
+        setLogs(payload.logs);
+        if (payload.status === 'done' && payload.result) {
           clearInterval(iv);
-          setResult(r);
+          setResult(payload.result);
           setPhase('results');
-          toast.success('📧 Report emailed!');
+          toast.success('🎉 Report is ready!');
         }
-      } catch {}
+      } catch {
+        // swallow
+      }
     }, 3000);
     return () => clearInterval(iv);
   }, [phase, scanId]);
 
-  // ─── Elapsed timer ───────────────────────────────────────────
+  // ─── Timer ─────────────────────────────────────────────
   useEffect(() => {
     if (phase !== 'pending') return;
     const start = Date.now();
-    const iv = setInterval(() => setElapsed(Date.now()-start), 1000);
+    const iv = setInterval(() => setElapsed(Date.now() - start), 1000);
     return () => clearInterval(iv);
   }, [phase]);
 
   return (
     <div className={styles.page}>
+      {/* 1) Form */}
       {phase === 'form' && (
         <ScanForm
           domain={domain}
@@ -305,10 +395,12 @@ export default function ScanPage() {
         />
       )}
 
-      <AnimatePresence mode="wait" initial={false}>
+      {/* 2) Pending & Results */}
+      <AnimatePresence initial={false} mode="wait">
         {phase === 'pending' && (
           <ScanPending key="pending" elapsed={elapsed} logs={logs} />
         )}
+
         {phase === 'results' && result && (
           <ScanResults
             key="results"
@@ -318,15 +410,17 @@ export default function ScanPage() {
               setResult(null);
               setPhase('form');
             }}
+            onSelectService={setSelectedService}
           />
         )}
       </AnimatePresence>
 
+      {/* 3) Booking Modal */}
       {selectedService && (
         <Modal
-          isOpen
+          isOpen={true}
           selectedService={selectedService}
-          onClose={() => setSelected(null)}
+          onClose={() => setSelectedService(null)}
         />
       )}
     </div>
