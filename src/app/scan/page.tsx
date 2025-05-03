@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -56,7 +57,7 @@ interface ScanFormProps {
   setEmail:  React.Dispatch<React.SetStateAction<string>>;
   onStart:   () => Promise<void>;
 }
-export const ScanForm: React.FC<ScanFormProps> = ({
+const ScanForm: React.FC<ScanFormProps> = ({
   domain, email, setDomain, setEmail, onStart
 }) => (
   <motion.div
@@ -113,7 +114,7 @@ interface ScanPendingProps {
   elapsed: number;
   logs:    string[];
 }
-export const ScanPending: React.FC<ScanPendingProps> = ({ elapsed, logs }) => (
+const ScanPending: React.FC<ScanPendingProps> = ({ elapsed, logs }) => (
   <motion.div
     key="pending"
     initial={{ opacity: 0 }}
@@ -171,7 +172,7 @@ interface ScanResultsProps {
   onSelectService: (name: string) => void;
 }
 
-export const ScanResults: React.FC<ScanResultsProps> = ({
+const ScanResults: React.FC<ScanResultsProps> = ({
   domain,
   result,
   onRerun,
