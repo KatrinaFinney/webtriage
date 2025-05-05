@@ -1,4 +1,4 @@
-// File: src/app/api/scan/status/[scanId]/route.ts
+// src/app/api/scan/status/[scanId]/route.ts
 export const dynamic = 'force-dynamic'
 
 import { NextResponse }     from 'next/server'
@@ -8,9 +8,10 @@ import { resend }           from '@/lib/resend'
 import { generatePdf }      from '@/lib/pdf'
 import { buildServiceRecs } from '@/lib/services'
 import { buildHeroSummary } from '@/lib/scanHelpers'
+import normalizeLhr          from '@/lib/normalizeLhr'
 import type { PSIResult }   from '@/types/webVitals'
 
-// ─── CONFIG ────────────────────────────────────────────────
+// ─── CONFIG ──────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL!
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const supabase     = createClient(SUPABASE_URL, SUPABASE_KEY)
@@ -37,11 +38,11 @@ export async function GET(request: Request) {
   // 1) Try Redis cache
   const cachedRaw = await redis.get<CachePayload|string>(cacheKey)
   if (cachedRaw != null) {
-    let fromCache: CachePayload|null = null
+    let fromCache: CachePayload | null = null
     if (typeof cachedRaw === 'object') {
       fromCache = cachedRaw
     } else {
-      try { fromCache = JSON.parse(cachedRaw) } catch {}
+      try { fromCache = JSON.parse(cachedRaw) } catch { /* ignore */ }
     }
     if (fromCache) {
       const res = NextResponse.json(fromCache)
@@ -65,27 +66,43 @@ export async function GET(request: Request) {
     )
   }
 
-  // assemble payload
+  // 3) Build the base payload
   const payload: CachePayload = {
     status: data.status,
-    logs:   [],              // adjust if you store logs
-    ...(data.status === 'done' ? { result: data.results } : {}),
+    logs:   [], // if you eventually store logs, populate here
   }
 
-  // 3) If done, generate+email+cache
+  // 4) If done, normalize the LHR -> PSIResult
   if (data.status === 'done' && data.results) {
-    // 3a) PDF
-    const pdfBytes = await generatePdf({
-      site:      data.site,
-      result:    data.results as PSIResult,
-      scannedAt: new Date().toLocaleString(),
-    })
-    const pdfBase64 = Buffer.from(pdfBytes).toString('base64')
+    try {
+      const psi = normalizeLhr(data.results)  // your helper converts LHR JSON into PSIResult
+      payload.result = psi
+    } catch (normErr: unknown) {
+      console.error('🔄 normalizeLhr failed', normErr)
+      // fallback to raw data.results if you want:
+      payload.result = data.results as PSIResult
+    }
+  }
 
-    // 3b) Services list HTML
-    const svcs = buildServiceRecs((data.results as PSIResult).categories)
+  // 5) If done, generate PDF, email & cache
+  if (data.status === 'done' && payload.result) {
+    // 5a) PDF
+    let pdfBase64 = ''
+    try {
+      const pdfBytes = await generatePdf({
+        site:      data.site,
+        result:    payload.result,
+        scannedAt: new Date().toLocaleString(),
+      })
+      pdfBase64 = Buffer.from(pdfBytes).toString('base64')
+    } catch (pdfErr: unknown) {
+      console.error('📄 PDF generation failed', pdfErr)
+    }
+
+    // 5b) Services HTML
+    const svcs = buildServiceRecs(payload.result.categories)
     const servicesHtml = svcs.map(svc => `
-      <li style="margin-bottom:12px;">
+      <li style="margin-bottom:12px">
         <a href="${svc.link}"
            style="color:#4fd1c5;text-decoration:none;font-weight:700">
           ${svc.title}
@@ -93,22 +110,23 @@ export async function GET(request: Request) {
       </li>
     `).join('')
 
-    // 3c) Send via Resend
+    // 5c) Send email
     try {
       await resend.emails.send({
         from:    'onboarding@webtriage.dev',
         to:      [data.email],
         subject: `Your WebTriage Report for ${data.site}`,
         html: `
-<!doctype html><html><head><meta charset="utf-8"/></head><body style="margin:0;padding:20px;background:#f4f4f4;font-family:Arial,sans-serif">
+<!doctype html>
+<html>
+<head><meta charset="utf-8"/></head>
+<body style="margin:0;padding:20px;background:#f4f4f4;font-family:Arial,sans-serif">
   <table role="presentation" width="100%" style="max-width:600px;margin:auto;background:#071a2f;color:#fff;padding:32px;border-radius:8px">
     <tr><td align="center">
       <h1 style="margin:0 0 16px;font-size:24px">WebTriage Report</h1>
-      <p style="font-size:16px;margin:0 0 24px">
-        Quick snapshot for <strong>${data.site}</strong>
-      </p>
+      <p style="font-size:16px;margin:0 0 24px">Quick snapshot for <strong>${data.site}</strong></p>
       <p style="font-size:14px;line-height:1.5;margin:0 0 24px">
-        ${buildHeroSummary((data.results as PSIResult).categories)}
+        ${buildHeroSummary(payload.result.categories)}
       </p>
       <a href="https://your-domain.com/reports/${encodeURIComponent(data.site)}.pdf"
          style="display:inline-block;padding:12px 24px;background:#4fd1c5;color:#000;text-decoration:none;border-radius:4px;font-weight:700;margin-bottom:32px">
@@ -125,22 +143,19 @@ export async function GET(request: Request) {
   </table>
 </body></html>
         `,
-        attachments: [
-          {
-            content:  pdfBase64,
-            filename: 'webtriage-report.pdf',
-          },
-        ],
+        attachments: pdfBase64
+          ? [{ content: pdfBase64, filename: 'webtriage-report.pdf' }]
+          : [],
       })
-    } catch (e) {
-      console.error('✉️  email failed', e)
+    } catch (mailErr: unknown) {
+      console.error('✉️  Email send failed', mailErr)
     }
 
-    // 3d) Cache final
+    // 5d) Cache final result
     await redis.set(cacheKey, JSON.stringify(payload), { ex: 3600 })
   }
 
-  // 4) Return JSON
+  // 6) Return JSON
   const res = NextResponse.json(payload)
   res.headers.set('x-cache','MISS')
   res.headers.set('Cache-Control','public, s-maxage=3, stale-while-revalidate=2')
