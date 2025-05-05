@@ -7,14 +7,17 @@ export type CategoryKey =
   | 'seo'
   | 'mobile-friendly';
 
-export type MetricKey =
-  | 'largest-contentful-paint'
+  export type MetricKey =
   | 'first-contentful-paint'
+  | 'largest-contentful-paint'
   | 'speed-index'
   | 'total-blocking-time'
-  | 'interactive'
   | 'cumulative-layout-shift'
-  | 'time-to-first-byte';
+  | 'time-to-first-byte'
+  | 'interactive'
+  | 'color-contrast'
+  | 'tap-targets'
+  | 'meta-description';
 
 export type VitalKey = MetricKey;
 
@@ -35,5 +38,17 @@ export interface PSIResult {
       details?: { data: string }
     }
   >
+}
+/** Common structure for every service card / upsell */
+export interface Service {
+  slug:    string;       // url‑safe ID
+  title:   string;       // marketing headline
+  summary: string;       // short blurb
+  price:   string;
+  cta:     string;       // button text
+  link:    string;       // checkout / form url
+  /* legacy aliases so old code compiles */
+  name?: string;         // ← aliases
+  desc?: string;
 }
 

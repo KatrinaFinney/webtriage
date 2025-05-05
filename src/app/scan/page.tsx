@@ -13,8 +13,7 @@ import toast           from 'react-hot-toast';
 /* ── local modules ──────────────────────────────────────────── */
 import LoaderRadar     from '../components/LoaderRadar';
 import ScanResults     from '@/app/scan/ScanResults';
-import { buildHeroSummary }        from '../lib/heroSummary';
-import { buildServiceRecs }      from '../../lib/services';
+import { vibrate }      from '@/lib/haptics';
 
 /* ── styling ───────────────────────────────────────────────── */
 import styles          from '../styles/ScanPage.module.css';
@@ -106,26 +105,48 @@ export default function ScanPage(){
     setScanId((await res.json()).scanId);
   };
 
-  /* ---------- polling loop ---------------------------------- */
-  useEffect(()=>{
-    if(phase!=='pending'||scanId==null) return;
+/* ── Poll for scan status ───────────────────────────────────── */
+useEffect(() => {
+  if (phase !== 'pending' || scanId == null) return;
 
-    const iv = setInterval(async()=>{
-      const payload = await fetch(`/api/scan/status/${scanId}`,{cache:'no-store'})
-                             .then(r=>r.json());
+  const iv = setInterval(async () => {
+    try {
+      /* ① fetch the latest status */
+      const res = await fetch(`/api/scan/status/${scanId}`, {
+        cache: 'no-store',
+      });
+      if (!res.ok) throw new Error(`status ${res.status}`);
 
+      const payload = (await res.json()) as {
+        status: string;
+        result?: PSIResult;
+        logs: string[];
+      };
+
+      /* ② stream logs to the UI + haptic ping */
       setLogs(payload.logs);
-      if(payload.status==='done' && payload.result){
+      vibrate('ping');
+
+      /* ③ finished? …clean up & advance */
+      if (payload.status === 'done' && payload.result) {
         clearInterval(iv);
-        setResult(payload.result as PSIResult);
+        vibrate('success');
+
+        setResult(payload.result);
         setPhase('results');
-        buzz([60,30,60]);              // double‑buzz on completion
         toast.success('📧 Report emailed!');
       }
-    }, REVALIDATE_MS);
+    } catch (err) {
+      /* network / JSON / server error */
+      console.error(err);
+      vibrate('error');
+    }
+  }, REVALIDATE_MS);
 
-    return ()=>clearInterval(iv);
-  },[phase,scanId]);
+  /* tidy up on unmount */
+  return () => clearInterval(iv);
+}, [phase, scanId]);
+
   /* ---------- render ---------------------------------------- */
   return(
     <div className={styles.page}>
@@ -143,8 +164,6 @@ export default function ScanPage(){
         <ScanResults
           domain={domain}
           result={result}
-          heroCopy={buildHeroSummary(result.categories)}
-          services={buildServiceRecs(result.categories)}
           onRerun={()=>{
             setResult(null); setScanId(null); setPhase('form');
           }}

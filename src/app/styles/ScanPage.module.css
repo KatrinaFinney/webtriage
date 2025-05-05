@@ -92,8 +92,145 @@
 .serviceDesc{font-size:.88rem;color:#dbeafe;text-align:center;line-height:1.4;}
 
 /* remove bullets for any <ul> inside .heroSummary */
-.heroSummary :global ul {
+ .heroSummary ul {
   list-style: none;
   padding-left: 0;
 }
+/* ------- PENDING (loader) ------------------------------------ */
+.scanningContainer {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;   /* <-- NEW : vertical centre */
+  gap:1rem;
+  min-height:100vh;         /* full viewport height */
+}
 
+@media (min-width:640px){   /* tablet / desktop */
+  .scanningContainer{
+    min-height:auto;        /* revert so desktop layout isn’t forced */
+  }
+}
+/* Vitals Summary heading */
+.heroHeading{
+  font-size:1.25rem;
+  font-weight:700;
+  margin:0 0 .25rem;
+  color:#4fd1c5;      /* brand teal */
+}
+.heroSummary p{
+  font-size:0.95rem;
+  line-height:1.5;
+  color:#dbeafe;
+  margin:0;
+}
+/* ───────────────────────────────────────────────
+   Instant‑preview box
+──────────────────────────────────────────────── */
+.previewBox {
+  width: 100%;
+  max-width: 640px;
+  margin: 2rem auto;              /* centre on all screens   */
+  border: 2px solid #112c56;      /* subtle navy frame       */
+  border-radius: 0.75rem;
+  overflow: hidden;               /* clip any overflow       */
+  background: #0f2344;            /* match card background   */
+  box-shadow: 0 4px 12px rgba(0,0,0,.35);
+}
+
+.previewImg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.previewButton {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  font-weight: 600;
+  background: #374b7c;            /* dark slate‑blue         */
+  color: #ffffff;
+  border: none;
+  border-top: 1px solid #112c56;  /* subtle divider          */
+  cursor: pointer;
+  transition: background .2s;
+}
+.previewButton:hover { background:#42588f; }
+
+.auditTip{
+  font-size:.85rem;
+  color:#cbd5e1;
+  margin-top:.5rem;
+  line-height:1.35;
+}
+@media (max-width:480px){
+  /* ensure metrics grid centres & stacks on very small screens */
+  .auditGrid{
+    grid-template-columns:1fr;
+  }
+  .auditCard{
+    width:95%;
+  }
+}
+/* ─────────── Buttons (shared) ───────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.65rem 1.25rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1;
+  border: none;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  will-change: transform;
+}
+
+/* primary action – teal → darker teal on hover */
+.btnPrimary {
+  background: #29b09d;
+  color: #000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.btnPrimary:hover   { background:#22a08e; transform:translateY(-2px); }
+.btnPrimary:active  { transform:scale(0.97); }
+
+/* secondary / ghost on dark background */
+.btnGhost {
+  background: transparent;
+  color:#4fd1c5;
+  border: 2px solid #4fd1c5;
+}
+.btnGhost:hover  { background:rgba(79,209,197,0.08); transform:translateY(-2px);}
+.btnGhost:active { transform:scale(0.97); }
+
+/* floating rerun button (mobile fixed‑bottom) */
+/* stylelint-disable property-no-unknown */
+.rerunFloating {
+  composes: btn btnGhost;
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  z-index: 50;
+}
+
+/* CTA inside service cards */
+/* stylelint-disable property-no-unknown */
+.serviceButton { composes: btn btnPrimary; width:100%; }
+
+/* hero “Begin Site Treatment” */
+/* stylelint-disable property-no-unknown */
+.fullTriageButton { composes: btn btnPrimary; font-size:1.05rem; }
+.servicePriceBadge {
+  font-family: 'DM Sans', system-ui, sans-serif;  /* <- new */
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+/* ScanPage.module.css */
+.metricCard:hover { transform:translateY(-4px) scale(1.02); }
+.metricCard:active{ transform:scale(0.98); }

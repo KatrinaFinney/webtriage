@@ -18,7 +18,7 @@ import {
   metricSummaries,
   formatValue,
   metricAdvicePools,
-} from '@/app/lib/scanMetrics';
+} from '@/lib/scanMetrics';
 import { buildServiceRecs, Service } from '@/lib/services';
 
 

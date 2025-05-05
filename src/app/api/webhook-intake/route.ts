@@ -1,8 +1,8 @@
 // src/app/api/webhook-intake/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { encryptCredentials } from '../../lib/vault';
-import { createJob } from '../../lib/db';
+import { encryptCredentials } from '@/lib/vault';
+import { createJob } from '@/lib/db';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESENDAPIKEY);

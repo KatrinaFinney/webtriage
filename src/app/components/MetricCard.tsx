@@ -1,44 +1,42 @@
-import React from 'react';
-import { } from '@/types/webVitals';
-import {  diagnosisFor }  from '@/app/lib/scanMetrics';
-import type { MetricKey } from '@/types/webVitals';
+/* ------------------------------------------------------------------
+   MetricCard – card for a single Lighthouse metric
+-------------------------------------------------------------------*/
+'use client';
 
-/* -------- props ------------------------------------------------ */
+import React            from 'react';
+import styles           from '../styles/ScanPage.module.css';
+
+import type { MetricKey }   from '@/types/webVitals';
+import { vitalLabels }      from '../../lib/vitalLabels';
+import { formatValue , diagnosisFor }      from '../../lib/scanMetrics';
+import { statusClass }      from '../../lib/scanHelpers';
+
 interface Props {
-  vital:     MetricKey;        // we stay with “vital”
-  rawValue?: string;           // ←  add this line
-  pctScore:  number;
-  title:     string;
+  id:       MetricKey;
+  pctScore: number;
+  rawValue: string | undefined;
+  title:     string;   
+  blurb:     string;
 }
 
-/* -------- component ------------------------------------------- */
-const MetricCard: React.FC<Props> = ({
-  vital,
-  rawValue,
-  pctScore,
-  title,
-}) => {
+const MetricCard: React.FC<Props> = ({ id, pctScore, rawValue }) => {
+  const { title, blurb } = vitalLabels[id];
+  const badgeClass       = styles[statusClass(pctScore)];
+  const niceValue        = rawValue ? formatValue(id, +rawValue) : '—';
+
   return (
-    <div className="auditCard">
-      <header className="auditHeader">
-        <h4 className="auditTitle">{title}</h4>
-        <span className="statusBadge">
-          {pctScore >= 90 ? 'Excellent'
-            : pctScore >= 75 ? 'Good'
-            : pctScore >= 50 ? 'Fair'
-            : 'Poor'}
-        </span>
+    <div className={styles.auditCard}>
+      <span className={`${styles.statusBadge} ${badgeClass}`}>{pctScore}/100</span>
+
+      <header className={styles.auditHeader}>
+        <h4 className={styles.auditTitle}>{title}</h4>
+        <span className={styles.auditSubtitle}>{blurb}</span>
       </header>
 
-      <div className="auditValue">
-        {rawValue ?? 'N/A'}
-      </div>
-
-      <p className="reportParagraph">
-        {diagnosisFor(vital)}
-      </p>
+      <div className={styles.auditValue}>{niceValue}</div>
+      <p className={styles.reportParagraph}>{diagnosisFor(id)}</p>
     </div>
   );
 };
 
-export default MetricCard;
+export default MetricCard;
