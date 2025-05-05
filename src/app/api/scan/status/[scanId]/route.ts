@@ -1,57 +1,48 @@
 // File: src/app/api/scan/status/[scanId]/route.ts
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
-import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { Redis }        from '@upstash/redis'
-
-// ─── TYPES ─────────────────────────────────────────────────
-interface CachePayload {
-  status: string
-  result?: unknown
-  logs:   string[]
-}
+import { NextResponse }     from 'next/server'
+import { createClient }     from '@supabase/supabase-js'
+import { Redis }            from '@upstash/redis'
+import { resend }           from '@/lib/resend'
+import { generatePdf }      from '@/lib/pdf'
+import { buildServiceRecs } from '@/lib/services'
+import { buildHeroSummary } from '@/lib/scanHelpers'
+import type { PSIResult }   from '@/types/webVitals'
 
 // ─── CONFIG ────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL!
-const SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabase     = createClient(SUPABASE_URL, SUPABASE_KEY)
 const redis        = new Redis({
   url:   process.env.UPSTASH_REDIS_REST_URL!,
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 })
 
-// ─── HANDLER ───────────────────────────────────────────────
-export async function GET(request: Request) {
-  // Log start
-  console.log('🚦 status start @', Date.now())
+interface CachePayload {
+  status: string
+  result?: PSIResult
+  logs:   string[]
+}
 
-  // 1) Parse scanId from the URL
+export async function GET(request: Request) {
+  // parse scanId
   const parts  = new URL(request.url).pathname.split('/')
-  const scanId = parseInt(parts.at(-1) || '', 10)
+  const scanId = parseInt(parts.at(-1)!, 10)
   if (Number.isNaN(scanId)) {
     return NextResponse.json({ error: 'Invalid scanId' }, { status: 400 })
   }
-
   const cacheKey = `scan:${scanId}:status`
 
-  // 2) Try cache first
-  console.log('🔍 Redis GET @', Date.now())
-  const cachedRaw = await redis.get<CachePayload | string>(cacheKey)
+  // 1) Try Redis cache
+  const cachedRaw = await redis.get<CachePayload|string>(cacheKey)
   if (cachedRaw != null) {
-    let fromCache: CachePayload | null = null
-
+    let fromCache: CachePayload|null = null
     if (typeof cachedRaw === 'object') {
       fromCache = cachedRaw
-      console.log('⚡️ Cache HIT (object) @', Date.now())
     } else {
-      try {
-        fromCache = JSON.parse(cachedRaw) as CachePayload
-        console.log('⚡️ Cache HIT (string) @', Date.now())
-      } catch {
-        console.warn('⚠️ Invalid JSON in cache, treating as MISS:', cachedRaw)
-      }
+      try { fromCache = JSON.parse(cachedRaw) } catch {}
     }
-
     if (fromCache) {
       const res = NextResponse.json(fromCache)
       res.headers.set('x-cache', 'HIT')
@@ -60,42 +51,98 @@ export async function GET(request: Request) {
     }
   }
 
-  // 3) Cache miss → fetch from Supabase
-  console.log('⚡️ Cache MISS @', Date.now())
-  console.log('⏱️ Supabase fetch start @', Date.now())
-  const supabase = createClient(SUPABASE_URL, SERVICE_KEY)
+  // 2) Fetch from Supabase (including site & email)
   const { data, error } = await supabase
     .from('scans')
-    .select('status,results')
+    .select('status, results, site, email')
     .eq('id', scanId)
     .single()
-  console.log('⏱️ Supabase fetch end @', Date.now())
 
   if (error || !data) {
-    console.error('❌ Supabase error or no data:', error)
     return NextResponse.json(
       { status: 'error', error: error?.message ?? 'Not found' },
       { status: error ? 500 : 404 }
     )
   }
 
-  // 4) Build the payload
+  // assemble payload
   const payload: CachePayload = {
     status: data.status,
-    logs:   [],
+    logs:   [],              // adjust if you store logs
     ...(data.status === 'done' ? { result: data.results } : {}),
   }
 
-  // 5) Cache only the final “done” result
-  if (data.status === 'done') {
-    console.log('📝 Redis SET DONE →', JSON.stringify(payload))
+  // 3) If done, generate+email+cache
+  if (data.status === 'done' && data.results) {
+    // 3a) PDF
+    const pdfBytes = await generatePdf({
+      site:      data.site,
+      result:    data.results as PSIResult,
+      scannedAt: new Date().toLocaleString(),
+    })
+    const pdfBase64 = Buffer.from(pdfBytes).toString('base64')
+
+    // 3b) Services list HTML
+    const svcs = buildServiceRecs((data.results as PSIResult).categories)
+    const servicesHtml = svcs.map(svc => `
+      <li style="margin-bottom:12px;">
+        <a href="${svc.link}"
+           style="color:#4fd1c5;text-decoration:none;font-weight:700">
+          ${svc.title}
+        </a> — ${svc.summary}
+      </li>
+    `).join('')
+
+    // 3c) Send via Resend
+    try {
+      await resend.emails.send({
+        from:    'onboarding@webtriage.dev',
+        to:      [data.email],
+        subject: `Your WebTriage Report for ${data.site}`,
+        html: `
+<!doctype html><html><head><meta charset="utf-8"/></head><body style="margin:0;padding:20px;background:#f4f4f4;font-family:Arial,sans-serif">
+  <table role="presentation" width="100%" style="max-width:600px;margin:auto;background:#071a2f;color:#fff;padding:32px;border-radius:8px">
+    <tr><td align="center">
+      <h1 style="margin:0 0 16px;font-size:24px">WebTriage Report</h1>
+      <p style="font-size:16px;margin:0 0 24px">
+        Quick snapshot for <strong>${data.site}</strong>
+      </p>
+      <p style="font-size:14px;line-height:1.5;margin:0 0 24px">
+        ${buildHeroSummary((data.results as PSIResult).categories)}
+      </p>
+      <a href="https://your-domain.com/reports/${encodeURIComponent(data.site)}.pdf"
+         style="display:inline-block;padding:12px 24px;background:#4fd1c5;color:#000;text-decoration:none;border-radius:4px;font-weight:700;margin-bottom:32px">
+        Download Your PDF
+      </a>
+      <h2 style="font-size:18px;margin:32px 0 12px">Recommended Next Steps</h2>
+      <ul style="list-style:none;padding:0;margin:0 0 32px">
+        ${servicesHtml}
+      </ul>
+      <p style="font-size:14px;line-height:1.5;margin:0">
+        Need help picking a plan? Reply to this email—we’re here 24/7.
+      </p>
+    </td></tr>
+  </table>
+</body></html>
+        `,
+        attachments: [
+          {
+            content:  pdfBase64,
+            filename: 'webtriage-report.pdf',
+          },
+        ],
+      })
+    } catch (e) {
+      console.error('✉️  email failed', e)
+    }
+
+    // 3d) Cache final
     await redis.set(cacheKey, JSON.stringify(payload), { ex: 3600 })
   }
 
-  // 6) Return the payload with CDN headers
+  // 4) Return JSON
   const res = NextResponse.json(payload)
-  res.headers.set('x-cache', 'MISS')
-  res.headers.set('Cache-Control', 'public, s-maxage=3, stale-while-revalidate=2')
-  console.log('✅ Returning payload @', Date.now())
+  res.headers.set('x-cache','MISS')
+  res.headers.set('Cache-Control','public, s-maxage=3, stale-while-revalidate=2')
   return res
 }
