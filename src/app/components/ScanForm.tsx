@@ -2,6 +2,7 @@
 
 import React from 'react';
 import styles from '../styles/ScanPage.module.css';
+import Button from '../components/Button';
 
 interface ScanFormProps {
   domain: string;
@@ -38,13 +39,13 @@ export default function ScanForm({
         onChange={(e) => setEmail(e.target.value)}
       />
 
-      <button
+      <Button
         className={styles.darkButton}
         onClick={onStart}
         disabled={!domain || !email}
       >
         Start Scan
-      </button>
+      </Button>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../styles/CallToAction.module.css';
 import Modal from './Modal';
+import Button from '../components/Button';
 
 export default function CallToAction() {
   const router = useRouter();
@@ -54,19 +55,19 @@ export default function CallToAction() {
         </p>
 
         <div className={styles.buttonGroup}>
-          <button
+          <Button
             className={styles.button}
             onClick={startFreeScan}
             disabled={!domain}
           >
-            Free First Aid Scan
-          </button>
-          <button
+            Start My Free Scan
+          </Button>
+          <Button
             className={styles.button}
             onClick={openTriage}
           >
-            Stabilize My Site
-          </button>
+            Stabilize My Site Now
+          </Button>
         </div>
       </div>
 

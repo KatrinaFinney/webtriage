@@ -13,6 +13,8 @@ import { vitalLabels }             from '@/lib/vitalLabels';
 import { categoryLabels }          from '@/lib/scanMetrics';
 import { formatValue }             from '@/lib/scanMetrics';
 import type { PSIResult, MetricKey } from '@/types/webVitals';
+import Button from '../components/Button';
+
 
 
 // ---------------------------------------------------------------
@@ -117,12 +119,12 @@ const ScanResults: React.FC<Props> = ({ domain, result, onRerun }) => {
               <span className={styles.servicePriceBadge}>{svc.price}</span>
               <h4 className={styles.serviceTitle}>{svc.title}</h4>
               <p className={styles.serviceDesc}>{svc.summary}</p>
-              <button
+              <Button
                 className={styles.serviceButton}
                 onClick={() => (window.location.href = svc.link)}
               >
                 {svc.cta}
-              </button>
+              </Button>
             </div>
           ))}
         </div>
@@ -132,19 +134,19 @@ const ScanResults: React.FC<Props> = ({ domain, result, onRerun }) => {
             Ready for a deeper diagnosis? Book a full‑site Triage or hand the stethoscope
             to our Continuous Care team and relax while we keep every vital in the green.
           </p>
-          <button
+          <Button
             className={styles.fullTriageButton}
             onClick={() => (window.location.href = '/order?service=Site%20Triage')}
           >
             Begin Site Treatment
-          </button>
+          </Button>
         </div>
       </section>
 
       {/* ── Rerun button ─────────────────────────────────────── */}
-      <button className={styles.rerunFloating} onClick={onRerun}>
+      <Button className={styles.rerunFloating} onClick={onRerun}>
         Scan another site
-      </button>
+      </Button>
     </div>
   );
 };

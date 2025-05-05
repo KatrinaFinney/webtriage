@@ -58,4 +58,9 @@
       box-shadow: 0 0 12px 4px rgba(90, 141, 238, 0.3);
     }
   }
-  
+  .buttonGroup {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }

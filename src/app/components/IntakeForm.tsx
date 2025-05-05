@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import styles from "../styles/IntakeForm.module.css";
 import { motion } from "framer-motion";
+import Button from '../components/Button';
 
 interface IntakeFormProps {
   onSuccess?: () => void;
@@ -141,13 +142,13 @@ export default function IntakeForm({ onSuccess, selectedService }: IntakeFormPro
             <option value="Full Recovery Plan">Full Recovery Plan</option>
           </select>
 
-          <button
+          <Button
             className={styles.button}
             type="submit"
             disabled={status === "submitting"}
           >
             {status === "submitting" ? "Sending..." : "Submit Request"}
-          </button>
+          </Button>
 
           {status === "error" && (
             <p style={{ marginTop: "1rem", color: "#f87171" }}>

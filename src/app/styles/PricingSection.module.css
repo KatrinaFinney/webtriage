@@ -1,6 +1,9 @@
-.pricing {
+/* —————————————————————————————— */
+/* Mobile‑first section wrapper */
+/* —————————————————————————————— */
+.pricingSection {
   background-color: transparent; /* ✅ Keep it glassy over dark bg */
-  padding: 5rem 1rem;
+  padding: 5rem 2rem;
   max-width: 1080px;
   margin: 0 auto;
   text-align: center;
@@ -10,13 +13,8 @@
   font-size: 2rem;
   color: white;
   font-family: var(--font-space-grotesk);
-  margin-bottom: 2.5rem;
-}
-
-.grid {
-  display: grid;
-  gap: 2rem;
-  grid-template-columns: 1fr;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
 }
 
 .card {
@@ -24,7 +22,8 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 1.25rem;
   padding: 2rem;
-  padding-bottom: 20px;
+  padding-bottom: 50px;
+  justify-content: center;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -199,6 +198,9 @@
   font-family: "Space Grotesk", sans-serif;
   margin-bottom: 1rem;
 }
+.firstAidText .priceAmount {
+  font-family: 'Open Sans', sans-serif !important;
+}
 
 /* Card body uses flex to push the button to the bottom */
 .cardBody {
@@ -219,36 +221,7 @@
     align-self: center; /* Center the button */
   }
 }
-.pricingSection {
-  background-color: #0f2344;
-  padding: 4rem 1rem;
-}
 
-.inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.title {
-  font-family: Space Grotesk, sans-serif;
-  font-size: 2.5rem;
-  color: #ffffff;
-  margin-bottom: 0.5rem;
-}
-
-.intro {
-  font-family: Space Grotesk, sans-serif;
-  font-size: 1.1rem;
-  color: #cbd5e1;
-  margin-bottom: 2rem;
-}
-
-.grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-}
 
 .cardTitle {
   font-family: Space Grotesk, sans-serif;
@@ -258,7 +231,7 @@
 }
 
 .cardPrice {
-  font-family: Plex Mono, monospace;
+  font-family: DM Sans, monospace;
   font-size: 1.25rem;
   color: #4fd1c5;
   margin-bottom: 0.75rem;
@@ -287,9 +260,65 @@
 
 @media (min-width: 768px) {
   .pricingSection {
-    padding: 6rem 2rem;
+    padding: 5rem 2rem;
   }
   .title {
     font-size: 3rem;
   }
 }
+.card .priceAmount {
+  font-family: 'Open Sans', sans-serif !important;
+}
+/*——————————————————————————————*/
+/* Complete grid styling — pricing only */
+/*——————————————————————————————*/
+.pricingSection .grid {
+  display: grid;
+  gap: 2rem;
+  justify-items: stretch;
+  margin-bottom: 2rem;
+
+  /* Mobile: single‑column */
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .pricingSection .grid {
+    /* Tablet: auto‑fit two+ columns */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .pricingSection .grid {
+    /* Desktop: exactly three columns */
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+/* Make every direct child (your .card) fill its grid cell */
+.pricingSection .grid > * {
+  width: 100%;
+  box-sizing: border-box;  /* include padding/borders in that width */
+}
+/*——————————————————————————————*/
+/* Force all pricing buttons to same size */
+/*——————————————————————————————*/
+.pricingSection .card {
+  display: flex;
+  flex-direction: column;       /* stack content + button */
+}
+
+.pricingSection .card .button {
+  flex: 0 0 3rem;               /* fixed height of 3rem */
+  width: 100%;                  /* fill full card width */
+  max-width: none;              /* override any max-widths */
+  box-sizing: border-box;       /* include padding/border in width */
+  white-space: nowrap;          /* no wrapping */
+  align-self: stretch;          /* stretch to fill width */
+  display: inline-flex;         /* center label */
+  justify-content: center;
+  align-items: center;
+  margin-top: auto;             /* push to bottom of card */
+}
+
+

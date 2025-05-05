@@ -2,7 +2,8 @@
 
 import React, { useEffect, useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import styles from '../styles/Modal.module.css'; // ← adjust if your CSS is elsewhere
+import styles from '../styles/Modal.module.css'; 
+import Button from '../components/Button';
 
 interface ModalProps {
   isOpen: boolean;
@@ -60,13 +61,13 @@ export default function Modal({
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.25, type: 'spring', stiffness: 150 }}
           >
-            <button
+            <Button
               className={styles.close}
               onClick={onClose}
               aria-label="Close form"
             >
               &times;
-            </button>
+            </Button>
 
             {!iframeLoaded && (
               <div className={styles.spinnerContainer}>

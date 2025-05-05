@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import styles from "../styles/PricingSection.module.css";
 import Modal from "./Modal";
+import Button from '../components/Button';
 
 export default function PricingSection() {
   const [showForm, setShowForm] = useState(false);
@@ -69,22 +70,22 @@ export default function PricingSection() {
     {
       title: "Continuous Care",
       price: "$499/mo",
-      summary: "Proactive monthly maintenance.",
+      summary: "Proactive monthly maintenance & optimization.",
       features: [
-        "Uptime monitoring + bug fixes",
-        "Monthly performance reports",
-        "Peace of mind = priceless",
+        "24/7 uptime monitoring & emergency fixes",
+        "Detailed monthly performance & SEO reports",
+        "Priority support with same‑day response",
       ],
       button: "Start Care",
     },
     {
       title: "Full Recovery Plan",
       price: "From $999",
-      summary: "Complete redesign & modernization.",
+      summary: "Complete site overhaul, redesign & strategic roadmap.",
       features: [
-        "Site rebuild + UX overhaul",
-        "Performance + accessibility boost",
-        "Fresh, engaging user experience",
+        "Full rebuild with UX/UI modernization",
+        "Performance tuning & accessibility compliance",
+        "Dedicated project manager & user testing",
       ],
       button: "Plan Recovery",
     },
@@ -122,12 +123,12 @@ export default function PricingSection() {
                     <li key={i}>{feat}</li>
                   ))}
                 </ul>
-                <button
+                <Button
                   className={styles.button}
                   onClick={() => openForm(service.title)}
                 >
                   {service.button}
-                </button>
+                </Button>
               </motion.div>
             ))}
           </div>
