@@ -8,7 +8,8 @@
     font-size: 2rem;
     color: white;
     text-align: center;
-    margin-bottom: 2rem;
+    margin: 2rem;
+    margin-bottom: 1.5rem;
     font-family: var(--font-space-grotesk);
   }
   
@@ -145,34 +146,26 @@
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     }
   }
-  .servicesSection {
-    background-color: #0f2344;
-    padding: 4rem 1rem;
-  }
-  
+
   .inner {
     max-width: 1000px;
     margin: 0 auto;
     text-align: center;
   }
   
-  .title {
-    font-family: Space Grotesk, sans-serif;
-    font-size: 2.5rem;
-    color: #ffffff;
-    margin-bottom: 0.5rem;
-  }
-  
   .intro {
     font-family: Space Grotesk, sans-serif;
     font-size: 1.1rem;
     color: #cbd5e1;
+    margin:1.5rem;
     margin-bottom: 2rem;
+
   }
   
   .grid {
     display: grid;
     gap: 1.5rem;
+    margin: 1.5rem;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   }
   

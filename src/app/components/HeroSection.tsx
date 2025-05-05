@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Modal from './Modal';
 import styles from '../styles/HeroSection.module.css';
+import Button from '../components/Button';
 
 export default function HeroSection() {
   const router = useRouter();
@@ -84,12 +85,12 @@ export default function HeroSection() {
             </span>{' '}
             at no cost.
           </p>
-          <button
+          <Button
             className={styles.freeAidButton}
             onClick={() => openForm('First Aid')}
           >
             Get First Aid
-          </button>
+          </Button>
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import styles from "../styles/ServicesSection.module.css";
 import Modal from "./Modal";
+import Button from '../components/Button';
 
 export default function ServicesSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -103,7 +104,7 @@ export default function ServicesSection() {
                 {openIndex === idx ? (
                   <div className={styles.cardBody}>
                     <p className={styles.cardDescription}>{svc.description}</p>
-                    <button
+                    <Button
                       className={styles.button}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -112,7 +113,7 @@ export default function ServicesSection() {
                       }}
                     >
                       {svc.button}
-                    </button>
+                    </Button>
                   </div>
                 ) : (
                   <div className={styles.expandHint}>↓ Tap to learn more</div>

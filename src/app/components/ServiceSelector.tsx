@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../styles/ServiceSelector.module.css';
+import Button from '../components/Button';
 
 interface ServiceSelectorProps {
   domain: string;
@@ -51,7 +52,7 @@ export default function ServiceSelector({
         </select>
       </div>
 
-      <button
+      <Button
         type="button"
         aria-label="Start Free Scan"
         disabled={isDisabled}
@@ -59,7 +60,7 @@ export default function ServiceSelector({
         onClick={onButtonClick}
       >
         Free Scan
-      </button>
+      </Button>
     </div>
   );
 }
