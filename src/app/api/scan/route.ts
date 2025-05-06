@@ -1,78 +1,68 @@
-// src/app/api/scan/route.ts
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { Redis }        from '@upstash/redis'
+// File: src/app/api/scan/route.ts
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
-// ─── Setup Supabase & Redis clients ─────────────────────────────────
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+const SUPABASE_URL = process.env.SUPABASE_URL!;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const redis = new Redis({
-  url:   process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-})
+export const dynamic = 'force-dynamic';
 
-// ─── Enforce dynamic behavior ────────────────────────────────────────
-export const dynamic = 'force-dynamic'
-
-// ─── Only allow POST ────────────────────────────────────────────────
-export async function GET() {
-  console.warn('[api/scan] GET attempted – only POST is supported')
-  return NextResponse.json({ error: 'Method GET not allowed' }, { status: 405 })
-}
-
-export async function POST(req: NextRequest) {
-  console.log('[api/scan] ▶ POST handler start @', new Date().toISOString())
-  console.log('[api/scan] incoming URL:', req.url)
-
-  // 1) Parse + validate JSON
-  let body: { site: string; email: string }
+export async function POST(request: Request) {
   try {
-    body = await req.json()
-    console.log('[api/scan] parsed body:', body)
-  } catch (err) {
-    console.error('[api/scan] ❌ JSON parse error:', err)
-    return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
+    const body = await request.json();
+    const site  = typeof body.site  === 'string' ? body.site.trim()  : '';
+    const email = typeof body.email === 'string' ? body.email.trim() : '';
+    if (!site || !email) {
+      return NextResponse.json(
+        { message: 'Both site and email are required' },
+        { status: 400 }
+      );
+    }
+
+    // 1) Rate‑limit: 24h per site+email
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count, error: countError } = await supabase
+      .from('scans')
+      .select('id', { count: 'exact', head: true })
+      .eq('site', site)
+      .eq('email', email)
+      .gte('created_at', oneDayAgo);
+
+    if (countError) {
+      console.error('[scan] rate‑check error', countError);
+    } else if ((count ?? 0) > 0) {
+      return NextResponse.json(
+        {
+          message:
+            'You’ve already scanned this site in the last 24 hours. Please try again later.',
+        },
+        { status: 429 }
+      );
+    }
+
+    // 2) Insert new scan
+    const { data, error: insertErr } = await supabase
+      .from('scans')
+      .insert({ site, email, status: 'pending' })
+      .select('id')
+      .single();
+
+    if (insertErr || !data) {
+      console.error('[scan] insert error', insertErr);
+      return NextResponse.json(
+        { message: insertErr?.message ?? 'Failed to start scan.' },
+        { status: 500 }
+      );
+    }
+
+    // 3) Enqueue scan job (your existing logic)
+    // await enqueueScan(data.id);
+
+    return NextResponse.json({ scanId: data.id }, { status: 202 });
+  } catch (err: unknown) {
+    console.error('[scan] unexpected error', err);
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ message }, { status: 500 });
   }
-
-  const { site: rawSite, email } = body
-  if (!rawSite || !email) {
-    console.warn('[api/scan] ❌ Missing site or email')
-    return NextResponse.json(
-      { error: '`site` and `email` are required' },
-      { status: 400 }
-    )
-  }
-
-  // 2) Insert a new scan row
-  const today = new Date().toISOString().slice(0, 10)
-  console.log('[api/scan] 🗄️ Inserting scan record for:', rawSite, email)
-  const { data, error } = await supabase
-    .from('scans')
-    .insert([{ site: rawSite.trim(), email, status: 'pending', created_day: today }])
-    .select('id')
-    .single()
-
-  if (error || !data) {
-    console.error('[api/scan] ❌ DB insert error:', error)
-    return NextResponse.json(
-      { error: error?.message || 'Database error' },
-      { status: 500 }
-    )
-  }
-  console.log(`[api/scan] ✅ Inserted scan ID ${data.id}`)
-
-  // 3) Enqueue into Redis stream
-  try {
-    await redis.xadd('scan:queue', '*', { scanId: String(data.id) })
-    console.log(`[api/scan] ✅ Enqueued scan ID ${data.id} into Redis stream`)
-  } catch (e) {
-    console.warn('[api/scan] ⚠️ Could not enqueue scan ID', data.id, e)
-  }
-
-  // 4) Return immediately with 202
-  console.log(`[api/scan] ← responding 202 with scanId ${data.id}`)
-  return NextResponse.json({ scanId: data.id }, { status: 202 })
 }

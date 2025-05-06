@@ -26,7 +26,9 @@ export type VitalKey = MetricKey;
 ---------------------------------------------------------------- */
 export interface PSIResult {
   categories : Record<CategoryKey, { score: number }>
-  metrics    : Record<MetricKey, { value: number; unit: string }>
+  metrics    : Record<MetricKey, {
+      score: number; value: number; unit: string 
+}>
   screenshots: string[]
 
   /** only present if you requested the filmstrip */

@@ -1,21 +1,17 @@
-// src/app/scan/ScanResults.tsx
-// ---------------------------------------------------------------
+// File: src/app/scan/ScanResults.tsx
 'use client';
 
-import React              from 'react';
-import Image              from 'next/image';
+import React from 'react';
+import Image from 'next/image';
 
-import styles             from '../styles/ScanPage.module.css';
-import MetricCard         from '@/app/components/MetricCard';
-import { buildServiceRecs }        from '@/lib/services';
-import { buildHeroSummary }        from '@/lib/scanHelpers';
-import { vitalLabels }             from '@/lib/vitalLabels';
-import { categoryLabels }          from '@/lib/scanMetrics';
-import { formatValue }             from '@/lib/scanMetrics';
+import styles from '../styles/ScanPage.module.css';
+import MetricCard from '@/app/components/MetricCard';
+import { buildServiceRecs } from '@/lib/services';
+import { buildHeroSummary } from '@/lib/scanHelpers';
+import { vitalLabels } from '@/lib/vitalLabels';
+import { categoryLabels, formatValue } from '@/lib/scanMetrics';
 import type { PSIResult, MetricKey } from '@/types/webVitals';
 import Button from '../components/Button';
-
-
 
 // ---------------------------------------------------------------
 // Helpers
@@ -23,15 +19,15 @@ import Button from '../components/Button';
 const vitalKeys = Object.keys(vitalLabels) as MetricKey[];
 
 interface Props {
-  domain:   string;
-  result:   PSIResult;
-  onRerun:  () => void;
+  domain:  string;
+  result:  PSIResult;
+  onRerun: () => void;
 }
 
 const ScanResults: React.FC<Props> = ({ domain, result, onRerun }) => {
-  const audits     = result.audits ?? {};
-  const filmData   = audits['final-screenshot']?.details?.data as string | undefined;
-  const services   = buildServiceRecs(result.categories);
+  const audits   = result.audits ?? {};
+  const filmData = audits['final-screenshot']?.details?.data as string | undefined;
+  const services = buildServiceRecs(result.categories);
 
   // -------------------------------------------------------------
   // Render
@@ -71,13 +67,15 @@ const ScanResults: React.FC<Props> = ({ domain, result, onRerun }) => {
       <div className={styles.grid}>
         {Object.entries(result.categories).map(([key, { score }]) => (
           <div key={key} className={styles.card}>
-            <div className={styles.cardLabel}>{categoryLabels[key as keyof typeof categoryLabels]}</div>
+            <div className={styles.cardLabel}>
+              {categoryLabels[key as keyof typeof categoryLabels]}
+            </div>
             <div className={styles.cardScore}>{Math.round(score * 100)}/100</div>
           </div>
         ))}
       </div>
 
-      {/* ── Key check‑ups section ────────────────────────────── */}
+      {/* ── Key check‑ups & Advice ────────────────────────────── */}
       <h3 className={styles.subheading}>Key Check‑ups&nbsp;& Advice</h3>
       <p className={styles.sectionIntro}>
         Five clinical metrics – each with your personalised diagnosis & quick‑win prescription.
@@ -87,14 +85,16 @@ const ScanResults: React.FC<Props> = ({ domain, result, onRerun }) => {
         {vitalKeys.map(id => {
           const audit     = audits[id] ?? { displayValue: '0', score: 0 };
           const rawString = audit.displayValue as string | undefined;
-          const numeric   = rawString ? parseFloat(rawString.replace(/[^\d.]/g, '')) : 0;
-          const value     = rawString ? formatValue(id, numeric) : 'N/A';
-          const pct       = audit.score ? Math.round(audit.score * 100) : 0;
+          const numeric   = rawString
+            ? parseFloat(rawString.replace(/[^\d.]/g, ''))
+            : 0;
+          const value = rawString ? formatValue(id, numeric) : 'N/A';
+          const pct   = Math.round((audit.score ?? 0) * 100);
           const { title, blurb } = vitalLabels[id];
 
           return (
             <MetricCard
-              key={id} 
+              key={id}
               id={id}
               title={title}
               blurb={blurb}
