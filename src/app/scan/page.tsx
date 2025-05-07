@@ -146,7 +146,6 @@ export default function ScanPage() {
   /* once ScanLoader has finished fading out */
   const handleLoaderFadeOut = () => {
     setPhase('results');
-    toast.success('Report complete!');
   };
 
   /* UI by phase */
