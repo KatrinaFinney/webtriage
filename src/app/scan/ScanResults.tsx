@@ -75,7 +75,7 @@ export default function ScanResults({
             alt="Site screenshot"
             width={640}
             height={360}
-            className={styles.previewImg}
+            className={styles.screenshotWrapper}
             unoptimized
             priority
           />
@@ -96,7 +96,7 @@ export default function ScanResults({
           {buildHeroSummary(result.categories)}
         </p>
       </div>
-      
+
       {/* Vital Stats */}
       <div className={`${styles.glassCard} ${styles.dashboardSection}`}>
         <h3
