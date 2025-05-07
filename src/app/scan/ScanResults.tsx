@@ -82,6 +82,21 @@ export default function ScanResults({
         </div>
       )}
 
+
+      {/* Website Health Snapshot */}
+      <div
+        className={`${styles.glassCard} ${styles.heroSummarySection}`}
+      >
+        <h3
+          className={`${styles.sectionHeader} ${styles.centerText}`}
+        >
+          Website Health Snapshot
+        </h3>
+        <p className={styles.heroSummary}>
+          {buildHeroSummary(result.categories)}
+        </p>
+      </div>
+      
       {/* Vital Stats */}
       <div className={`${styles.glassCard} ${styles.dashboardSection}`}>
         <h3
@@ -116,20 +131,6 @@ export default function ScanResults({
             }
           )}
         </div>
-      </div>
-
-      {/* Website Health Snapshot */}
-      <div
-        className={`${styles.glassCard} ${styles.heroSummarySection}`}
-      >
-        <h3
-          className={`${styles.sectionHeader} ${styles.centerText}`}
-        >
-          Website Health Snapshot
-        </h3>
-        <p className={styles.heroSummary}>
-          {buildHeroSummary(result.categories)}
-        </p>
       </div>
 
       {/* Key Vitals */}
