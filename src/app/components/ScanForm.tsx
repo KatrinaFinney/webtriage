@@ -21,9 +21,9 @@ export default function ScanForm({
 }: ScanFormProps) {
   return (
     <div className={styles.formContainer}>
-      <h1 className={styles.title}>Website Urgent Care</h1>
+      <h1 className={styles.title}>Free First Aid Scan</h1>
       <p className={styles.subtext}>
-        Enter your domain &amp; email for a free triage scan.
+        Enter your domain &amp; email for a free website scan.
       </p>
 
       <input

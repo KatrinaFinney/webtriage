@@ -1,40 +1,48 @@
-/* ------------------------------------------------------------------
-   MetricCard – card for a single Lighthouse metric
--------------------------------------------------------------------*/
+// File: src/app/components/MetricCard.tsx
 'use client';
 
-import React            from 'react';
-import styles           from '../styles/ScanPage.module.css';
+import React from 'react';
+import styles from '../styles/ScanPage.module.css';
 
-import type { MetricKey }   from '@/types/webVitals';
-import { vitalLabels }      from '../../lib/vitalLabels';
-import { formatValue , diagnosisFor }      from '../../lib/scanMetrics';
-import { statusClass }      from '../../lib/scanHelpers';
+import type { MetricKey } from '@/types/webVitals';
+import { metricConfigs }  from '@/lib/scanMetrics';
+import { formatValue }    from '@/lib/scanMetrics';
+import { diagnosisFor }   from '@/lib/scanMetrics';
+import { statusClass }    from '@/lib/scanHelpers';
 
 interface Props {
-  id:       MetricKey;
-  pctScore: number;
-  rawValue: string | undefined;
-  title:     string;   
-  blurb:     string;
+  id:    MetricKey;
+  score: number;  // 0–100
+  value: number;  // raw numeric metric value
 }
 
-const MetricCard: React.FC<Props> = ({ id, pctScore, rawValue }) => {
-  const { title, blurb } = vitalLabels[id];
-  const badgeClass       = styles[statusClass(pctScore)];
-  const niceValue        = rawValue ? formatValue(id, +rawValue) : '—';
+const MetricCard: React.FC<Props> = ({ id, score, value }) => {
+  // find the config for this metric
+  const cfg = metricConfigs.find(m => m.id === id)!;
+  const display = `${formatValue(id, value)}${cfg.unit}`;
+  const narrative = diagnosisFor(id, score);
+
+  // pick a badge class based on the score
+  const badgeClass = statusClass(score);
 
   return (
     <div className={styles.auditCard}>
-      <span className={`${styles.statusBadge} ${badgeClass}`}>{pctScore}/100</span>
+      {/* Score badge */}
+      <span className={`${styles.statusBadge} ${styles[badgeClass]}`}>
+        {score}/100
+      </span>
 
+      {/* Title + subtitle */}
       <header className={styles.auditHeader}>
-        <h4 className={styles.auditTitle}>{title}</h4>
-        <span className={styles.auditSubtitle}>{blurb}</span>
+        <h4 className={styles.auditTitle}>{cfg.title}</h4>
+        <span className={styles.auditSubtitle}>{cfg.blurb}</span>
       </header>
 
-      <div className={styles.auditValue}>{niceValue}</div>
-      <p className={styles.reportParagraph}>{diagnosisFor(id)}</p>
+      {/* Numeric value */}
+      <div className={styles.auditValue}>{display}</div>
+
+      {/* Diagnostic narrative */}
+      <p className={styles.reportParagraph}>{narrative}</p>
     </div>
   );
 };

@@ -14,17 +14,17 @@ export function buildHeroSummary(c: PSIResult['categories']): string {
 
   const lines: string[] = [];
   lines.push(
-    p < 70 ? `⚡️ Load speed ${p}/100 – patients feel the lag.` :
-    p < 90 ? `🚀 Load speed ${p}/100 – healthy but could be fitter.` :
-             `🚀 Lightning‑fast at ${p}/100 – exemplary cardio!`
+    p < 70 ? ` Load speed ${p}/100 – patients feel the lag.` :
+    p < 90 ? ` Load speed ${p}/100 – healthy but could be fitter.` :
+             ` Lightning‑fast at ${p}/100 – exemplary cardio!`
   );
   lines.push(
-    a < 70 ? `♿️ Accessibility ${a}/100 – some users are locked out.` :
-             `♿️ Accessibility ${a}/100 – welcome to all visitors.`
+    a < 70 ? ` Accessibility ${a}/100 – some users are locked out.` :
+             ` Accessibility ${a}/100 – welcome to all visitors.`
   );
   lines.push(
-    s < 70 ? `🔍 SEO ${s}/100 – hidden in the waiting room.` :
-             `🔍 SEO ${s}/100 – easy to discover.`
+    s < 70 ? ` SEO ${s}/100 – hidden in the waiting room.` :
+             ` SEO ${s}/100 – easy to discover.`
   );
   return lines.join(' ');
 }

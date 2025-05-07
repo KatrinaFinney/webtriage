@@ -1,59 +1,59 @@
 // File: src/app/scan/ScanResults.tsx
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-
 import styles from '../styles/ScanPage.module.css';
-import MetricCard from '@/app/components/MetricCard';
-import { buildServiceRecs } from '@/lib/services';
-import { buildHeroSummary } from '@/lib/scanHelpers';
-import { vitalLabels } from '@/lib/vitalLabels';
-import { categoryLabels, formatValue } from '@/lib/scanMetrics';
-import type { PSIResult, MetricKey } from '@/types/webVitals';
 import Button from '../components/Button';
 
-// ---------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------
-const vitalKeys = Object.keys(vitalLabels) as MetricKey[];
+import type { PSIResult, CategoryKey } from '@/types/webVitals';
+import { buildServiceRecs } from '@/lib/services';
+import { buildHeroSummary } from '@/lib/scanHelpers';
+import { metricConfigs } from '@/lib/scanMetrics';
+import { formatValue, diagnosisFor, categoryLabels, categorySummaries } from '@/lib/scanMetrics';
 
 interface Props {
-  domain:  string;
-  result:  PSIResult;
-  onRerun: () => void;
+  domain:    string;
+  result:    PSIResult;
+  scannedAt: string;
+  onRerun:   () => void;
 }
 
-const ScanResults: React.FC<Props> = ({ domain, result, onRerun }) => {
-  const audits   = result.audits ?? {};
-  const filmData = audits['final-screenshot']?.details?.data as string | undefined;
+export default function ScanResults({
+  domain,
+  result,
+  scannedAt,
+  onRerun,
+}: Props) {
+  const [mounted, setMounted] = useState(false);
   const services = buildServiceRecs(result.categories);
 
-  // -------------------------------------------------------------
-  // Render
-  // -------------------------------------------------------------
-  return (
-    <div className={styles.resultsContainer}>
-      {/* ── Heading ────────────────────────────────────────────── */}
-      <h2 className={styles.resultTitle}>
-        Vital&nbsp;Signs for <span className={styles.resultDomain}>{domain}</span>
-      </h2>
-      <p className={styles.overview}>
-        Your one‑page triage snapshot — clear&nbsp;vitals, clear&nbsp;priorities, all in under a&nbsp;minute.
-      </p>
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-      {/* ── Hero summary ──────────────────────────────────────── */}
-      <div className={styles.heroSummary}>
-        <h3 className={styles.heroHeading}>Vitals Summary</h3>
-        <p>{buildHeroSummary(result.categories)}</p>
+  const safeMetrics = result.metrics ?? {};
+  const screenshot  = result.screenshots?.[0];
+
+  return (
+    <div className={styles.dashboardContainer}>
+
+      {/* ── Header Card ───────────────────────────────────────── */}
+      <div className={styles.glassCard}>
+        <h2 className={`${styles.resultTitle} ${styles.centerText}`}>
+          First Aid Scan for <span className={styles.resultDomain}>{domain}</span>
+        </h2>
+        <p className={`${styles.scanDate} ${styles.centerText}`}>
+          Scanned on: {scannedAt}
+        </p>
       </div>
 
-      {/* ── Instant preview (boxed) ───────────────────────────── */}
-      {filmData && (
-        <div className={styles.previewBox}>
+      {/* ── Screenshot Preview ─────────────────────────────────── */}
+      {screenshot && (
+        <div className={`${styles.glassCard} ${styles.previewBox}`}>
           <Image
-            src={filmData}
-            alt="Instant preview"
+            src={screenshot}
+            alt="Site screenshot"
             width={640}
             height={360}
             className={styles.previewImg}
@@ -63,58 +63,88 @@ const ScanResults: React.FC<Props> = ({ domain, result, onRerun }) => {
         </div>
       )}
 
-      {/* ── Category score cards ─────────────────────────────── */}
-      <div className={styles.grid}>
-        {Object.entries(result.categories).map(([key, { score }]) => (
-          <div key={key} className={styles.card}>
-            <div className={styles.cardLabel}>
-              {categoryLabels[key as keyof typeof categoryLabels]}
-            </div>
-            <div className={styles.cardScore}>{Math.round(score * 100)}/100</div>
-          </div>
-        ))}
+      {/* ── Vital Stats (cards) ───────────────────────────────────── */}
+      <div className={`${styles.glassCard} ${styles.dashboardSection}`}>
+        <h3 className={`${styles.sectionHeader} ${styles.centerText}`}>
+          Vital Stats
+        </h3>
+        <div className={styles.dashboardGrid}>
+          {Object.entries(result.categories).map(([key, { score }], i) => {
+            const pct = Math.round(score * 100);
+            const catKey = key as CategoryKey;
+            return (
+              <div
+                key={key}
+                className={`${styles.dashboardCard} ${mounted ? styles.fadeInUp : ''}`}
+                style={{ animationDelay: `${i * 100}ms` }}
+              >
+                <h4 className={styles.centerText}>
+                  {categoryLabels[catKey]}
+                </h4>
+                <p className={styles.centerText}>
+                  <strong>{pct}/100</strong>
+                </p>
+                <p className={styles.vitalExplanation}>
+                  {categorySummaries[catKey]}
+                </p>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* ── Key check‑ups & Advice ────────────────────────────── */}
-      <h3 className={styles.subheading}>Key Check‑ups&nbsp;& Advice</h3>
-      <p className={styles.sectionIntro}>
-        Five clinical metrics – each with your personalised diagnosis & quick‑win prescription.
-      </p>
-
-      <div className={styles.auditGrid}>
-        {vitalKeys.map(id => {
-          const audit     = audits[id] ?? { displayValue: '0', score: 0 };
-          const rawString = audit.displayValue as string | undefined;
-          const numeric   = rawString
-            ? parseFloat(rawString.replace(/[^\d.]/g, ''))
-            : 0;
-          const value = rawString ? formatValue(id, numeric) : 'N/A';
-          const pct   = Math.round((audit.score ?? 0) * 100);
-          const { title, blurb } = vitalLabels[id];
-
-          return (
-            <MetricCard
-              key={id}
-              id={id}
-              title={title}
-              blurb={blurb}
-              rawValue={value}
-              pctScore={pct}
-            />
-          );
-        })}
-      </div>
-
-      {/* ── Services / Next Steps ─────────────────────────────── */}
-      <section className={styles.nextSteps}>
-        <h3 className={styles.nextStepsTitle}>Next Steps</h3>
-        <p className={styles.nextStepsIntro}>
-          Based on today’s vitals, we recommend starting with the plans below. Pick the care option that
-          matches your goals — or explore the full catalogue.
+      {/* ── Website Health Snapshot ────────────────────────────── */}
+      <div className={`${styles.glassCard} ${styles.heroSummarySection}`}>
+        <h3 className={`${styles.sectionHeader} ${styles.centerText}`}>
+          Website Health Snapshot
+        </h3>
+        <p className={styles.heroSummary}>
+          {buildHeroSummary(result.categories)}
         </p>
+      </div>
 
+      {/* ── Key Vitals ─────────────────────────────────────────── */}
+      <div className={`${styles.glassCard} ${styles.dashboardSection}`}>
+        <h3 className={`${styles.sectionHeader} ${styles.centerText}`}>
+          Key Vitals
+        </h3>
+        <div className={styles.dashboardGrid}>
+          {metricConfigs.map((m, i) => {
+            const { id, title, blurb, unit } = m;
+            const metric = safeMetrics[id] ?? { value: 0, score: 0, unit };
+            return (
+              <div
+                key={id}
+                className={`${styles.dashboardCard} ${mounted ? styles.fadeInUp : ''}`}
+                style={{ animationDelay: `${i * 100}ms` }}
+              >
+                <h4 className={styles.centerText}>{title}</h4>
+                <p className={styles.centerText} style={{ color: '#94a3b8' }}>
+                  {blurb}
+                </p>
+                <p className={styles.centerText}>
+                  <strong>
+                    {formatValue(id, metric.value)}{unit}
+                  </strong>
+                </p>
+                <div className={styles.progressBar} hidden />
+                <p className={styles.centerText}>{metric.score}%</p>
+                <p className={styles.reportParagraph}>
+                  {diagnosisFor(id, metric.score)}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Next Steps ────────────────────────────────────────── */}
+      <div className={`${styles.glassCard} ${styles.dashboardSection}`}>
+        <h3 className={`${styles.nextStepsTitle} ${styles.centerText}`}>
+          Next Steps
+        </h3>
         <div className={styles.servicesGrid}>
-          {services.map(svc => (
+          {services.map((svc) => (
             <div key={svc.slug} className={styles.serviceCard}>
               <span className={styles.servicePriceBadge}>{svc.price}</span>
               <h4 className={styles.serviceTitle}>{svc.title}</h4>
@@ -128,27 +158,14 @@ const ScanResults: React.FC<Props> = ({ domain, result, onRerun }) => {
             </div>
           ))}
         </div>
+      </div>
 
-        <div className={styles.fullTriageBanner}>
-          <p>
-            Ready for a deeper diagnosis? Book a full‑site Triage or hand the stethoscope
-            to our Continuous Care team and relax while we keep every vital in the green.
-          </p>
-          <Button
-            className={styles.fullTriageButton}
-            onClick={() => (window.location.href = '/order?service=Site%20Triage')}
-          >
-            Begin Site Treatment
-          </Button>
-        </div>
-      </section>
-
-      {/* ── Rerun button ─────────────────────────────────────── */}
-      <Button className={styles.rerunFloating} onClick={onRerun}>
-        Scan another site
-      </Button>
+      {/* ── Scan Another Site ─────────────────────────────────── */}
+      <div style={{ textAlign: 'center', margin: '2rem 0' }}>
+        <Button className={styles.darkButton} onClick={onRerun}>
+          Scan Another Site
+        </Button>
+      </div>
     </div>
   );
-};
-
-export default ScanResults;
+}

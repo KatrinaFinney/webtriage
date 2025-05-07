@@ -15,14 +15,26 @@ import type { PSIResult } from '@/types/webVitals';
 type Phase = 'form' | 'pending' | 'results' | 'error';
 const REVALIDATE_MS = 3000;
 
+// messages to rotate every 15s
+const loadingMessages = [
+  'Performing your free first aid scan…',
+  'Checking vital signs…',
+  'Gathering key metrics…',
+  'Finalizing your report…',
+];
+
 export default function ScanPage() {
-  const [domain,   setDomain  ] = useState('');
-  const [email,    setEmail   ] = useState('');
-  const [phase,    setPhase   ] = useState<Phase>('form');
-  const [scanId,   setScanId  ] = useState<number|null>(null);
-  const [logs,     setLogs    ] = useState<string[]>([]);
-  const [result,   setResult  ] = useState<PSIResult|null>(null);
-  const [errorMsg, setErrorMsg] = useState<string|null>(null);
+  const [domain,     setDomain   ] = useState('');
+  const [email,      setEmail    ] = useState('');
+  const [phase,      setPhase    ] = useState<Phase>('form');
+  const [scanId,     setScanId   ] = useState<number | null>(null);
+  const [logs,       setLogs     ] = useState<string[]>([]);
+  const [result,     setResult   ] = useState<PSIResult | null>(null);
+  const [scannedAt,  setScannedAt] = useState<string>('');
+  const [errorMsg,   setErrorMsg ] = useState<string | null>(null);
+
+  // which loading message to show
+  const [msgIndex, setMsgIndex] = useState(0);
 
   /* start a new scan */
   const startScan = async () => {
@@ -48,6 +60,17 @@ export default function ScanPage() {
     }
   };
 
+  /* rotate the loading message every 15 s */
+  useEffect(() => {
+    if (phase === 'pending') {
+      setMsgIndex(0);
+      const intv = setInterval(() => {
+        setMsgIndex(i => (i + 1) % loadingMessages.length);
+      }, 15000);
+      return () => clearInterval(intv);
+    }
+  }, [phase]);
+
   /* poll for status */
   useEffect(() => {
     if (phase !== 'pending' || scanId == null) return;
@@ -57,10 +80,11 @@ export default function ScanPage() {
         const res = await fetch(`/api/scan/status/${scanId}`, { cache: 'no-store' });
         if (!res.ok) throw new Error(`Status ${res.status}`);
         const payload = (await res.json()) as {
-          status: string;
-          result?: PSIResult;
-          logs: string[];
-          error?: string;
+          status:    string;
+          result?:   PSIResult;
+          logs:      string[];
+          error?:    string;
+          scannedAt?: string;
         };
 
         setLogs(payload.logs);
@@ -75,8 +99,9 @@ export default function ScanPage() {
           clearInterval(iv);
           vibrate('success');
           setResult(payload.result);
+          setScannedAt(payload.scannedAt ?? '');
           setPhase('results');
-          toast.success('📧 Report emailed!');
+          toast.success('Report complete!');
         }
       } catch (err: unknown) {
         clearInterval(iv);
@@ -110,8 +135,14 @@ export default function ScanPage() {
     return (
       <div className={styles.page}>
         <div className={styles.scanningContainer}>
-          <LoaderRadar />
-          <p className={styles.runningText}>Performing your website triage…</p>
+          {/* larger spinner */}
+          <div className={styles.loaderWrapper}>
+            <LoaderRadar />
+          </div>
+          {/* rotating message */}
+          <p className={styles.runningText}>
+            {loadingMessages[msgIndex]}
+          </p>
           {logs.length > 0 && (
             <ul className={styles.debugList}>
               {logs.map((l, i) => <li key={i}>{l}</li>)}
@@ -127,9 +158,7 @@ export default function ScanPage() {
       <div className={styles.page}>
         <div className={styles.glassCard}>
           <h2>Oops, something went wrong</h2>
-          <p style={{ color: '#f88', margin: '1rem 0' }}>
-            {errorMsg}
-          </p>
+          <p style={{ color: '#f88', margin: '1rem 0' }}>{errorMsg}</p>
           <button
             className={styles.darkButton}
             onClick={() => {
@@ -151,9 +180,11 @@ export default function ScanPage() {
         <ScanResults
           domain={domain}
           result={result}
+          scannedAt={scannedAt}
           onRerun={() => {
             setResult(null);
             setScanId(null);
+            setScannedAt('');
             setPhase('form');
           }}
         />

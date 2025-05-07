@@ -9,9 +9,10 @@ import { generatePdf }         from '@/lib/pdf';
 import { buildServiceRecs }    from '@/lib/services';
 import type { PSIResult }      from '@/types/webVitals';
 
-const SUPABASE_URL = process.env.SUPABASE_URL!;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase     = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 const redis = new Redis({
   url:   process.env.UPSTASH_REDIS_REST_URL!,
@@ -19,9 +20,10 @@ const redis = new Redis({
 });
 
 interface CachePayload {
-  status: string;
-  result?: PSIResult;
-  logs:   string[];
+  status:    string;
+  logs:      string[];      // always empty until you add a logs column
+  result?:   PSIResult;
+  scannedAt?: string;       // raw timestamp string
 }
 
 export async function GET(request: Request) {
@@ -33,7 +35,7 @@ export async function GET(request: Request) {
 
   const cacheKey = `scan:${scanId}:status`;
 
-  // Try Redis cache
+  // 1) Try Redis cache
   try {
     const raw = await redis.get<string | CachePayload>(cacheKey);
     if (raw) {
@@ -45,13 +47,13 @@ export async function GET(request: Request) {
       return res;
     }
   } catch {
-    // cache miss → continue
+    // ignore cache lookup failures
   }
 
-  // Fetch from Supabase
+  // 2) Fetch from Supabase (no logs column)
   const { data, error } = await supabase
     .from('scans')
-    .select('status, results, site, email')
+    .select('status, results, finished_at, site, email')
     .eq('id', scanId)
     .single();
 
@@ -62,54 +64,53 @@ export async function GET(request: Request) {
     );
   }
 
+  // 3) Build our payload
   const payload: CachePayload = {
     status: data.status,
-    logs:   [],
+    logs:   [],  // stub until you implement real logs
     ...(data.status === 'done' && data.results
-      ? { result: data.results as PSIResult }
+      ? {
+          result:    data.results as PSIResult,
+          scannedAt: data.finished_at as string,
+        }
       : {})
   };
 
-  // On done → generate PDF, send email & cache
+  // 4) If done → PDF, email, cache
   if (data.status === 'done' && data.results) {
     try {
-      // a) Generate PDF attachment
       const buf = await generatePdf({
         site:      data.site,
         result:    data.results as PSIResult,
-        scannedAt: new Date().toLocaleString(),
+        scannedAt: payload.scannedAt!,
       });
       const pdfB64 = Buffer.from(buf).toString('base64');
 
-      // b) Services HTML for email
       const servicesHtml = buildServiceRecs((data.results as PSIResult).categories)
         .map(s => `<li style="margin-bottom:12px">
           <a href="${s.link}" style="color:#4fd1c5;font-weight:700">${s.title}</a> — ${s.summary}
         </li>`)
         .join('');
 
-      // c) Send email
       await resend.emails.send({
         from:    'onboarding@webtriage.dev',
         to:      [data.email],
         subject: `Your WebTriage Report for ${data.site}`,
-        html: `
-          <html><body>
-            <p>Your site scan is complete.</p>
+        html: `<html><body>
+            <p>Your site scan is complete — see your full report below:</p>
             <ul>${servicesHtml}</ul>
-          </body></html>
-        `,
+          </body></html>`,
         attachments: [{ content: pdfB64, filename: 'webtriage-report.pdf' }],
       });
     } catch (e) {
       console.error(`Scan ${scanId} email/PDF error:`, e);
     }
 
-    // Cache the done payload
+    // cache the done payload (includes scannedAt)
     await redis.set(cacheKey, JSON.stringify(payload), { ex: 3600 });
   }
 
-  // Return JSON with headers
+  // 5) Return JSON with cache headers
   const res = NextResponse.json(payload);
   res.headers.set('x-cache', cacheHit ? 'HIT' : 'MISS');
   res.headers.set('Cache-Control', 'public, s-maxage=3, stale-while-revalidate=2');

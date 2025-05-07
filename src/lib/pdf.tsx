@@ -1,4 +1,5 @@
 // File: src/lib/pdf.tsx
+
 import React from 'react';
 import { renderToBuffer } from '@react-pdf/renderer';
 import ReportPdf          from '@/app/components/ReportPdf';
@@ -15,12 +16,17 @@ export async function generatePdf({
   result,
   scannedAt,
 }: PdfParams) {
-  // Guarantee a string for scannedAt
+  // Guarantee we always pass a string timestamp
   const scannedAtStr = scannedAt ?? new Date().toLocaleString();
 
-  // Render to a Buffer
+  // Render our PDF React component into a Buffer
   const buffer = await renderToBuffer(
-    <ReportPdf site={site} result={result} scannedAt={scannedAtStr} />
+    <ReportPdf
+      site={site}
+      result={result}
+      scannedAt={scannedAtStr}
+    />
   );
+
   return buffer;
 }
