@@ -1,11 +1,11 @@
 // File: src/app/components/ReportPdf.tsx
-
 import React from 'react';
 import { View, Text, StyleSheet } from '@react-pdf/renderer';
 import type { PSIResult, MetricKey } from '@/types/webVitals';
 import { formatValue } from '@/lib/scanMetrics';
-import { metricAdvicePools } from '@/app/api/scan/types'
-import { buildHeroSummary }       from '@/lib/scanHelpers';
+import { buildHeroSummary } from '@/lib/scanHelpers';
+import { metricAdvicePools } from '@/lib/metricAdvicePools';
+
 
 interface ReportPdfProps {
   site:      string;
@@ -13,15 +13,11 @@ interface ReportPdfProps {
   scannedAt: string;
 }
 
-export default function ReportPdf({
-  site,
-  result,
-  scannedAt,
-}: ReportPdfProps) {
-  // Destructure out the two pieces we need
-  const { metrics, categories } = result;
+export default function ReportPdf({ site, result, scannedAt }: ReportPdfProps) {
+  // <<< DEFENSIVE DESTRUCTURING >>>
+  const categories = result.categories ?? {};
+  const metrics   = result.metrics    ?? {};
 
-  // A fixed order of vitals, so we never do Object.entries on undefined
   const vitals: MetricKey[] = [
     'first-contentful-paint',
     'largest-contentful-paint',
@@ -32,11 +28,9 @@ export default function ReportPdf({
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <Text style={styles.header}>WebTriage Report for {site}</Text>
       <Text style={styles.subheader}>Scanned at: {scannedAt}</Text>
 
-      {/* Vitals Summary */}
       <View style={styles.heroSummary}>
         <Text style={styles.heroHeading}>Vitals Summary</Text>
         <Text style={styles.heroText}>
@@ -44,7 +38,6 @@ export default function ReportPdf({
         </Text>
       </View>
 
-      {/* Individual Metrics */}
       {vitals.map((id) => {
         const m = metrics[id] ?? { value: 0, score: 0, unit: '' };
         const display = formatValue(id, m.value) + m.unit;

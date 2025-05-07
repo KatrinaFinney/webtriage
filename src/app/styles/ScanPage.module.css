@@ -614,4 +614,10 @@
   color: #94a3b8;
   margin-top: 0.25rem;
 }
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  justify-items: center; /* ← centers each card */
+}
 

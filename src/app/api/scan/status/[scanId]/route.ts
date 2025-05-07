@@ -7,6 +7,7 @@ import { Redis }               from '@upstash/redis';
 import { resend }              from '@/lib/resend';
 import { generatePdf }         from '@/lib/pdf';
 import { buildServiceRecs }    from '@/lib/services';
+import normalizeLhr            from '@/lib/normalizeLhr';
 import type { PSIResult }      from '@/types/webVitals';
 
 const supabase = createClient(
@@ -21,14 +22,14 @@ const redis = new Redis({
 
 interface CachePayload {
   status:    string;
-  logs:      string[];      // always empty until you add a logs column
+  logs:      string[];
   result?:   PSIResult;
-  scannedAt?: string;       // raw timestamp string
+  scannedAt?: string;
 }
 
 export async function GET(request: Request) {
   let cacheHit = false;
-  const scanId = Number(request.url.split('/').pop());
+  const scanId = Number(new URL(request.url).pathname.split('/').pop());
   if (Number.isNaN(scanId)) {
     return NextResponse.json({ message: 'Invalid scanId' }, { status: 400 });
   }
@@ -40,17 +41,21 @@ export async function GET(request: Request) {
     const raw = await redis.get<string | CachePayload>(cacheKey);
     if (raw) {
       cacheHit = true;
-      const payload = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      const payload: CachePayload =
+        typeof raw === 'string' ? JSON.parse(raw) : raw;
       const res = NextResponse.json(payload);
       res.headers.set('x-cache', 'HIT');
-      res.headers.set('Cache-Control', 'public, s-maxage=3, stale-while-revalidate=2');
+      res.headers.set(
+        'Cache-Control',
+        'public, s-maxage=3, stale-while-revalidate=2'
+      );
       return res;
     }
   } catch {
-    // ignore cache lookup failures
+    // ignore
   }
 
-  // 2) Fetch from Supabase (no logs column)
+  // 2) Fetch from Supabase
   const { data, error } = await supabase
     .from('scans')
     .select('status, results, finished_at, site, email')
@@ -64,16 +69,16 @@ export async function GET(request: Request) {
     );
   }
 
-  // 3) Build our payload
+  // 3) Build payload, normalizing LHR → PSIResult
   const payload: CachePayload = {
     status: data.status,
-    logs:   [],  // stub until you implement real logs
+    logs:   [],
     ...(data.status === 'done' && data.results
       ? {
-          result:    data.results as PSIResult,
+          result:    normalizeLhr(data.results),
           scannedAt: data.finished_at as string,
         }
-      : {})
+      : {}),
   };
 
   // 4) If done → PDF, email, cache
@@ -81,38 +86,45 @@ export async function GET(request: Request) {
     try {
       const buf = await generatePdf({
         site:      data.site,
-        result:    data.results as PSIResult,
+        result:    payload.result!,
         scannedAt: payload.scannedAt!,
       });
       const pdfB64 = Buffer.from(buf).toString('base64');
 
-      const servicesHtml = buildServiceRecs((data.results as PSIResult).categories)
-        .map(s => `<li style="margin-bottom:12px">
-          <a href="${s.link}" style="color:#4fd1c5;font-weight:700">${s.title}</a> — ${s.summary}
-        </li>`)
+      const servicesHtml = buildServiceRecs(
+        payload.result!.categories
+      )
+        .map(
+          (s) => `<li style="margin-bottom:12px">
+            <a href="${s.link}" style="color:#4fd1c5;font-weight:700">${
+            s.title
+          }</a> — ${s.summary}
+          </li>`
+        )
         .join('');
 
       await resend.emails.send({
         from:    'onboarding@webtriage.dev',
         to:      [data.email],
         subject: `Your WebTriage Report for ${data.site}`,
-        html: `<html><body>
-            <p>Your site scan is complete — see your full report below:</p>
-            <ul>${servicesHtml}</ul>
-          </body></html>`,
+        html: `<p>Your site scan is complete — see your full report below:</p>
+               <ul>${servicesHtml}</ul>`,
         attachments: [{ content: pdfB64, filename: 'webtriage-report.pdf' }],
       });
     } catch (e) {
       console.error(`Scan ${scanId} email/PDF error:`, e);
     }
 
-    // cache the done payload (includes scannedAt)
+    // cache the normalized payload
     await redis.set(cacheKey, JSON.stringify(payload), { ex: 3600 });
   }
 
   // 5) Return JSON with cache headers
   const res = NextResponse.json(payload);
   res.headers.set('x-cache', cacheHit ? 'HIT' : 'MISS');
-  res.headers.set('Cache-Control', 'public, s-maxage=3, stale-while-revalidate=2');
+  res.headers.set(
+    'Cache-Control',
+    'public, s-maxage=3, stale-while-revalidate=2'
+  );
   return res;
 }

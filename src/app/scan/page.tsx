@@ -1,12 +1,11 @@
-// File: src/app/scan/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { vibrate } from '@/lib/haptics';
 
-import LoaderRadar from '../components/LoaderRadar';
 import ScanForm    from '../components/ScanForm';
+import ScanLoader  from '../components/ScanLoader';
 import ScanResults from './ScanResults';
 
 import styles      from '../styles/ScanPage.module.css';
@@ -15,30 +14,67 @@ import type { PSIResult } from '@/types/webVitals';
 type Phase = 'form' | 'pending' | 'results' | 'error';
 const REVALIDATE_MS = 3000;
 
-// messages to rotate every 15s
 const loadingMessages = [
-  'Performing your free first aid scan…',
-  'Checking vital signs…',
-  'Gathering key metrics…',
-  'Finalizing your report…',
+  'Warming up the server…',
+  'Measuring first bytes…',
+  'Rendering critical content…',
+  'Checking accessibility…',
+  'Analyzing SEO signals…',
+  'Capturing site snapshot…',
+  'Calculating speed index…',
+  'Evaluating layout stability…'
 ];
 
-export default function ScanPage() {
-  const [domain,     setDomain   ] = useState('');
-  const [email,      setEmail    ] = useState('');
-  const [phase,      setPhase    ] = useState<Phase>('form');
-  const [scanId,     setScanId   ] = useState<number | null>(null);
-  const [logs,       setLogs     ] = useState<string[]>([]);
-  const [result,     setResult   ] = useState<PSIResult | null>(null);
-  const [scannedAt,  setScannedAt] = useState<string>('');
-  const [errorMsg,   setErrorMsg ] = useState<string | null>(null);
+function setFavicon(href: string) {
+  let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+  link.href = href;
+}
 
-  // which loading message to show
+// --- NEW: explicit payload type for status endpoint ---
+type ScanStatusPayload = {
+  logs: string[];
+  status: 'pending' | 'done' | 'error';
+  error?: string;
+  result?: PSIResult;
+  scannedAt?: string;
+};
+
+export default function ScanPage() {
+  const [domain, setDomain]     = useState('');
+  const [email, setEmail]       = useState('');
+  const [phase, setPhase]       = useState<Phase>('form');
+  const [scanId, setScanId]     = useState<number|null>(null);
+  const [logs, setLogs]         = useState<string[]>([]);
+  const [result, setResult]     = useState<PSIResult|null>(null);
+  const [scannedAt, setScannedAt] = useState<string>('');
+  const [errorMsg, setErrorMsg] = useState<string|null>(null);
   const [msgIndex, setMsgIndex] = useState(0);
+  const [loaderComplete, setLoaderComplete] = useState(false);
+
+  /* Phase-based title + favicon updates */
+  useEffect(() => {
+    if (phase === 'pending') {
+      document.title = 'Scanning Website Vitals…';
+      setFavicon('/favicons/spinner.ico');
+    } else if (phase === 'results') {
+      document.title = 'Website Vitals Ready';
+      setFavicon('/favicons/done.ico');
+    } else if (phase === 'form') {
+      document.title = 'Start Your Website Scan';
+    } else if (phase === 'error') {
+      document.title = 'Scan Error';
+    }
+  }, [phase]);
 
   /* start a new scan */
   const startScan = async () => {
     setPhase('pending');
+    setLoaderComplete(false);
     setErrorMsg(null);
     setLogs([]);
     vibrate('start');
@@ -54,39 +90,32 @@ export default function ScanPage() {
       setScanId(scanId);
     } catch (err: unknown) {
       console.error(err);
-      const msg = err instanceof Error ? err.message : 'Scan request failed';
-      setErrorMsg(msg);
+      setErrorMsg(err instanceof Error ? err.message : 'Scan request failed');
       setPhase('error');
     }
   };
 
-  /* rotate the loading message every 15 s */
+  /* rotate the loading message every 6s */
   useEffect(() => {
     if (phase === 'pending') {
       setMsgIndex(0);
-      const intv = setInterval(() => {
+      const iv = setInterval(() => {
         setMsgIndex(i => (i + 1) % loadingMessages.length);
-      }, 15000);
-      return () => clearInterval(intv);
+      }, 6000);
+      return () => clearInterval(iv);
     }
   }, [phase]);
 
   /* poll for status */
   useEffect(() => {
     if (phase !== 'pending' || scanId == null) return;
-
     const iv = setInterval(async () => {
       try {
         const res = await fetch(`/api/scan/status/${scanId}`, { cache: 'no-store' });
         if (!res.ok) throw new Error(`Status ${res.status}`);
-        const payload = (await res.json()) as {
-          status:    string;
-          result?:   PSIResult;
-          logs:      string[];
-          error?:    string;
-          scannedAt?: string;
-        };
-
+        // --- UPDATED: cast to our explicit type ---
+        const payload = await res.json() as ScanStatusPayload;
+        console.log('🛠 scan status payload:', payload);
         setLogs(payload.logs);
 
         if (payload.status === 'error') {
@@ -100,21 +129,25 @@ export default function ScanPage() {
           vibrate('success');
           setResult(payload.result);
           setScannedAt(payload.scannedAt ?? '');
-          setPhase('results');
-          toast.success('Report complete!');
+          setLoaderComplete(true);
         }
       } catch (err: unknown) {
         clearInterval(iv);
         console.error(err);
         vibrate('error');
-        const msg = err instanceof Error ? err.message : 'Unexpected error';
-        setErrorMsg(msg);
+        setErrorMsg(err instanceof Error ? err.message : 'Unexpected error');
         setPhase('error');
       }
     }, REVALIDATE_MS);
 
     return () => clearInterval(iv);
   }, [phase, scanId]);
+
+  /* once ScanLoader has finished fading out */
+  const handleLoaderFadeOut = () => {
+    setPhase('results');
+    toast.success('Report complete!');
+  };
 
   /* UI by phase */
   if (phase === 'form') {
@@ -135,17 +168,20 @@ export default function ScanPage() {
     return (
       <div className={styles.page}>
         <div className={styles.scanningContainer}>
-          {/* larger spinner */}
           <div className={styles.loaderWrapper}>
-            <LoaderRadar />
+            <ScanLoader
+              isComplete={loaderComplete}
+              onFadeOut={handleLoaderFadeOut}
+            />
           </div>
-          {/* rotating message */}
           <p className={styles.runningText}>
             {loadingMessages[msgIndex]}
           </p>
           {logs.length > 0 && (
             <ul className={styles.debugList}>
-              {logs.map((l, i) => <li key={i}>{l}</li>)}
+              {logs.map((l, i) => (
+                <li key={i}>{l}</li>
+              ))}
             </ul>
           )}
         </div>
@@ -173,7 +209,7 @@ export default function ScanPage() {
     );
   }
 
-  /* results */
+  // results
   return (
     <div className={styles.page}>
       {result && (

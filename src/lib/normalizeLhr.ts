@@ -1,88 +1,64 @@
-// File: src/lib/normalizeLhr.ts
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Result as LHResult } from 'lighthouse';
 import type { PSIResult }          from '@/types/webVitals';
+import { metricsConfig }           from '@/lib/metricsConfig';
+
+type LHAudit = LHResult['audits'][string];
+
+// Only care about `.details.data` when it's a base64 string
+interface DetailsWithData {
+  data: string;
+}
 
 export default function normalizeLhr(lhr: LHResult): PSIResult {
+  // 1) Categories
   const categories: PSIResult['categories'] = {
-    performance      : { score: lhr.categories.performance.score  ?? 0 },
-    accessibility    : { score: lhr.categories.accessibility.score ?? 0 },
-    seo              : { score: lhr.categories.seo.score           ?? 0 },
-    'mobile-friendly': { score: lhr.categories['best-practices']?.score ?? 0 },
+    performance:      { score: lhr.categories.performance.score   ?? 0 },
+    accessibility:    { score: lhr.categories.accessibility.score ?? 0 },
+    seo:              { score: lhr.categories.seo.score           ?? 0 },
+    'mobile-friendly':{ score: lhr.categories['mobile-friendly']?.score ?? 0 },
   };
 
-  const metrics: PSIResult['metrics'] = {
-    'largest-contentful-paint': {
-      value: lhr.audits['largest-contentful-paint'].numericValue ?? 0,
-      score: Math.round((lhr.audits['largest-contentful-paint'].score ?? 0) * 100),
-      unit: 'ms',
-    },
-    'first-contentful-paint': {
-      value: lhr.audits['first-contentful-paint'].numericValue ?? 0,
-      score: Math.round((lhr.audits['first-contentful-paint'].score ?? 0) * 100),
-      unit: 'ms',
-    },
-    'speed-index': {
-      value: lhr.audits['speed-index'].numericValue ?? 0,
-      score: Math.round((lhr.audits['speed-index'].score ?? 0) * 100),
-      unit: 'ms',
-    },
-    'total-blocking-time': {
-      value: lhr.audits['total-blocking-time'].numericValue ?? 0,
-      score: Math.round((lhr.audits['total-blocking-time'].score ?? 0) * 100),
-      unit: 'ms',
-    },
-    'time-to-first-byte': {
-      value: lhr.audits['time-to-first-byte'].numericValue ?? 0,
-      score: Math.round((lhr.audits['time-to-first-byte'].score ?? 0) * 100),
-      unit: 'ms',
-    },
-    'cumulative-layout-shift': {
-      value: lhr.audits['cumulative-layout-shift'].numericValue ?? 0,
-      score: Math.round((lhr.audits['cumulative-layout-shift'].score ?? 0) * 100),
-      unit: '',
-    },
-    interactive: {
-      value: lhr.audits['interactive'].numericValue ?? 0,
-      score: Math.round((lhr.audits['interactive'].score ?? 0) * 100),
-      unit: 'ms',
-    },
-    'color-contrast': {
-      value: 0,
-      score: Math.round((lhr.audits['color-contrast'].score ?? 0) * 100),
-      unit: '',
-    },
-    'tap-targets': {
-      value: 0,
-      score: Math.round((lhr.audits['tap-targets'].score ?? 0) * 100),
-      unit: '',
-    },
-    'meta-description': {
-      value: 0,
-      score: Math.round((lhr.audits['meta-description'].score ?? 0) * 100),
-      unit: '',
-    },
-  };
+  // 2) Metrics
+  const metrics: PSIResult['metrics'] = metricsConfig.reduce((acc, { id, unit }) => {
+    const audit = (lhr.audits[id] ?? {}) as LHAudit;
+    const rawValue =
+      typeof audit.numericValue === 'number'
+        ? audit.numericValue
+        : parseFloat(audit.displayValue ?? '') || 0;
+    const score = Math.round((audit.score ?? 0) * 100);
+    acc[id] = { value: rawValue, score, unit };
+    return acc;
+  }, {} as PSIResult['metrics']);
 
-  // Screenshots
+  // 3) Screenshots
   const screenshots: string[] = [];
-  const film = lhr.audits['final-screenshot'];
-  if (film && (film.details as any)?.data) {
-    screenshots.push((film.details as any).data);
+
+  // final-screenshot
+  {
+    const a = lhr.audits['final-screenshot'] as LHAudit | undefined;
+    if (a?.details && typeof (a.details as DetailsWithData).data === 'string') {
+      screenshots.push((a.details as DetailsWithData).data);
+    }
   }
 
-  // Raw audits
-  const audits = Object.entries(lhr.audits).reduce<Record<string, any>>(
-    (acc, [id, audit]) => {
-      acc[id] = {
-        displayValue: audit.displayValue,
-        details:      audit.details,
-        score:        audit.score,
-      };
-      return acc;
-    },
-    {}
-  );
+  // full-page fallback
+  if (screenshots.length === 0) {
+    const b = lhr.audits['full-page-screenshot'] as LHAudit | undefined;
+    if (b?.details && typeof (b.details as DetailsWithData).data === 'string') {
+      screenshots.push((b.details as DetailsWithData).data);
+    }
+  }
+
+  // 4) Audits: only include displayValue, score, and details.data
+  const audits: PSIResult['audits'] = {};
+  for (const [key, audit] of Object.entries(lhr.audits) as [string, LHAudit][]) {
+    const { score, displayValue, details } = audit;
+    let d: { data: string } | undefined;
+    if (details && typeof (details as DetailsWithData).data === 'string') {
+      d = { data: (details as DetailsWithData).data };
+    }
+    audits[key] = { score: score ?? undefined, displayValue, details: d };
+  }
 
   return { categories, metrics, screenshots, audits };
 }

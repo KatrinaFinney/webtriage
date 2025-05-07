@@ -1,7 +1,96 @@
-/* src/app/components/ScanLoader.module.css */
+/* src/app/styles/ScanLoader.module.css */
+
+/* wrapper & positioning */
+.wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10vh; /* push loader toward top so result text sits vertically centered */
+}
+
+/* loader container + pulse */
+.loaderContainer {
+  width: 5vw;
+  max-width: 80px;
+  aspect-ratio: 1;
+  position: relative;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* main rotating loader (inner div) */
 .loader {
-    width: 80px;
-    height: 80px;
-    margin: auto;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* gradient circle glow */
+.gradientCircle {
+  filter: drop-shadow(0 0 6px #4fd1c5);
+}
+
+/* shimmer highlight via pseudo‑element */
+.loaderContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  mask-image: linear-gradient(120deg, transparent 30%, white 50%, transparent 70%);
+  mask-size: 200% 100%;
+  animation: slide 1.2s infinite;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* result message styling */
+.resultMessage {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 1rem;
+  color: #edf2f7;
+}
+
+/* keyframes */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
   }
-  
+  50% {
+    transform: scale(0.95);
+    opacity: 0.85;
+  }
+}
+
+@keyframes slide {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(50%); }
+}
+
+/* accessibility: disable non‑critical motion */
+@media (prefers-reduced-motion: reduce) {
+  .loaderContainer,
+  .loaderContainer::before {
+    animation: none;
+  }
+}
+/* Increase size and enforce circular shape */
+.loaderContainer {
+  width: 10vw;
+  max-width: 140px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Make it a bit smaller on very narrow screens */
+@media (max-width: 600px) {
+  .loaderContainer {
+    width: 40vw;
+    max-width: 100px;
+  }
+}
