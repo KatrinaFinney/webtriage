@@ -7,9 +7,9 @@ import { vitalLabels }                from '@/lib/vitalLabels';
  * ── Labels for your four high‑level categories
  */
 export const categoryLabels: Record<CategoryKey, string> = {
-  performance      : 'Vital Speed',
-  accessibility    : 'Inclusive Access',
-  seo              : 'Search Visibility',
+  performance      : 'Performance',
+  accessibility    : 'Accessibility',
+  seo              : 'SEO',
   'mobile-friendly': 'Mobile Ease',
 };
 

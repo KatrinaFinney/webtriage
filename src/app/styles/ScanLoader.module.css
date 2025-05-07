@@ -6,16 +6,34 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 10vh; /* push loader toward top so result text sits vertically centered */
+  /* more top margin on mobile so results end up centered */
+  margin-top: 10vh;
+}
+@media (max-width: 600px) {
+  .wrapper {
+    margin-top: 20vh;
+  }
 }
 
 /* loader container + pulse */
 .loaderContainer {
-  width: 5vw;
-  max-width: 80px;
+  /* base size: 12vw up to 160px */
+  width: 12vw;
+  max-width: 160px;
   aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
   position: relative;
   animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* make it bigger on very narrow screens */
+@media (max-width: 600px) {
+  .loaderContainer {
+    /* full width of container minus padding */
+    width: 60vw;
+    max-width: 200px;
+  }
 }
 
 /* main rotating loader (inner div) */
@@ -30,7 +48,7 @@
   filter: drop-shadow(0 0 6px #4fd1c5);
 }
 
-/* shimmer highlight via pseudo‑element */
+/* shimmer highlight via pseudo-element */
 .loaderContainer::before {
   content: '';
   position: absolute;
@@ -69,28 +87,10 @@
   100% { transform: translateX(50%); }
 }
 
-/* accessibility: disable non‑critical motion */
+/* accessibility: disable non-critical motion */
 @media (prefers-reduced-motion: reduce) {
   .loaderContainer,
   .loaderContainer::before {
     animation: none;
-  }
-}
-/* Increase size and enforce circular shape */
-.loaderContainer {
-  width: 10vw;
-  max-width: 140px;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  overflow: hidden;
-  position: relative;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-/* Make it a bit smaller on very narrow screens */
-@media (max-width: 600px) {
-  .loaderContainer {
-    width: 40vw;
-    max-width: 100px;
   }
 }

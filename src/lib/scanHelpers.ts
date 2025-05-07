@@ -37,7 +37,7 @@ export function buildHeroSummary(c: PSIResult['categories']): string {
 ──────────────────────────────────────────────────────────── */
 export function plainSummary(categories: PSIResult['categories']): string {
   const pct = (n: number) => `${Math.round(n * 100)}/100`;
-  const { performance, accessibility, seo, 'mobile-friendly': mobile } = categories;
+  const { performance, accessibility, seo } = categories;
 
   return (
     `Vitals Summary: your site is ${
@@ -45,7 +45,6 @@ export function plainSummary(categories: PSIResult['categories']): string {
     } with a performance score of ${pct(performance.score)}. ` +
     `Accessibility stands at ${pct(accessibility.score)}, ` +
     `search visibility at ${pct(seo.score)}, ` +
-    `and mobile ease at ${pct(mobile?.score ?? 1)}. ` +
     `See the cards below for the highest-impact fixes.`
   );
 }
