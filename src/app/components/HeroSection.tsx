@@ -10,14 +10,12 @@ export default function HeroSection() {
   const [domain, setDomain] = useState('');
   const [isMobile, setIsMobile] = useState(false);
 
-  // Determine current domain on the client side
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setDomain(window.location.hostname);
     }
   }, []);
 
-  // Watch for mobile breakpoint
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
@@ -46,41 +44,38 @@ export default function HeroSection() {
           webtriage.pro
         </div>
 
+        {/* Combined hero section */}
         <div
           className={`${styles.heroContent} ${
             isMobile ? styles.heroContentMobile : ''
           }`}
         >
           <h1 className={styles.title}>
-            Website Problems?
-            <br />
-            Let’s Fix That.
+            Need Website Care?
           </h1>
           <p className={styles.subtitle}>
-            Fast, precise, worry-free support whenever your website needs it.
+            We&apos;re Here to Help.
           </p>
-        </div>
-
-        <div className={styles.freeAidCard}>
-          <p className={styles.cardText}>
-            Just need a quick checkup? Try our{' '}
-            <span
-              className={styles.freeAidLink}
+          
+          {/* Free Aid Card inside the same card */}
+          <div className={styles.freeAidCard}>
+            <p className={styles.cardText}>
+            Get Your Site&apos;s Vitals - Free.
+            </p>
+            <Button
+              className={styles.freeAidButton}
               onClick={startFreeScan}
             >
-              Free Website Check-up
-            </span>{' '}
-            at no cost.
+              Instant Website Check-up
+            </Button>
+          </div>
+
+          {/* Trust Message */}
+          <p className={styles.trustMessage}>
+            Trusted by businesses like yours for fast, reliable website care.
           </p>
-          <Button
-            className={styles.freeAidButton}
-            onClick={startFreeScan}
-          >
-            Get a Check-up
-          </Button>
         </div>
       </div>
-
     </>
   );
 }
