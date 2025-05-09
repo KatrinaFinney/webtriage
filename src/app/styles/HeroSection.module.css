@@ -102,7 +102,7 @@
   font-size: 2.60rem; /* Slightly smaller but still noticeable */
   color: #94a3b8; /* Lighter color to create contrast */
   line-height: 1.6;
-  margin-bottom: 1rem;
+  margin-bottom: 0rem;
   font-weight: 500;
   margin-top: 0; /* Removed to bring it even closer to title */
 }
