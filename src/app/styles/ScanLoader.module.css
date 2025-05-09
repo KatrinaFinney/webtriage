@@ -1,23 +1,21 @@
-/* src/app/styles/ScanLoader.module.css */
-
 /* wrapper & positioning */
 .wrapper {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* more top margin on mobile so results end up centered */
   margin-top: 10vh;
 }
+
+/* on very small screens, lift loader higher */
 @media (max-width: 600px) {
   .wrapper {
-    margin-top: 20vh;
+    margin-top: 15vh;
   }
 }
 
 /* loader container + pulse */
 .loaderContainer {
-  /* base size: 12vw up to 160px */
   width: 12vw;
   max-width: 160px;
   aspect-ratio: 1;
@@ -27,28 +25,27 @@
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-/* make it bigger on very narrow screens */
+/* small screens: scale up loader */
 @media (max-width: 600px) {
   .loaderContainer {
-    /* full width of container minus padding */
     width: 60vw;
     max-width: 200px;
   }
 }
 
-/* main rotating loader (inner div) */
+/* main rotating loader */
 .loader {
   width: 100%;
   height: 100%;
   position: relative;
 }
 
-/* gradient circle glow */
+/* gradient glow */
 .gradientCircle {
   filter: drop-shadow(0 0 6px #4fd1c5);
 }
 
-/* shimmer highlight via pseudo-element */
+/* shimmer highlight */
 .loaderContainer::before {
   content: '';
   position: absolute;
@@ -62,7 +59,7 @@
   background: rgba(255, 255, 255, 0.6);
 }
 
-/* result message styling */
+/* result message */
 .resultMessage {
   margin-top: 1rem;
   text-align: center;
@@ -72,25 +69,52 @@
 
 /* keyframes */
 @keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(0.95);
-    opacity: 0.85;
-  }
+  0%,100% { transform: scale(1); opacity: 1; }
+  50%    { transform: scale(0.95); opacity: 0.85; }
 }
-
 @keyframes slide {
-  0% { transform: translateX(0); }
+  0%   { transform: translateX(0); }
   100% { transform: translateX(50%); }
 }
 
-/* accessibility: disable non-critical motion */
+/* reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .loaderContainer,
   .loaderContainer::before {
     animation: none;
   }
+}
+/* Tooltip wrapper */
+.tooltipWrapper {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+  margin: 0 0.25rem;
+  color: #94a3b8;
+  transition: color 0.2s;
+}
+.tooltipWrapper:hover {
+  color: #fff;
+}
+/* Hidden text that appears on hover */
+.tooltipText {
+  visibility: hidden;
+  opacity: 0;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  text-align: center;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  position: absolute;
+  z-index: 10;
+  top: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.75rem;
+  transition: opacity 0.2s;
+}
+.tooltipWrapper:hover .tooltipText {
+  visibility: visible;
+  opacity: 1;
 }

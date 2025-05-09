@@ -2,15 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Modal from './Modal';
 import styles from '../styles/HeroSection.module.css';
 import Button from '../components/Button';
 
 export default function HeroSection() {
   const router = useRouter();
   const [domain, setDomain] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   // Determine current domain on the client side
@@ -28,24 +25,14 @@ export default function HeroSection() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const openForm = (service: string) => {
-    if (service === 'First Aid') {
-      router.push(`/scan?site=${encodeURIComponent(domain)}`);
-      if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
-        window.gtag('event', 'scan_started', {
-          event_category: 'Hero CTA',
-          event_label: service,
-        });
-      }
-    } else {
-      setSelectedService(service);
-      setShowForm(true);
-      if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
-        window.gtag('event', 'form_open', {
-          event_category: 'Hero CTA',
-          event_label: service,
-        });
-      }
+  const startFreeScan = () => {
+    if (!domain) return;
+    router.push(`/scan?site=${encodeURIComponent(domain)}`);
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+      window.gtag('event', 'scan_started', {
+        event_category: 'CTA',
+        event_label: 'Free Scan',
+      });
     }
   };
 
@@ -79,26 +66,21 @@ export default function HeroSection() {
             Just need a quick checkup? Try our{' '}
             <span
               className={styles.freeAidLink}
-              onClick={() => openForm('First Aid')}
+              onClick={startFreeScan}
             >
-              Free First Aid Scan
+              Free Website Check-up
             </span>{' '}
             at no cost.
           </p>
           <Button
             className={styles.freeAidButton}
-            onClick={() => openForm('First Aid')}
+            onClick={startFreeScan}
           >
-            Get First Aid
+            Get a Check-up
           </Button>
         </div>
       </div>
 
-      <Modal
-        isOpen={showForm}
-        onClose={() => setShowForm(false)}
-        selectedService={selectedService || undefined}
-      />
     </>
   );
 }

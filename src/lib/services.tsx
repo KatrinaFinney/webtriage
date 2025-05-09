@@ -62,11 +62,11 @@ export const ALL_SERVICES: Service[] = [
   },
   {
     slug:  'security',
-    title: 'Security & Compliance',
+    title: 'Security & Compliance Package',
     summary: 'Protect your site & meet industry standards.',
     description:
       'Safeguard your online presence with a thorough security audit, proactive threat mitigation, and compliance reviews. Build trust by ensuring your website meets the highest industry standards.',
-    price: '$179',
+    price: '$299',
     cta:   'Secure My Site',
     link:  '/order?service=Security%20Compliance',
     get name() { return this.title; },

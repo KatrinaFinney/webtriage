@@ -34,7 +34,6 @@ function setFavicon(href: string) {
   link.href = href;
 }
 
-// --- NEW: explicit payload type for status endpoint ---
 type ScanStatusPayload = {
   logs: string[];
   status: 'pending' | 'done' | 'error';
@@ -54,6 +53,18 @@ export default function ScanPage() {
   const [errorMsg, setErrorMsg] = useState<string|null>(null);
   const [msgIndex, setMsgIndex] = useState(0);
   const [loaderComplete, setLoaderComplete] = useState(false);
+
+  const badge = (
+    <a
+      href="https://webtriage.pro"
+      target="_blank"
+      rel="noopener noreferrer"
+      className={styles.badge}
+    >
+      <span className={styles.badgeDot} />
+      webtriage.pro
+    </a>
+  );
 
   /* Phase-based title + favicon updates */
   useEffect(() => {
@@ -112,9 +123,7 @@ export default function ScanPage() {
       try {
         const res = await fetch(`/api/scan/status/${scanId}`, { cache: 'no-store' });
         if (!res.ok) throw new Error(`Status ${res.status}`);
-        // --- UPDATED: cast to our explicit type ---
         const payload = await res.json() as ScanStatusPayload;
-        console.log('🛠 scan status payload:', payload);
         setLogs(payload.logs);
 
         if (payload.status === 'error') {
@@ -151,6 +160,7 @@ export default function ScanPage() {
   if (phase === 'form') {
     return (
       <div className={styles.page}>
+        {badge}
         <ScanForm
           domain={domain}
           email={email}
@@ -165,6 +175,7 @@ export default function ScanPage() {
   if (phase === 'pending') {
     return (
       <div className={styles.page}>
+        {badge}
         <div className={styles.scanningContainer}>
           <div className={styles.loaderWrapper}>
             <ScanLoader
@@ -190,6 +201,7 @@ export default function ScanPage() {
   if (phase === 'error') {
     return (
       <div className={styles.page}>
+        {badge}
         <div className={styles.glassCard}>
           <h2>Oops, something went wrong</h2>
           <p style={{ color: '#f88', margin: '1rem 0' }}>{errorMsg}</p>
@@ -210,6 +222,7 @@ export default function ScanPage() {
   // results
   return (
     <div className={styles.page}>
+      {badge}
       {result && (
         <ScanResults
           domain={domain}

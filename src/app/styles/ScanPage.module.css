@@ -1,3 +1,183 @@
+/* ── Time-ago styling ─────────────────────────────────────── */
+.timeAgo {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.timeAgo::before {
+  content: '⏱';
+  font-size: 0.85rem;
+}
+/* ── Snapshot bullet list ─────────────────────────────────── */
+.summaryList {
+  margin-top: 1rem;
+  list-style: none;
+  padding: 0;
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.summaryList li {
+  margin-bottom: 0.5rem;
+}
+.summaryList strong {
+  color: #fff;
+}
+
+
+/* ── Vital Stat Card redesign ────────────────────────────── */
+.vitalCard {
+  width: 100%;
+  max-width: 250px;
+  background: #112c56;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.vitalCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+}
+
+/* Border colors by level */
+.vitalExcellent { border-color: #2dc45a; }
+.vitalGood      { border-color: #f6c343; }
+.vitalFair      { border-color: #f29f05; }
+.vitalPoor      { border-color: #e53e3e; }
+
+/* Icon at top */
+.vitalIcon {
+  font-size: 2rem;
+}
+
+/* Label */
+.vitalLabel {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4fd1c5;
+  text-transform: capitalize;
+}
+
+/* Big score */
+.vitalScore {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* Short human-friendly explanation */
+.vitalExplanation {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  text-align: center;
+}
+/* ── Detailed metric cards ─────────────────────────────── */
+.metricCard {
+  background: #112c56;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  max-width: 280px;
+  width: 100%;
+}
+.metricCard .radial {
+  margin: 0.5rem auto; /* auto left/right centering + some vertical breathing room */
+  display: block;      /* make sure margin auto works */
+}
+.metricCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+}
+.metricTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4fd1c5;
+}
+.metricValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+}
+.metricScore {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+.metricNarrative {
+  font-size: 0.9rem;
+  color: #e2e8f0;
+  margin: 0.25rem 0;
+}
+.metricDesc {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-top: auto;
+  text-align: left;
+}
+
+/* ── Color-coded borders by status ─────────────────────── */
+.statusExcellent { border-color: #2dc45a; }
+.statusGood      { border-color: #f6c343; }
+.statusFair      { border-color: #f29f05; }
+.statusPoor      { border-color: #e53e3e; }
+/* ── Badge (fixed top-left) ───────────────────────────────── */
+.badge {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 77, 77, 0.5);
+  box-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
+  font-family: Space Grotesk, sans-serif;
+  font-size: 0.95rem;
+  color: #ff4d4d;
+  animation:
+    pulseBadge 2.5s ease-in-out infinite,
+    fadeIn    1s   ease-out   forwards;
+  opacity: 0;
+  z-index: 1000;
+}
+
+.badgeDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ff4d4d;
+  animation: heartbeat 1.3s infinite ease-in-out;
+}
+
+@keyframes pulseBadge {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.6; }
+}
+
+@keyframes heartbeat {
+  0%,100% { transform: scale(1); }
+  14%,28% { transform: scale(1.3); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+
 /* ── Layout shell ───────────────────────────────────────────── */
 .page{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
@@ -61,34 +241,99 @@
 .cardScore{font-size:1.9rem;font-weight:800;color:#fff;}
 .cardSummary{font-size:.85rem;color:#94a3b8;line-height:1.4;}
 
-/* ── “Instant preview” screenshots ────────────────────────── */
+
+
+/* ── Instant-preview box ───────────────────────────────── */
+.previewBox {
+  width: 100%;
+  max-width: 640px;
+  margin: 2rem auto;
+  border: 2px solid #112c56;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #0f2344;
+  box-shadow: 0 4px 12px rgba(0,0,0,.35);
+}
+
+.previewImg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* …the rest of your ScanPage.module.css stays exactly as before… */
+
+
+
+/* ── Layout shell ─────────────────────────────────────────── */
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: #071a2f;
+  color: #fff;
+}
+
+/* ── Form container ───────────────────────────────────────── */
+.formContainer {
+  width: 100%;
+  max-width: 28rem;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  background: #0f2344;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  text-align: center;
+}
+
+/* mobile: lift form higher */
+@media (max-width: 600px) {
+  .formContainer {
+    margin-top: 15vh;
+  }
+}
+
+.title {
+  font-size: 1.9rem;
+  font-weight: 800;
+}
+.subtext {
+  color: #94a3b8;
+  font-size: 1rem;
+}
+
+/* ── Screenshot grid & wrappers ──────────────────────────── */
 .screenshotContainer {
   display: grid;
   gap: 1.25rem;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  justify-items: center;    /* center each column */
+  justify-items: center;
   margin: 2rem 0;
 }
 
 .screenshotWrapper {
   width: 100%;
-  max-width: 640px;         /* adjust to taste */
-  aspect-ratio: 16 / 9;     /* lock to your image ratio */
+  max-width: 640px;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
+
 .screenshotWrapper img {
   width: 100%;
   height: 100%;
-  object-fit: contain;      /* letterbox if needed, no distortion */
+  object-fit: contain;
   display: block;
 }
 
-.screenshotCentered{
-  border-radius:.5rem;box-shadow:0 4px 12px rgba(0,0,0,.35);
-  max-width:100%;height:auto;
-}
+/* ── Glass-card, headings, grid, etc. ─────────────────────── */
+/* ... keep the rest of your existing ScanPage.module.css ... */
+
 /* ── services / upsell ────────────────────────────────────── */
 .nextSteps{margin-top:3rem;width:100%;max-width:880px;}
 .nextStepsTitle{font-size:1.65rem;font-weight:800;margin-bottom:.4rem;}
@@ -251,6 +496,8 @@
   letter-spacing: -0.01em;
 }
 /* ScanPage.module.css */
+
+
 .metricCard:hover { transform:translateY(-4px) scale(1.02); }
 .metricCard:active{ transform:scale(0.98); }
 /* ── Glass‑card wrapper ─────────────────────────────────────── */
@@ -304,20 +551,19 @@
   color: #4fd1c5;
 }
 
-.dashboardGrid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
 .dashboardCard {
-  background: #0f2344;
-  padding: 1.25rem;
+  background: #112c56;
+  padding: 1rem;
   border-radius: 0.75rem;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.dashboardCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.4);
 }
 
 .dashboardCard h4 {
@@ -351,7 +597,10 @@
 
 /* Base: 1‑column on smallest screens */
 .dashboardGrid {
-  grid-template-columns: 1fr;
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  justify-items: center;
 }
 
 /* Mobile phones: stack sections, tighten padding */
@@ -443,12 +692,6 @@
   font-weight: 700;
   margin-bottom: 1rem;
   color: #4fd1c5;
-}
-
-.dashboardGrid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .dashboardCard {
@@ -629,9 +872,9 @@
   text-align: left;
 }
 .vitalExplanation {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #94a3b8;
-  margin-top: 0.25rem;
+  text-align: center;
 }
 .dashboardGrid {
   display: grid;
@@ -639,4 +882,158 @@
   gap: 1.5rem;
   justify-items: center; /* ← centers each card */
 }
+
+/* Opt-in note under the form button */
+.optInNote {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  line-height: 1.4;
+  text-align: center;
+}
+/* ensure the form container is the badge’s positioning context */
+.formContainer {
+  position: relative;
+}
+/* ── DESIGN REFRESH: Vital Stats & Key Vitals ───────────────── */
+
+
+/* Shared card base */
+.dashboardCard,
+.metricCard {
+  background:    var(--card-bg);
+  border-radius: 0.75rem;
+  padding:       1.5rem;
+  display:       flex;
+  flex-direction: column;
+  gap:           0.75rem;
+  box-shadow:    0 2px 6px rgba(0,0,0,0.2);
+  transition:    transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover lift */
+.dashboardCard:hover,
+.metricCard:hover {
+  transform:    translateY(-6px);
+  box-shadow:   0 12px 24px rgba(0,0,0,0.3);
+}
+
+/* Vital Stats card tweaks */
+.dashboardCard h4 {
+  font-size:   1.25rem;
+  font-weight: 600;
+  color:       var(--text-primary);
+  margin:      0 0 0.5rem;
+}
+
+.dashboardCard p strong {
+  font-size:   1.75rem;
+  font-weight: 700;
+  color:       #fff;
+  display:     block;
+  margin:      0.25rem 0;
+}
+
+.dashboardCard .vitalExplanation {
+  font-size:   0.9rem;
+  color:       var(--text-secondary);
+  line-height: 1.4;
+  margin-top:  0.5rem;
+}
+
+/* Key Vitals card tweaks */
+.metricCard {
+  border: 2px solid transparent;
+  padding: 1.5rem;
+}
+
+.metricCard:hover {
+  border-color: var(--accent-color);
+}
+
+.metricTitle {
+  font-size:   1.1rem;
+  font-weight: 600;
+  color:       var(--accent-color);
+  margin:      0;
+}
+
+.metricValue {
+  font-size:   1.75rem;
+  font-weight: 700;
+  color:       #fff;
+  margin:      0.25rem 0;
+}
+
+.metricScore {
+  font-size:   1rem;
+  font-weight: 600;
+  color:       var(--text-secondary);
+}
+
+.metricNarrative {
+  font-size:   0.95rem;
+  color:       var(--text-primary);
+  margin:      0.5rem 0;
+}
+
+.metricDesc {
+  font-size:   0.85rem;
+  color:       var(--text-secondary);
+  margin-top:  auto;
+  text-align:  left;
+}
+
+/* Status-border helper (already in your CSS, now drawing from var) */
+.statusExcellent { border-color: var(--accent-strong); }
+.statusGood      { border-color: var(--accent-color);   }
+.statusFair      { border-color: #f29f05;               }
+.statusPoor      { border-color: #e53e3e;               }
+/* ── Radial Score Label ───────────────────────────────────── */
+.metricScoreLabel {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+  text-align: center;
+}
+
+/* Italics + bold in narratives/styles already covered by <em> and <strong> */
+
+/* Tooltip wrapper */
+.tooltipWrapper {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+  margin: 0 0.25rem;
+  color: #94a3b8;
+  transition: color 0.2s;
+}
+.tooltipWrapper:hover {
+  color: #fff;
+}
+/* Hidden text that appears on hover */
+.tooltipText {
+  visibility: hidden;
+  opacity: 0;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  text-align: center;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  position: absolute;
+  z-index: 10;
+  top: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.75rem;
+  transition: opacity 0.2s;
+}
+.tooltipWrapper:hover .tooltipText {
+  visibility: visible;
+  opacity: 1;
+}
+
 

@@ -135,7 +135,7 @@ export default function IntakeForm({ onSuccess, selectedService }: IntakeFormPro
             required
           >
             <option value="">Select a service</option>
-            <option value="First Aid">First Aid</option>
+            <option value="Website Check-up">Website Check-up</option>
             <option value="Site Triage">Site Triage</option>
             <option value="Emergency Fix">Emergency Fix</option>
             <option value="Continuous Care">Continuous Care</option>
