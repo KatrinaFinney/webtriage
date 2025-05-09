@@ -57,10 +57,10 @@ export default function HeroSection() {
             We&apos;re Here to Help.
           </p>
           
-          {/* Free Aid Card inside the same card */}
-          <div className={styles.freeAidCard}>
+          {/* "Get Your Site's Vitals" and Button moved into hero section */}
+          <div className={styles.vitalsContent}>
             <p className={styles.cardText}>
-            Get Your Site&apos;s Vitals - Free.
+              Get Your Site&apos;s Vitals - Free.
             </p>
             <Button
               className={styles.freeAidButton}
