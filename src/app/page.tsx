@@ -3,10 +3,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import VantaBackground from './components/VantaBackground';
 import HeroSection from './components/HeroSection';
 import PricingSection from './components/PricingSection';
-import ServicesSection from './components/ServicesSection';
 import TrustSection from './components/TrustSection';
 import FaqSection from './components/FaqSection';
 import CallToAction from './components/CallToAction';
@@ -44,9 +42,6 @@ export default function HomePage() {
     <>
       {/* Hero with Vanta background */}
         <HeroSection />
-     
-      {/* Traveling red line divider */}
-      <div className="travelingLine" />
 
       <main style={{ backgroundColor: '#0a1128' }}>
 

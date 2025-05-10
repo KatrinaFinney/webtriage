@@ -1,7 +1,7 @@
 .container {
   position: relative;
   width: 100%;
-  min-height: 85vh;
+  min-height: 100vh;
   padding: 2rem 1rem 1rem;
   display: flex;
   flex-direction: column;
@@ -68,6 +68,7 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 1rem;
   padding: 2.5rem 2rem;
+  margin-bottom: 2.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -222,21 +223,29 @@
     font-size: 1rem;
     padding: 0.75rem 1.5rem;
   }
+  .container {
+    min-height: 100vh;
+  }
 }
 /* in your global styles or HeroSection.module.css */
 
+/* Reset the full‐screen flex‐container on small screens */
 @media (max-width: 768px) {
   .container {
-    /* pin to start but add top padding equal to ~20% of viewport height */
-    justify-content: flex-start;
-    padding-top: 15vh;     /* nudge it down by 20% of screen height */
-    /* keep bottom padding as before */
-    padding-right: 1rem;
-    padding-left: 1rem;
-    padding-bottom: 1rem;
+    /* Remove the forced 100vh */
+    min-height: auto !important;
+    /* Disable flex centering so the container hugs its content */
+    display: block !important;
+    padding: 3rem 2rem;    /* or whatever top/bottom padding you want */
   }
 
-  .heroContentMobile {
-    margin-top: 0;        /* no extra margin here */
+  /* Center the hero card within the new, auto‐sized container */
+  .heroContent {
+    /* Add a top margin based on viewport height to roughly center vertically */
+    margin: 10vh auto 2rem; 
+    margin-bottom: 3rem;
+    /* Keep the bottom margin so the pulsing line below is visible */
+    max-width: 90vw;
   }
 }
+

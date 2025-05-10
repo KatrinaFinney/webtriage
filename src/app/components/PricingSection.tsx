@@ -113,7 +113,7 @@ export default function PricingSection() {
         viewport={{ once: true }}
       >
         <div className={styles.inner}>
-          <h2 className={styles.title}>Tailored Treatment Options</h2>
+          <h2 className={styles.title}>Choose A Care Option</h2>
           <p className={styles.intro}>
             Choose the level of care that fits your needs—from a quick triage
             to a full recovery plan.

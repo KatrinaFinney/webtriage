@@ -3,7 +3,7 @@
 /* —————————————————————————————— */
 .pricingSection {
   background-color: transparent; /* ✅ Keep it glassy over dark bg */
-  padding: 5rem 2rem;
+  padding: 1rem 2rem;
   max-width: 1080px;
   margin: 0 auto;
   text-align: center;
