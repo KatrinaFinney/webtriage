@@ -215,7 +215,7 @@
   }
 
   .cardText {
-    font-size: 1.5rem;
+    font-size: 1rem;
     padding-top: 0;
   }
 
@@ -248,4 +248,11 @@
     max-width: 90vw;
   }
 }
-
+@media (max-width: 480px) {
+  .title {
+    font-size: 2rem;  /* a sweet spot for small phones */
+  }
+  .subtitle {
+    font-size: 1.5rem;  /* keeps the subtitle readable but not huge */
+  }
+}
