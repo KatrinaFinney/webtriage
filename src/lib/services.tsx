@@ -6,30 +6,34 @@ import type { PSIResult } from '@/types/webVitals';
 
 /* ── Shape for every service card / upsell ─────────────────────── */
 export interface Service {
-  /* internal */
-  slug:   string;     // url‑safe ID (“perf-seo”, “triage”, …)
+  slug:        string;       // url-safe ID (“perf-seo”, “triage”, …)
+  title:       string;       // headline
+  summary:     string;       // one-liner
+  description: string;       // longer blurb (accordion / modal)
+  features:    string[];     // list of deliverables/benefits
+  price:       string;       // e.g. “$149” or “$499 /mo”
+  cta:         string;       // button text
+  link:        string;       // checkout / intake URL
 
-  /* public copy */
-  title:  string;     // headline on the card
-  summary:string;     // short one‑liner
-  description:string; // longer blurb (used in accordion / modal)
-  price:  string;     // e.g. “$149” or “$499 / mo”
-  cta:    string;     // button text
-  link:   string;     // checkout / intake URL
-
-  /* legacy aliases – keep old code working */
+  /* legacy aliases – kept for backwards compatibility */
   readonly name?: string;
   readonly desc?: string;
 }
 
-/* ── Master list (copied from ServicesSection) ─────────────────── */
+/* ── Master list of all services ──────────────────────────────── */
 export const ALL_SERVICES: Service[] = [
   {
     slug:  'triage',
     title: 'Site Triage',
-    summary: 'Full site diagnosis & action plan.',
+    summary: 'Comprehensive site health audit & strategic roadmap.',
     description:
-      "Get a comprehensive overview of your website's health. We evaluate performance, usability, and accessibility to deliver a tailored roadmap that pinpoints key areas for improvement.",
+      "Receive your Lighthouse performance breakdown (0–100), WCAG AA accessibility review, and mobile-responsiveness assessment. Within 24 hours we deliver an interactive PDF listing the top-5 high-impact fixes to boost speed, usability, and conversions.",
+    features: [
+      "Lighthouse performance report (0–100 score breakdown)",
+      "WCAG AA accessibility review with top-5 fix list",
+      "Mobile responsiveness assessment",
+      "Interactive PDF roadmap delivered within 24 hours",
+    ],
     price: '$99',
     cta:   'Start Triage',
     link:  '/order?service=Site%20Triage',
@@ -39,9 +43,15 @@ export const ALL_SERVICES: Service[] = [
   {
     slug:  'emergency',
     title: 'Emergency Fix',
-    summary: 'Rapid rescue for urgent site issues.',
+    summary: 'Rapid rescue & restore for critical site failures.',
     description:
-      'When a critical error strikes, our emergency team springs into action to restore functionality quickly. We resolve core issues and provide actionable insights to help prevent future problems.',
+      "When downtime strikes, we resolve critical errors in under 4 hours—restoring 99.9% uptime. You’ll receive a root-cause analysis and a prevention checklist to safeguard against future breakages.",
+    features: [
+      "Critical error resolution in under 4 hours",
+      "99.9% uptime recovery guarantee",
+      "Root-cause analysis summary",
+      "Prevention checklist to block repeat issues",
+    ],
     price: '$149',
     cta:   'Request a Fix',
     link:  '/order?service=Emergency%20Fix',
@@ -51,9 +61,15 @@ export const ALL_SERVICES: Service[] = [
   {
     slug:  'perf-seo',
     title: 'Performance & SEO Boost',
-    summary: 'Optimise speed and elevate search rankings.',
+    summary: 'Accelerate load times & climb search rankings.',
     description:
-      'Enhance your website with advanced speed optimisations and targeted SEO strategies. Enjoy faster load times, increased engagement, and improved search visibility that drive qualified traffic.',
+      "Boost your site speed by up to 40% (target Lighthouse ≥ 90) and unlock new traffic with a keyword audit and schema enhancements. We deliver a data-driven engagement uplift plan tailored to your audience.",
+    features: [
+      "Boost load speed by up to 40% (Lighthouse ≥ 90)",
+      "Targeted keyword audit with traffic impact forecast",
+      "Meta & schema optimizations for richer snippets",
+      "Engagement uplift plan based on real user data",
+    ],
     price: '$199',
     cta:   'Boost Performance',
     link:  '/order?service=Performance%20SEO%20Boost',
@@ -63,22 +79,34 @@ export const ALL_SERVICES: Service[] = [
   {
     slug:  'security',
     title: 'Security & Compliance Package',
-    summary: 'Protect your site & meet industry standards.',
+    summary: 'Fortify your site & prove regulatory compliance.',
     description:
-      'Safeguard your online presence with a thorough security audit, proactive threat mitigation, and compliance reviews. Build trust by ensuring your website meets the highest industry standards.',
+      "Eliminate vulnerabilities with a full threat scan and firewall setup that blocks 99% of common attacks. We handle GDPR cookie consent, privacy policy, and issue a compliance certificate for ADA, GDPR, and CCPA.",
+    features: [
+      "Full vulnerability scan & threat removal",
+      "Firewall rules blocking 99% of common attacks",
+      "GDPR cookie-consent & privacy policy setup",
+      "Compliance certificate for ADA, GDPR & CCPA",
+    ],
     price: '$299',
     cta:   'Secure My Site',
-    link:  '/order?service=Security%20Compliance',
+    link:  '/order?service=Security%20Compliance%20Package',
     get name() { return this.title; },
     get desc() { return this.summary; },
   },
   {
     slug:  'care',
     title: 'Continuous Care',
-    summary: 'Proactive monthly maintenance & monitoring.',
+    summary: 'Ongoing monitoring, reports & priority support.',
     description:
-      'Stay ahead of issues with regular updates, continuous monitoring, and proactive maintenance. Our dedicated team ensures your website remains secure, optimised, and ready to support your growth.',
-    price: '$499 /mo',
+      "Stay ahead of issues with real-time uptime and performance alerts, plus a detailed monthly scorecard covering performance, SEO, and security. Priority support with same-day response and quarterly growth playbooks keep you on track.",
+    features: [
+      "Real-time uptime & performance monitoring",
+      "Monthly scorecard: performance, SEO & security",
+      "Same-day response SLA for urgent issues",
+      "Quarterly growth recommendations",
+    ],
+    price: '$499 /mo',
     cta:   'Start Care Plan',
     link:  '/order?service=Continuous%20Care',
     get name() { return this.title; },
@@ -87,10 +115,16 @@ export const ALL_SERVICES: Service[] = [
   {
     slug:  'recovery',
     title: 'Full Recovery Plan',
-    summary: 'Complete overhaul for under‑performing sites.',
+    summary: 'Total site overhaul with UX/UI & strategy reset.',
     description:
-      'Transform your outdated site into a modern, fast, and engaging platform. We rebuild your frontend, enhance performance, and deliver a refreshed user experience that drives lasting success.',
-    price: 'From $999',
+      "Transform your site into a modern, lightning-fast platform (Lighthouse ≥ 95) with WCAG AA compliance. Includes dedicated PM, user-testing sessions, and a 6-month strategic roadmap with clear milestones.",
+    features: [
+      "Modern rebuild with Lighthouse ≥ 95",
+      "WCAG AA accessibility compliance",
+      "Dedicated project manager & user testing",
+      "6-month growth roadmap with milestones",
+    ],
+    price: 'From $999',
     cta:   'Plan Recovery',
     link:  '/order?service=Full%20Recovery%20Plan',
     get name() { return this.title; },
@@ -99,24 +133,19 @@ export const ALL_SERVICES: Service[] = [
 ];
 
 /* ------------------------------------------------------------------
-   Heuristic: rank services by need (lower Lighthouse score ⇒ higher)
+   Heuristic: rank services by need (lower score ⇒ higher priority)
 -------------------------------------------------------------------*/
 function weight(cat: PSIResult['categories'], slug: string): number {
   const { performance, seo } = cat;
-
-  if (slug === 'perf-seo') return (1 - performance.score) + (1 - seo.score);
-  if (slug === 'emergency') return 0.8;           // always high
-  if (slug === 'security')  return 0.6;           // medium default
-
-  /* fall‑backs */
-  if (slug === 'triage')    return 1.0;           // always show first
-  if (slug === 'care')      return 0.5;           // always show last
-
-  return 0; // default
+  if (slug === 'perf-seo')   return (1 - performance.score) + (1 - seo.score);
+  if (slug === 'emergency')  return 0.8;
+  if (slug === 'security')   return 0.6;
+  if (slug === 'triage')     return 1.0;
+  if (slug === 'care')       return 0.5;
+  return 0;
 }
 
 /** Build a sorted list tailored to the user’s scan */
 export function buildServiceRecs(cat: PSIResult['categories']): Service[] {
-  return [...ALL_SERVICES]
-    .sort((a, b) => weight(cat, b.slug) - weight(cat, a.slug));
+  return [...ALL_SERVICES].sort((a, b) => weight(cat, b.slug) - weight(cat, a.slug));
 }

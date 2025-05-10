@@ -42,47 +42,78 @@ export default function ServicesSection() {
   const services = [
     {
       title: "Site Triage",
-      summary: "Full site diagnosis & action plan.",
-      description:
-        "Get a comprehensive overview of your website's health. We evaluate performance, usability, and accessibility to deliver a tailored roadmap that pinpoints key areas for improvement.",
+      price: "$99",
+      summary: "Comprehensive site health audit & strategic roadmap.",
+      features: [
+        "Lighthouse performance report (0–100 score breakdown)",
+        "WCAG AA accessibility review with top-5 fix list",
+        "Mobile responsiveness assessment",
+        "Interactive PDF roadmap delivered within 24 hours",
+      ],
       button: "Start Triage",
     },
     {
       title: "Emergency Fix",
-      summary: "Rapid rescue for urgent site issues.",
-      description:
-        "When a critical error strikes, our emergency team springs into action to restore functionality quickly. We resolve core issues and provide actionable insights to help prevent future problems.",
+      price: "$149",
+      summary: "Rapid rescue & restore for critical site failures.",
+      features: [
+        "Critical error resolution in under 4 hours",
+        "99.9% uptime recovery guarantee",
+        "Root-cause analysis summary",
+        "Prevention checklist to block repeat issues",
+      ],
       button: "Request a Fix",
     },
     {
       title: "Performance & SEO Boost",
-      summary: "Optimize speed and elevate search rankings.",
-      description:
-        "Enhance your website with advanced speed optimizations and targeted SEO strategies. Enjoy faster load times, increased engagement, and improved search visibility that drive qualified traffic.",
+      price: "$199",
+      summary: "Accelerate load times & climb search rankings.",
+      features: [
+        "Boost load speed by up to 40% (Lighthouse score ≥ 90)",
+        "Targeted keyword audit with traffic impact forecast",
+        "Meta & schema optimizations for richer snippets",
+        "Engagement uplift plan based on user data",
+      ],
       button: "Boost Performance",
     },
     {
-      title: "Security & Compliance",
-      summary: "Protect your site & meet industry standards.",
-      description:
-        "Safeguard your online presence with a thorough security audit, proactive threat mitigation, and compliance reviews. Build trust by ensuring your website meets the highest industry standards.",
+      title: "Security & Compliance Package",
+      price: "$299",
+      summary: "Fortify your site & prove regulatory compliance.",
+      features: [
+        "Full vulnerability scan & threat removal",
+        "Firewall rules applied to stop 99% of common attacks",
+        "GDPR cookie & privacy policy setup",
+        "Compliance certificate for ADA, GDPR, CCPA",
+      ],
       button: "Secure My Site",
     },
     {
       title: "Continuous Care",
-      summary: "Proactive monthly maintenance & monitoring.",
-      description:
-        "Stay ahead of issues with regular updates, continuous monitoring, and proactive maintenance. Our dedicated team ensures your website remains secure, optimized, and ready to support your growth.",
-      button: "Start Care Plan",
+      price: "$499 / mo",
+      summary: "Ongoing monitoring, reports & priority support.",
+      features: [
+        "Real-time uptime & performance monitoring",
+        "Monthly scorecard (performance, SEO & security)",
+        "Same-day response SLA for urgent issues",
+        "Quarterly growth recommendations",
+      ],
+      button: "Start Care",
     },
     {
       title: "Full Recovery Plan",
-      summary: "Complete overhaul for underperforming sites.",
-      description:
-        "Transform your outdated site into a modern, fast, and engaging platform. We rebuild your frontend, enhance performance, and deliver a refreshed user experience that drives lasting success.",
+      price: "From $999",
+      summary: "Total site overhaul with UX/UI & strategy reset.",
+      features: [
+        "Modern rebuild with performance score ≥ 95",
+        "WCAG AA accessibility compliance",
+        "Dedicated project manager & user testing",
+        "6-month growth roadmap with milestone tracking",
+      ],
       button: "Plan Recovery",
     },
   ];
+  
 
   return (
     <>
@@ -115,7 +146,7 @@ export default function ServicesSection() {
 
                 {openIndex === idx ? (
                   <div className={styles.cardBody}>
-                    <p className={styles.cardDescription}>{svc.description}</p>
+                    <p className={styles.cardDescription}></p>
                     <Button
                       className={styles.button}
                       onClick={(e) => {

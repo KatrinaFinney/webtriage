@@ -60,7 +60,7 @@ export default function CallToAction() {
             onClick={startFreeScan}
             disabled={!domain}
           >
-            Start My Free Website Check-up
+            Free Website Check-up
           </Button>
           <Button
             className={styles.button}

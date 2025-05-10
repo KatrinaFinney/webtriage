@@ -21,7 +21,7 @@ const ScanForm: React.FC<ScanFormProps> = ({
   onStart,
 }) => (
   <div className={styles.formContainer}>
-    <h1 className={styles.title}>Free Website Check-up</h1>
+    <h1 className={styles.title}>Website Check-up</h1>
     <p className={styles.subtext}>
       Enter your domain &amp; email for instant results.
     </p>
