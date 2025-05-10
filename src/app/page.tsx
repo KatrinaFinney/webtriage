@@ -61,8 +61,6 @@ export default function HomePage() {
 
         <div className="travelingLine" />
 
-        <ServicesSection />
-
         <TrustSection />
 
         <FaqSection />

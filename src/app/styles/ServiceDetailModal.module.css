@@ -1,0 +1,147 @@
+/* src/app/styles/ServiceDetailModal.module.css */
+
+/* Backdrop */
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow-y: auto;
+    z-index: 1000;
+  }
+  
+  /* Glass-morphic modal wrapper */
+  .heroContent {
+    position: relative;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.10);      /* increased opacity */
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 1rem;
+    padding: 3rem 2.5rem;                         /* more breathing room */
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #fff;
+    text-align: center;
+    font-size: 1.125rem;                          /* larger base font */
+    line-height: 1.6;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.3s ease-in-out;
+  }
+  
+  .heroContent:hover {
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Title & Tagline */
+  .title {
+    font-family: Space Grotesk, sans-serif;
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0.75rem 0 1.5rem;
+  }
+  
+  .nurseTagline {
+    font-family: Space Grotesk, sans-serif;
+    font-size: 1.25rem;
+    font-style: italic;
+    color: #94a3b8;
+    margin-bottom: 1.75rem;
+  }
+  
+  /* Main description */
+  .description {
+    max-width: 85%;
+    margin-bottom: 1.75rem;
+    color: #d1d5db;
+  }
+  
+  /* Section cards */
+  .section {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Section headings */
+  .sectionTitle {
+    font-family: Space Grotesk, sans-serif;
+    font-size: 1.5rem;
+    color: #7dd3fc;
+    margin-bottom: 0.75rem;
+  }
+  
+  /* Lists */
+  .list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .list li {
+    margin-bottom: 0.75rem;
+    color: #cbd5e1;
+  }
+  
+  /* Two-column layout for treatment & benefits on desktop */
+  @media (min-width: 1024px) {
+    .dualGrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+  }
+  
+  /* Action buttons */
+  .actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    width: 100%;
+  }
+  
+  /* Desktop-specific tweaks */
+  @media (min-width: 1024px) {
+    .heroContent {
+      max-width: 600px;
+      padding: 3.5rem 3rem;
+    }
+    .section {
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    .sectionTitle {
+      font-size: 2rem;
+    }
+  }
+  
+  /* Mobile adjustments */
+  @media (max-width: 768px) {
+    .heroContent {
+      padding: 2rem 1rem;
+      font-size: 1rem;
+    }
+    .title {
+      font-size: 2rem;
+    }
+    .nurseTagline {
+      font-size: 1.15rem;
+    }
+    .sectionTitle {
+      font-size: 1.3rem;
+    }
+    .list li {
+      font-size: 1rem;
+    }
+  }
+  

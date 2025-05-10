@@ -785,7 +785,7 @@
 .previewWrapper {
   position: relative;
   width: 100%;
-  padding-top: 56.25%; /* 16:9 aspect ratio */
+  padding-top: 0; /* 16:9 aspect ratio */
   overflow: hidden;
   border-radius: 0.75rem;
 }

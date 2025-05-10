@@ -3,17 +3,29 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import styles from "../styles/PricingSection.module.css";
-import Modal from "./Modal";
+import Modal from "./Modal";                   // your existing intake modal
 import Button from '../components/Button';
-
+import ServiceDetailModal from "./ServiceDetailModal";
+  
 export default function PricingSection() {
-  const [showForm, setShowForm] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
+  const [showForm, setShowForm]     = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
+
+  const openDetail = (service: string) => {
+    setSelectedService(service);
+    setShowDetail(true);
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", "detail_open", {
+        event_category: "Pricing Detail",
+        event_label: service,
+      });
+    }
+  };
 
   const openForm = (service: string) => {
     setSelectedService(service);
     setShowForm(true);
-
     if (typeof window !== "undefined" && typeof window.gtag === "function") {
       window.gtag("event", "form_open", {
         event_category: "Pricing CTA",
@@ -74,7 +86,7 @@ export default function PricingSection() {
       features: [
         "24/7 uptime monitoring & emergency fixes",
         "Detailed monthly performance & SEO reports",
-        "Priority support with same‑day response",
+        "Priority support with same-day response",
       ],
       button: "Start Care",
     },
@@ -125,7 +137,7 @@ export default function PricingSection() {
                 </ul>
                 <Button
                   className={styles.button}
-                  onClick={() => openForm(service.title)}
+                  onClick={() => openDetail(service.title)}
                 >
                   {service.button}
                 </Button>
@@ -135,6 +147,18 @@ export default function PricingSection() {
         </div>
       </motion.section>
 
+      {/* Detail-first modal */}
+      <ServiceDetailModal
+        isOpen={showDetail}
+        serviceKey={selectedService}
+        onClose={() => setShowDetail(false)}
+        onStartIntake={(svc) => {
+          setShowDetail(false);
+          openForm(svc);
+        }}
+      />
+
+      {/* Then the existing intake form */}
       <Modal
         isOpen={showForm}
         onClose={() => setShowForm(false)}

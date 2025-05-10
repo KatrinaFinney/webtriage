@@ -1,8 +1,10 @@
+// src/app/components/Modal.tsx
+
 'use client';
 
 import React, { useEffect, useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import styles from '../styles/Modal.module.css'; 
+import styles from '../styles/Modal.module.css';
 import Button from '../components/Button';
 
 interface ModalProps {
@@ -11,19 +13,16 @@ interface ModalProps {
   selectedService?: string;
 }
 
-export default function Modal({
-  isOpen,
-  onClose,
-  selectedService,
-}: ModalProps) {
+export default function Modal({ isOpen, onClose, selectedService }: ModalProps) {
   const [iframeLoaded, setIframeLoaded] = useState(false);
 
-  // Build Tally URL with selected service prefilled
+  // ⚡︎ 1) Use the embed endpoint
+  // ⚡︎ 2) Prefill with the exact Tally field slug (update if yours differs)
+  const fieldKey = 'service';
+  const baseURL = 'https://tally.so/embed/mOV2q8';
   const formURL = selectedService
-    ? `https://tally.so/r/mOV2q8?service=${encodeURIComponent(
-        selectedService
-      )}`
-    : 'https://tally.so/r/mOV2q8';
+    ? `${baseURL}?${fieldKey}=${encodeURIComponent(selectedService)}`
+    : baseURL;
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -61,32 +60,19 @@ export default function Modal({
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.25, type: 'spring', stiffness: 150 }}
           >
-            <Button
-              className={styles.close}
-              onClick={onClose}
-              aria-label="Close form"
-            >
+            <Button className={styles.close} onClick={onClose} aria-label="Close form">
               &times;
             </Button>
 
             {!iframeLoaded && (
               <div className={styles.spinnerContainer}>
                 <div className={styles.spinner} />
-                <p className={styles.loadingText}>
-                  Loading secure intake form…
-                </p>
+                <p className={styles.loadingText}>Loading secure intake form…</p>
               </div>
             )}
 
-            <p
-              style={{
-                color: '#dbeafe',
-                fontSize: '0.9rem',
-                marginBottom: '0.5rem',
-              }}
-            >
-              Your request is safe and confidential. WebTriage will never sell
-              your data.
+            <p style={{ color: '#dbeafe', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+              Your request is safe and confidential. WebTriage will never sell your data.
             </p>
 
             <iframe
@@ -94,17 +80,13 @@ export default function Modal({
               width="100%"
               height="700"
               onLoad={() => setIframeLoaded(true)}
-              style={{
-                border: 'none',
-                display: iframeLoaded ? 'block' : 'none',
-              }}
+              style={{ border: 'none', display: iframeLoaded ? 'block' : 'none' }}
               title="WebTriage Intake Form"
             />
 
             {iframeLoaded && (
               <p className={styles.trustMessage}>
-                🔒 All data is encrypted and securely stored. No credit card
-                required.
+                🔒 All data is encrypted and securely stored. No credit card required.
               </p>
             )}
           </motion.div>

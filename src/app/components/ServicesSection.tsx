@@ -5,20 +5,32 @@ import { motion } from "framer-motion";
 import styles from "../styles/ServicesSection.module.css";
 import Modal from "./Modal";
 import Button from '../components/Button';
+import ServiceDetailModal from "./ServiceDetailModal";
 
 export default function ServicesSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
+  const [showForm, setShowForm]     = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
 
   const toggleCard = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  const openDetail = (service: string) => {
+    setSelectedService(service);
+    setShowDetail(true);
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", "detail_open", {
+        event_category: "Service Detail",
+        event_label: service,
+      });
+    }
+  };
+
   const openForm = (service: string) => {
     setSelectedService(service);
     setShowForm(true);
-
     if (typeof window !== "undefined" && typeof window.gtag === "function") {
       window.gtag("event", "form_open", {
         event_category: "Service CTA",
@@ -108,8 +120,8 @@ export default function ServicesSection() {
                       className={styles.button}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setOpenIndex(null);
-                        openForm(svc.title);
+                        console.log("ServicesSection → openDetail:", svc.title);
+                        openDetail(svc.title);
                       }}
                     >
                       {svc.button}
@@ -124,6 +136,18 @@ export default function ServicesSection() {
         </div>
       </motion.section>
 
+      {/* Detail-first modal */}
+      <ServiceDetailModal
+        isOpen={showDetail}
+        serviceKey={selectedService}
+        onClose={() => setShowDetail(false)}
+        onStartIntake={(svc) => {
+          setShowDetail(false);
+          openForm(svc);
+        }}
+      />
+
+      {/* Then the existing intake form */}
       <Modal
         isOpen={showForm}
         onClose={() => setShowForm(false)}
