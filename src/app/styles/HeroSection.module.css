@@ -81,7 +81,7 @@
 }
 
 .heroContentMobile {
-  margin-top: 4rem;
+  margin-top: 1rem;
   padding: 2rem 1rem;
 }
 
@@ -196,7 +196,7 @@
 /* Mobile Adjustment */
 @media (max-width: 768px) {
   .heroContent {
-    padding: 2rem 1rem;
+    padding: 1rem 1rem;
   }
 
   .freeAidCard {
