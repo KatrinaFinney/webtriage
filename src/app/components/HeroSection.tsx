@@ -72,7 +72,7 @@ export default function HeroSection() {
 
           {/* Trust Message */}
           <p className={styles.trustMessage}>
-            Trusted by businesses like yours for fast, reliable website care.
+            Trusted by businesses like yours.
           </p>
         </div>
       </div>
