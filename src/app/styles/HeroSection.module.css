@@ -236,3 +236,13 @@
     margin-top: 1rem;     /* was 4rem; drop it down */
   }
 }
+@media (max-width: 768px) {
+  .container {
+    justify-content: flex-start;  /* pin to top */
+    min-height: auto;             /* allow content to size naturally */
+  }
+
+  .heroContentMobile {
+    margin-top: 0;                /* remove any extra push-down */
+  }
+}
