@@ -43,15 +43,8 @@ export default function HomePage() {
   return (
     <>
       {/* Hero with Vanta background */}
-      <VantaBackground
-        color={0x4e8fff}
-        backgroundColor={0x0a1128}
-        points={14}
-        size={1.3}
-      >
         <HeroSection />
-      </VantaBackground>
-
+     
       {/* Traveling red line divider */}
       <div className="travelingLine" />
 

@@ -1,7 +1,7 @@
 .container {
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  min-height: 85vh;
   padding: 2rem 1rem 1rem;
   display: flex;
   flex-direction: column;
@@ -226,19 +226,17 @@
 /* in your global styles or HeroSection.module.css */
 
 @media (max-width: 768px) {
-  /* 1) Reduce the container’s top padding */
   .container {
-    padding-top: 1rem;    /* was 2rem; half it */
+    /* pin to start but add top padding equal to ~20% of viewport height */
+    justify-content: flex-start;
+    padding-top: 15vh;     /* nudge it down by 20% of screen height */
+    /* keep bottom padding as before */
+    padding-right: 1rem;
+    padding-left: 1rem;
+    padding-bottom: 1rem;
   }
 
-  /* 2) Nix the big mobile-only margin on heroContentMobile */
   .heroContentMobile {
-    margin-top: 1rem;     /* was 4rem; drop it down */
-  }
-}
-@media (max-width: 768px) {
-  
-  .heroContentMobile {
-    margin-top: 0;                /* remove any extra push-down */
+    margin-top: 0;        /* no extra margin here */
   }
 }
