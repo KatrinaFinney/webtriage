@@ -197,7 +197,8 @@
 /* Mobile Adjustment */
 @media (max-width: 768px) {
   .heroContent {
-    padding: 2rem 0.2rem;
+    padding: 3rem 0.2rem;
+    margin-bottom: 2rem;
   }
 
   .freeAidCard {
@@ -242,8 +243,8 @@
   /* Center the hero card within the new, auto‐sized container */
   .heroContent {
     /* Add a top margin based on viewport height to roughly center vertically */
-    margin: 15vh auto 2rem; 
-    margin-bottom: 2.5rem;
+    margin: 13vh auto 5rem; 
+    margin-bottom: 5rem;
     /* Keep the bottom margin so the pulsing line below is visible */
     max-width: 90vw;
   }
