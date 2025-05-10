@@ -197,7 +197,7 @@
 /* Mobile Adjustment */
 @media (max-width: 768px) {
   .heroContent {
-    padding: 1rem 1rem;
+    padding: 2rem 0.2rem;
   }
 
   .freeAidCard {
@@ -253,6 +253,7 @@
     font-size: 2rem;  /* a sweet spot for small phones */
   }
   .subtitle {
-    font-size: 1.5rem;  /* keeps the subtitle readable but not huge */
+    font-size: 1.75rem;
+    margin-bottom: 2.5rem;  /* keeps the subtitle readable but not huge */
   }
 }

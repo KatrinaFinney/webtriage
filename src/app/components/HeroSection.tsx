@@ -59,14 +59,11 @@ export default function HeroSection() {
           
           {/* "Get Your Site's Vitals" and Button moved into hero section */}
           <div className={styles.vitalsContent}>
-            <p className={styles.cardText}>
-              Get Your Site&apos;s Vitals - Free.
-            </p>
             <Button
               className={styles.freeAidButton}
               onClick={startFreeScan}
             >
-              Instant Website Check-up
+              Free Website Check-up
             </Button>
           </div>
 
