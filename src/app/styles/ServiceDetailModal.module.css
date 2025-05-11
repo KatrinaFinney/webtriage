@@ -141,4 +141,17 @@
       font-size: 1.5rem;
     }
   }
+  @media (max-width: 768px) {
+    /* 1) Push modal content down from the top of the viewport */
+    .overlay {
+      align-items: flex-start; /* stop vertical centering */
+      padding-top: 2rem;       /* give 2rem of “breathing room” */
+    }
+  
+    /* 2) If you've got any top margins on the modal itself, reset them */
+    .modal,
+    .heroContent {
+      margin-top: 0 !important;
+    }
+  }
   
