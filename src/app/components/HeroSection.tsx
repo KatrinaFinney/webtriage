@@ -72,8 +72,8 @@ export default function HeroSection() {
             Trusted by businesses like yours.
           </p>
         </div>
-        <div className="travelingLine" />
       </div>
+      <div className="travelingLine" />
     </>
   );
 }
