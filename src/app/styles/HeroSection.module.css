@@ -247,7 +247,7 @@
   /* Center the hero card within the new, auto‐sized container */
   .heroContent {
     /* Add a top margin based on viewport height to roughly center vertically */
-    margin: 13vh auto 5rem; 
+    margin: 14vh auto 5rem; 
     margin-bottom: 5rem;
     /* Keep the bottom margin so the pulsing line below is visible */
     max-width: 90vw;
