@@ -1,5 +1,3 @@
-/* src/app/styles/ServiceDetailModal.module.css */
-
 /* Backdrop */
 .backdrop {
     position: fixed;
@@ -17,19 +15,19 @@
   .heroContent {
     position: relative;
     z-index: 1;
-    background: rgba(255, 255, 255, 0.10);      /* increased opacity */
+    background: rgba(255, 255, 255, 0.10); /* Increased opacity */
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 1rem;
-    padding: 3rem 2.5rem;                         /* more breathing room */
+    padding: 2rem 2rem;
     max-width: 90vw;
     display: flex;
     flex-direction: column;
     align-items: center;
     color: #fff;
     text-align: center;
-    font-size: 1.125rem;                          /* larger base font */
+    font-size: 1.125rem;
     line-height: 1.6;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     transition: box-shadow 0.3s ease-in-out;
@@ -37,6 +35,23 @@
   
   .heroContent:hover {
     box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Close button at top right */
+  .closeButton {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    color: #ffffff;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+  
+  .closeButton:hover {
+    color: #ff4d4d;
   }
   
   /* Title & Tagline */
@@ -90,17 +105,6 @@
     color: #cbd5e1;
   }
   
-  /* Two-column layout for treatment & benefits on desktop */
-  @media (min-width: 1024px) {
-    .dualGrid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-      width: 100%;
-      margin-bottom: 1.5rem;
-    }
-  }
-  
   /* Action buttons */
   .actions {
     display: flex;
@@ -110,38 +114,31 @@
     width: 100%;
   }
   
-  /* Desktop-specific tweaks */
-  @media (min-width: 1024px) {
-    .heroContent {
-      max-width: 600px;
-      padding: 3.5rem 3rem;
-    }
-    .section {
-      padding: 2rem;
-      margin-bottom: 2rem;
-    }
-    .sectionTitle {
-      font-size: 2rem;
-    }
-  }
-  
   /* Mobile adjustments */
   @media (max-width: 768px) {
     .heroContent {
       padding: 2rem 1rem;
-      font-size: 1rem;
+      font-size: 1rem; /* Adjust font size for mobile */
     }
+  
     .title {
       font-size: 2rem;
     }
+  
     .nurseTagline {
       font-size: 1.15rem;
     }
+  
     .sectionTitle {
       font-size: 1.3rem;
     }
+  
     .list li {
       font-size: 1rem;
+    }
+  
+    .closeButton {
+      font-size: 1.5rem;
     }
   }
   

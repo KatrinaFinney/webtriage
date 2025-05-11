@@ -1,5 +1,3 @@
-// src/app/components/ServiceDetailModal.tsx
-
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
@@ -15,7 +13,7 @@ interface ServiceDetailModalProps {
   serviceKey: string | null;
 }
 
-const nurseTagline =  
+const nurseTagline =
   "🩺 We focus on your website’s health, so you can focus on what matters.";
 
 export default function ServiceDetailModal({
@@ -43,6 +41,11 @@ export default function ServiceDetailModal({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 40, opacity: 0 }}
           >
+            {/* Close button */}
+            <button className={styles.closeButton} onClick={onClose}>
+              &times;
+            </button>
+
             <h2 className={styles.title}>{svc.title}</h2>
             <p className={styles.nurseTagline}>{nurseTagline}</p>
 

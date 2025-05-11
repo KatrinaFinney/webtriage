@@ -34,76 +34,76 @@ export default function PricingSection() {
     }
   };
 
-   const services = [
+  const services = [
     {
       title: "Site Triage",
       price: "$99",
-      summary: "Comprehensive site health audit & strategic roadmap.",
+      summary: "Complete website health check & customized improvement plan.",
       features: [
-        "Lighthouse performance report (0–100 score breakdown)",
-        "WCAG AA accessibility review with top-5 fix list",
-        "Mobile responsiveness assessment",
-        "Interactive PDF roadmap delivered within 24 hours",
+        "A detailed performance report showing how fast your site is and how to improve it",
+        "An accessibility review to ensure your site is usable by everyone, including those with disabilities",
+        "A mobile-friendliness test to make sure your site works perfectly on phones and tablets",
+        "A clear, easy-to-follow improvement plan delivered within 24 hours"
       ],
       button: "Start Triage",
     },
     {
       title: "Emergency Fix",
       price: "$149",
-      summary: "Rapid rescue & restore for critical site failures.",
+      summary: "Rapid recovery for critical website issues.",
       features: [
-        "Critical error resolution in under 4 hours",
-        "99.9% uptime recovery guarantee",
-        "Root-cause analysis summary",
-        "Prevention checklist to block repeat issues",
+        "Get critical website issues fixed in under 4 hours",
+        "Guaranteed 99.9% uptime to keep your site live and working",
+        "A summary of what caused the problem and how to avoid it in the future",
+        "A list of actions to prevent future issues and improve stability"
       ],
       button: "Request a Fix",
     },
     {
       title: "Performance & SEO Boost",
       price: "$199",
-      summary: "Accelerate load times & climb search rankings.",
+      summary: "Speed up your site and improve search engine rankings.",
       features: [
-        "Boost load speed by up to 40% (Lighthouse score ≥ 90)",
-        "Targeted keyword audit with traffic impact forecast",
-        "Meta & schema optimizations for richer snippets",
-        "Engagement uplift plan based on user data",
+        "Improve site load times by up to 40% for a better user experience and faster performance",
+        "A keyword analysis to help you rank higher in search engines and attract more visitors",
+        "Optimization for better search engine visibility, including adjustments to meta tags and schema",
+        "A strategy to increase user engagement based on how visitors interact with your site"
       ],
       button: "Boost Performance",
     },
     {
       title: "Security & Compliance Package",
       price: "$299",
-      summary: "Fortify your site & prove regulatory compliance.",
+      summary: "Protect your site and ensure it meets legal requirements.",
       features: [
-        "Full vulnerability scan & threat removal",
-        "Firewall rules applied to stop 99% of common attacks",
-        "GDPR cookie & privacy policy setup",
-        "Compliance certificate for ADA, GDPR, CCPA",
+        "A full scan to detect and remove security threats and vulnerabilities",
+        "A firewall setup to block 99% of common attacks, keeping your site safe",
+        "GDPR and privacy policy setup to comply with legal requirements on cookies and data protection",
+        "A compliance certificate showing your site meets accessibility and data protection laws"
       ],
       button: "Secure My Site",
     },
     {
       title: "Continuous Care",
       price: "$499 / mo",
-      summary: "Ongoing monitoring, reports & priority support.",
+      summary: "Ongoing monitoring and support to keep your site running smoothly.",
       features: [
-        "Real-time uptime & performance monitoring",
-        "Monthly scorecard (performance, SEO & security)",
-        "Same-day response SLA for urgent issues",
-        "Quarterly growth recommendations",
+        "Real-time monitoring of your site’s performance and uptime, with alerts for any issues",
+        "A monthly report covering performance, SEO, and security updates",
+        "Priority support with a guarantee of same-day responses to urgent issues",
+        "Quarterly advice on how to improve your site and grow your online presence"
       ],
       button: "Start Care",
     },
     {
       title: "Full Recovery Plan",
       price: "From $999",
-      summary: "Total site overhaul with UX/UI & strategy reset.",
+      summary: "Complete website overhaul with a fresh design and strategy.",
       features: [
-        "Modern rebuild with performance score ≥ 95",
-        "WCAG AA accessibility compliance",
-        "Dedicated project manager & user testing",
-        "6-month growth roadmap with milestone tracking",
+        "A full website rebuild with a performance score of 95+ for faster loading times",
+        "Accessibility improvements to ensure your site complies with the latest standards",
+        "Dedicated project manager to handle everything and ensure quality testing",
+        "A 6-month growth plan with goals and milestones to track your progress"
       ],
       button: "Plan Recovery",
     },
