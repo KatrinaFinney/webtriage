@@ -142,16 +142,17 @@
     }
   }
   @media (max-width: 768px) {
-    /* 1) Push modal content down from the top of the viewport */
-    .overlay {
-      align-items: flex-start; /* stop vertical centering */
-      padding-top: 2rem;       /* give 2rem of “breathing room” */
+    /* 1) Pin the backdrop to the top, with a little breathing room */
+    .backdrop {
+      align-items: flex-start; /* stop perfectly centering */
+      padding-top: 1.5rem;     /* push down 1.5rem from the top */
     }
   
-    /* 2) If you've got any top margins on the modal itself, reset them */
-    .modal,
+    /* 2) Make sure the modal itself has no extra top margin */
     .heroContent {
       margin-top: 0 !important;
     }
   }
+  
+  
   
