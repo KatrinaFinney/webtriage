@@ -221,7 +221,7 @@
   }
 
   .freeAidButton {
-    font-size: 1rem;
+    font-size: .75rem;
     padding: 0.75rem 1.5rem;
   }
   .container {
@@ -255,10 +255,11 @@
 }
 @media (max-width: 480px) {
   .title {
-    font-size: 2rem;  /* a sweet spot for small phones */
+    font-size: 1.75rem;  /* a sweet spot for small phones */
   }
   .subtitle {
-    font-size: 1.75rem;
+    font-size: 1.25rem;
     margin-bottom: 2.5rem;  /* keeps the subtitle readable but not huge */
   }
 }
+
