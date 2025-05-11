@@ -227,6 +227,10 @@
   .container {
     min-height: 100vh;
   }
+  .trustMessage {
+    font-size: 1rem;
+  }
+  
 }
 /* in your global styles or HeroSection.module.css */
 
