@@ -197,7 +197,7 @@
 /* Mobile Adjustment */
 @media (max-width: 768px) {
   .heroContent {
-    padding: 3rem 0.2rem;
+    padding: 3rem 1rem;
     margin-bottom: 2rem;
   }
 
