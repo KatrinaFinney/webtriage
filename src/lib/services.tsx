@@ -1,7 +1,5 @@
-/* ------------------------------------------------------------------
-   src/lib/services.ts
-   Unified catalogue of WebTriage “treatments”
--------------------------------------------------------------------*/
+// src/lib/services.ts
+
 import type { PSIResult } from '@/types/webVitals';
 
 /* ── Shape for every service card / upsell ─────────────────────── */
@@ -27,7 +25,7 @@ export const ALL_SERVICES: Service[] = [
     title: 'Site Triage',
     summary: 'Comprehensive site health audit & strategic roadmap.',
     description:
-      "Receive your Lighthouse performance breakdown (0–100), WCAG AA accessibility review, and mobile-responsiveness assessment. Within 24 hours we deliver an interactive PDF listing the top-5 high-impact fixes to boost speed, usability, and conversions.",
+      "Receive your Lighthouse performance breakdown (0–100), WCAG AA accessibility review, and mobile-responsiveness assessment. Within 24 hours we deliver an interactive PDF listing the top-impact fixes so you can boost speed, usability, and conversions.",
     features: [
       "Lighthouse performance report (0–100 score breakdown)",
       "WCAG AA accessibility review with top-5 fix list",
@@ -45,7 +43,7 @@ export const ALL_SERVICES: Service[] = [
     title: 'Emergency Fix',
     summary: 'Rapid rescue & restore for critical site failures.',
     description:
-      "When downtime strikes, we resolve critical errors in under 4 hours—restoring 99.9% uptime. You’ll receive a root-cause analysis and a prevention checklist to safeguard against future breakages.",
+      "When downtime strikes, we resolve critical errors quickly—restoring 99.9% uptime. You’ll receive a root-cause analysis and a prevention checklist to safeguard against future breakages.",
     features: [
       "Critical error resolution in under 4 hours",
       "99.9% uptime recovery guarantee",
@@ -63,7 +61,7 @@ export const ALL_SERVICES: Service[] = [
     title: 'Performance & SEO Boost',
     summary: 'Accelerate load times & climb search rankings.',
     description:
-      "Boost your site speed by up to 40% (target Lighthouse ≥ 90) and unlock new traffic with a keyword audit and schema enhancements. We deliver a data-driven engagement uplift plan tailored to your audience.",
+      "Boost your site speed by up to 40% (Lighthouse ≥ 90) and unlock new traffic with a keyword audit and schema enhancements. We deliver a data-driven engagement uplift plan tailored to your audience.",
     features: [
       "Boost load speed by up to 40% (Lighthouse ≥ 90)",
       "Targeted keyword audit with traffic impact forecast",
@@ -99,7 +97,7 @@ export const ALL_SERVICES: Service[] = [
     title: 'Continuous Care',
     summary: 'Ongoing monitoring, reports & priority support.',
     description:
-      "Stay ahead of issues with real-time uptime and performance alerts, plus a detailed monthly scorecard covering performance, SEO, and security. Priority support with same-day response and quarterly growth playbooks keep you on track.",
+      "Stay ahead of issues with real-time uptime and performance alerts, plus a detailed monthly scorecard covering performance, SEO, and security. Priority support and quarterly growth playbooks keep you on track.",
     features: [
       "Real-time uptime & performance monitoring",
       "Monthly scorecard: performance, SEO & security",
